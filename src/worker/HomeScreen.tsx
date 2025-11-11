@@ -39,6 +39,7 @@ const menuItems: MenuItem[] = [
     subtitle: 'Map Location',
     emoji: '📍',
     bgColor: '#FFEBD7',
+    screen: 'Map', 
   },
   {
     id: 3,
@@ -91,6 +92,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 activeOpacity={0.8}
                 style={[styles.menuCard, { backgroundColor: item.bgColor }]}
                 onPress={() => {
+                  console.log('pressed menu:', item.title, item.screen);
                   if (item.screen) {
                     navigation.navigate(item.screen);
                   }
@@ -109,7 +111,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 {/* 공지사항 섹션 */}
       <View style={styles.noticeSection}>
         <View style={styles.noticeHeader}>
-          <Text style={styles.noticeTitle}>공지사항</Text>
+          <Text style={styles.noticeTitle}>공지 사항</Text>
           <TouchableOpacity
             style={styles.noticeAddButton}
             activeOpacity={0.8}
