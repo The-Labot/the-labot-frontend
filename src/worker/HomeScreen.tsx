@@ -54,6 +54,7 @@ const menuItems: MenuItem[] = [
     subtitle: 'Attendance',
     emoji: '⏰',
     bgColor: '#E5F7E9',
+    screen: 'Attendance',
   },
 ];
 
