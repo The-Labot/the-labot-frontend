@@ -46,6 +46,7 @@ const menuItems: MenuItem[] = [
     subtitle: 'Safety Report',
     emoji: '⚠️',
     bgColor: '#FFE5E5',
+    screen: 'HazardReport',
   },
   {
     id: 4,

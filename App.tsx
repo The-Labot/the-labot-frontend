@@ -7,19 +7,21 @@ import LoginScreen from './src/LoginScreen';
 import HomeScreen from './src/worker/HomeScreen';
 import MyPageScreen from './src/worker/MyPageScreen';
 import ManagerHomeScreen from './src/manager/ManagerHomeScreen';
+import HazardReportScreen from './src/worker/HazardReportScreen';
 
 export type RootStackParamList = {
   Login: undefined;
   WorkerHome: undefined;   // 근로자 홈
   MyPage: undefined;
   ManagerHome: undefined;  // 관리자 홈
+  HazardReport: undefined; // 위험요소 신고
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-    <NavigationContainer> 
+    <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{ headerShown: false }}
@@ -28,6 +30,7 @@ export default function App() {
         <Stack.Screen name="WorkerHome" component={HomeScreen} />
         <Stack.Screen name="MyPage" component={MyPageScreen} />
         <Stack.Screen name="ManagerHome" component={ManagerHomeScreen} />
+        <Stack.Screen name="HazardReport" component={HazardReportScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
