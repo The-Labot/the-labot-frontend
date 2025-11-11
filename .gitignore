@@ -250,3 +250,113 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows
+
+node_modules/
+.bundle/
+build/
+
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+ios/.xcode.env.local
+ios/.xcode.env
+
+.vscode/
+.idea/
+*.swp
+*.log
+*.tmp
+*.lock
+.DS_Store
+
+.watchmanconfig
+metro-cache/
+
+.env
+.env.local
+.xcode.env.local
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React Native
+.bundle/
+metro-cache/
+*.log
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+
+# iOS
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+ios/.xcode.env
+ios/.xcode.env.local
+
+# macOS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+
+# Misc
+.env
+.env.local
+.watchmanconfig
+
+# Node modules
+node_modules/
+
+# React Native
+.bundle/
+dist/
+build/
+metro-cache/
+*.log
+
+# Android build artifacts
+android/.gradle/
+android/app/.cxx/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+
+# Gradle wrapper (keep properties, ignore jar)
+android/gradle/wrapper/gradle-wrapper.jar
+
+# iOS build artifacts
+ios/Pods/
+ios/build/
+ios/DerivedData/
+ios/.xcode.env
+ios/.xcode.env.local
+ios/Podfile.lock
+
+# macOS / IDE junk
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+
+# Env files
+.env
+.env.local
