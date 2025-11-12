@@ -9,6 +9,7 @@ import MyPageScreen from './src/worker/MyPageScreen';
 import ManagerHomeScreen from './src/manager/ManagerHomeScreen';
 import HazardReportScreen from './src/worker/HazardReportScreen';
 import AttendanceScreen from './src/worker/AttendanceScreen';
+import MapScreen from './src/worker/MapScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -17,6 +18,7 @@ export type RootStackParamList = {
   ManagerHome: undefined;  // 관리자 홈
   HazardReport: undefined; // 위험요소 신고
   Attendance: undefined;
+  Map: undefined; 
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -34,6 +36,7 @@ export default function App() {
         <Stack.Screen name="ManagerHome" component={ManagerHomeScreen} />
         <Stack.Screen name="HazardReport" component={HazardReportScreen} />
         <Stack.Screen name="Attendance" component={AttendanceScreen} />
+        <Stack.Screen name="Map" component={MapScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
