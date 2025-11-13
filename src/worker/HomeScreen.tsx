@@ -14,6 +14,11 @@ import { RootStackParamList } from '../../App';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerHome'>;
+type WorkerMenuScreen =
+  | 'WorkerMyPage'
+  | 'Map'
+  | 'HazardReport'
+  | 'Attendance';
 
 type MenuItem = {
   id: number;
@@ -21,7 +26,7 @@ type MenuItem = {
   subtitle: string;
   emoji: string;
   bgColor: string;
-  screen?: keyof RootStackParamList;
+  screen: WorkerMenuScreen; 
 };
 
 const menuItems: MenuItem[] = [
@@ -31,7 +36,7 @@ const menuItems: MenuItem[] = [
     subtitle: 'My Page',
     emoji: '👤',
     bgColor: '#E5F0FF',
-    screen: 'MyPage',
+    screen: 'WorkerMyPage',
   },
   {
     id: 2,
@@ -93,9 +98,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 style={[styles.menuCard, { backgroundColor: item.bgColor }]}
                 onPress={() => {
                   console.log('pressed menu:', item.title, item.screen);
-                  if (item.screen) {
-                    navigation.navigate(item.screen);
-                  }
+                  navigation.navigate(item.screen);   // ✅ 실제 화면 이동
                 }}
               >
                 <View style={styles.menuIconWrapper}>

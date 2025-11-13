@@ -113,7 +113,7 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
                   style={[styles.navButton, isActive && styles.navButtonActive]}
                   onPress={() => {
                     if (item.id === 'my-page') {
-                      navigation.navigate('MyPage');
+                      navigation.navigate('ManagerMyPage');
                       return;
                     }
                     setActiveTab(item.id);

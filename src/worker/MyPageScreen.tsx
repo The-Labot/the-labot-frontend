@@ -14,7 +14,7 @@ import { RootStackParamList } from '../../App';
 
 import { Modal, Pressable } from 'react-native';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'MyPage'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'WorkerMyPage'>;
 
 const MyPageScreen: React.FC<Props> = ({ navigation }) => {
 const [gender, setGender] = useState<string | null>(null);
