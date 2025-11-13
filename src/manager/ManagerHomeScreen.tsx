@@ -16,6 +16,8 @@ import WorkStatusPanel from './WorkStatusPanel';
 import WorkerManagementScreen from './WorkerManagementScreen';
 import SafetyReportScreen from './SafetyReportScreen';
 import ManagerAnnouncementsScreen from './ManagerAnnouncementsScreen';
+import SafetyTrainingScreen from './SafetyTrainingScreen';
+import DailyReportScreen from './DailyReportScreen';   // ✅ 이 줄 추가
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ManagerHome'>;
 
@@ -80,17 +82,11 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
       );
-    }
-    if (activeTab === 'daily-report') {
-      return (
-        <View style={{ gap: 12 }}>
-          <View style={styles.panelContainer}>
-            <Text style={styles.panelTitle}>작업 일보 패널</Text>
-          </View>
-        </View>
-      );
+    
     }
     // 기본: 빈 뷰
+    
+
     return <View />;
   };
 
@@ -140,7 +136,9 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
           {/* ⚠️ FlatList가 내부에 있는 탭(근로자관리/공지/안전신고)은 바깥 ScrollView 금지 */}
           {activeTab === 'worker-management' ||
           activeTab === 'announcements' ||
-          activeTab === 'safety-report' ? (
+          activeTab === 'safety-report' ||
+          activeTab === 'training' ||
+          activeTab === 'daily-report' ? (
             <View
               style={{
                 flex: 1,
@@ -151,6 +149,8 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
               {activeTab === 'worker-management' && <WorkerManagementScreen />}
               {activeTab === 'announcements' && <ManagerAnnouncementsScreen />}
               {activeTab === 'safety-report' && <SafetyReportScreen />}
+              {activeTab === 'training' && <SafetyTrainingScreen />}
+              {activeTab === 'daily-report' && <DailyReportScreen />}
             </View>
           ) : (
             // 그 외 탭은 부모 ScrollView 사용 OK
