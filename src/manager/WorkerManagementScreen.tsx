@@ -115,7 +115,7 @@ export default function WorkerManagementScreen() {
   const [search, setSearch] = useState('');
   const [showPayroll, setShowPayroll] = useState(false);
   const [showCertificates, setShowCertificates] = useState(false);
-
+  const [showRegister, setShowRegister] = useState(false);  // ★ 근로자 등록 패널 표시 여부
   // Objection modal state
   const [objectionOpen, setObjectionOpen] = useState(false);
   const [objDate, setObjDate] = useState('2025-10-31');
@@ -194,7 +194,7 @@ export default function WorkerManagementScreen() {
     const b = statusBadge(item.status);
     return (
       <TouchableOpacity
-        onPress={() => { setSelectedWorker(item); setShowPayroll(false); setShowCertificates(false); }}
+        onPress={() => { setSelectedWorker(item); setShowPayroll(false); setShowCertificates(false); setShowRegister(false); }}
         style={[styles.listItem, sel && styles.listItemSelected]}
         activeOpacity={0.8}
       >
@@ -224,7 +224,14 @@ export default function WorkerManagementScreen() {
             <Text style={styles.title}>근로자 관리</Text>
             <Text style={styles.subtitle}>Worker Management</Text>
           </View>
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => Alert.alert('근로자 추가')}>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => {
+            // ★ 근로자 등록 화면 열기
+            setShowRegister(true);
+            setShowPayroll(false);
+            setShowCertificates(false);
+            setSelectedWorker(null);
+          }}
+>
             <Text style={styles.primaryBtnText}>+ 근로자 추가</Text>
           </TouchableOpacity>
 
@@ -252,129 +259,241 @@ export default function WorkerManagementScreen() {
       </View>
 
       {/* Right panel */}
-      <View style={styles.right}>
-        {!selectedWorker ? (
-          <View style={styles.empty}>
-            <Text style={{ color:'#9CA3AF', fontSize:16 }}>근로자를 선택하세요</Text>
-            <Text style={{ color:'#9CA3AF', marginTop:4, fontSize:12 }}>왼쪽 목록에서 근로자를 선택하면 상세 정보가 표시됩니다</Text>
-          </View>
-        ) : showPayroll ? (
-          <View style={styles.placeholder}><Text>급여 명세서 보기 (향후 연결)</Text></View>
-        ) : showCertificates ? (
-          <View style={styles.placeholder}><Text>자격증 보기 (향후 연결)</Text></View>
-        ) : (
-          //
-          <ScrollView style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 24, alignItems: 'center' }}
-            showsVerticalScrollIndicator={false}> 
-            <View style={[styles.card, { padding:20 }]}>
-              <View style={{ flexDirection:'row', alignItems:'center' }}>
-                <View style={[styles.bigAvatar, { backgroundColor:'#E0ECFF' }]}>
-                  <Text style={{ color:'#2563EB', fontWeight:'700', fontSize:24 }}>{selectedWorker.initial}</Text>
-                </View>
-                <View style={{ marginLeft:16 }}>
-                  <Text style={styles.name}>{selectedWorker.name}</Text>
-                  <Text style={styles.muted}>{selectedWorker.role} • {selectedWorker.site}</Text>
-                  <Text style={styles.muted}>{selectedWorker.phone ?? '010-1234-5678'}</Text>
-                </View>
-              </View>
-            </View>
+      {/* Right panel */}
+<View style={styles.right}>
+  {/* 1) 근로자 등록 패널 */}
+  {showRegister ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: 24, alignItems: 'center' }}
+    >
+      <View style={[styles.card, { padding: 20 }]}>
+        <Text style={styles.sectionTitle}>근로자 등록</Text>
+        <Text style={styles.subtitleSmall}>Register Worker</Text>
 
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>개인정보</Text>
-              <View style={{ height:8 }} />
-              <Field label="주소" value={selectedWorker.address} />
-              <Field label="생년월일" value={selectedWorker.birthDate} />
-              <EditableField
-                label="직종"
-                value={selectedWorker.role}
-                onSave={(v)=> {
-                  setWorkers(ws => ws.map(w => w.id === selectedWorker?.id ? { ...w, role: v } : w));
-                  setSelectedWorker(prev => (prev ? { ...prev, role: v } : prev));
-                }}
-              />
-              <EditableField
-                label="현장명"
-                value={selectedWorker.site}
-                onSave={(v)=> {
-                  setWorkers(ws => ws.map(w => w.id === selectedWorker?.id ? { ...w, site: v } : w));
-                  setSelectedWorker(prev => (prev ? { ...prev, site: v } : prev));
-                }}
-              />
-            </View>
+        <View style={{ height: 16 }} />
 
-            <View style={styles.card}>
-              <Field label="성별" value={selectedWorker.gender} />
-              <Field label="국적" value={selectedWorker.nationality} />
-              <Field label="전화번호" value={selectedWorker.phone} />
-            </View>
+        {/* 서류 첨부 영역 */}
+        <View style={[styles.card, { width: "100%" }]}>
+          <Text style={styles.sectionTitle}>서류 첨부</Text>
+          <Text style={styles.mutedSmall}>Document Attachments</Text>
 
-            {/* 문서 버튼 */}
-            <View style={{ width:'100%', maxWidth:880 }}>
-              <DocButton title="근로 계약서 보기" subtitle="View Work Contract" onPress={()=>Alert.alert('계약서 보기')} />
-              <DocButton title="급여 명세서 보기" subtitle="View Payroll Statement" tone="yellow" onPress={()=>setShowPayroll(true)} />
-              <DocButton title="자격증 보기" subtitle="View Certificate" tone="green" onPress={() => {
-              if (!selectedWorker) { Alert.alert('근로자를 먼저 선택하세요'); return; }
-              navigation.navigate('ManagerCertificates', {
-                worker: {
-                  id: selectedWorker.id,
-                  name: selectedWorker.name,
-                  role: selectedWorker.role,
-                  site: selectedWorker.site,
-                },
-              });
+          <View style={{ height: 12 }} />
+
+          <TouchableOpacity
+            style={[styles.docBtn]}
+            onPress={() => Alert.alert('계약서 생성 화면')}
+          >
+            <Text style={{ color: '#111827' }}>계약서 생성</Text>
+            <Text style={{ color: '#9CA3AF' }}>{'>'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.docBtn]}
+            onPress={() => Alert.alert('신분증 촬영 (카메라 실행)')}
+          >
+            <Text style={{ color: '#111827' }}>신분증 촬영</Text>
+            <Text style={{ color: '#9CA3AF' }}>{'>'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 계약 정보 */}
+        <View style={[styles.card, { width: "100%" }]}>
+          <Text style={styles.sectionTitle}>계약 정보</Text>
+          <Text style={styles.subtitleSmall}>Contract Details</Text>
+
+          <View style={{ height: 12 }} />
+
+          <Field label="근무 시간" value="예: 08:00 ~ 18:00" />
+          <Field label="휴게 시간" value="예: 12:00 ~ 13:00" />
+          <Field label="계약 시작일" value="날짜 선택" />
+          <Field label="계약 종료일" value="날짜 선택" />
+          <Field label="일급" value="일급을 입력하세요" />
+          <Field label="업무 내용" value="업무를 입력하세요" />
+        </View>
+
+        {/* 개인 정보 */}
+        <View style={[styles.card, { width: "100%" }]}>
+          <Text style={styles.sectionTitle}>개인 정보</Text>
+          <Text style={styles.subtitleSmall}>Personal Information</Text>
+          <View style={{ height: 12 }} />
+
+          <Field label="이름" value="이름 입력" />
+          <Field label="생년월일" value="날짜 선택" />
+          <Field label="성별" value="남성 / 여성" />
+          <Field label="연락처" value="010-0000-0000" />
+          <Field label="주소" value="주소 입력" />
+        </View>
+
+        {/* 하단 버튼 */}
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: "100%" }}>
+          <TouchableOpacity
+            style={[styles.outlineBtn, { marginRight: 8 }]}
+            onPress={() => setShowRegister(false)}
+          >
+            <Text>취소</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.primaryBtnSmall}
+            onPress={() => {
+              Alert.alert('등록 완료');
+              setShowRegister(false);
             }}
-          />
-            </View>
+          >
+            <Text style={styles.primaryBtnText}>등록</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
+  ) : 
 
-            {/* 출퇴근 기록 */}
-            <View style={styles.card}>
-              <View style={styles.cardHeaderRow}>
-                <View>
-                  <Text style={styles.sectionTitle}>출퇴근 기록</Text>
-                  <Text style={styles.subtitleSmall}>Attendance History</Text>
-                </View>
-                <TouchableOpacity style={styles.outlineBtn} onPress={()=>Alert.alert('다운로드')}>
-                  <Text style={{ color:'#374151' }}>다운로드</Text>
-                </TouchableOpacity>
-              </View>
+  /* 2) 근로자 선택 X */
+  !selectedWorker ? (
+    <View style={styles.empty}>
+      <Text style={{ color:'#9CA3AF', fontSize:16 }}>근로자를 선택하세요</Text>
+      <Text style={{ color:'#9CA3AF', marginTop:4, fontSize:12 }}>
+        왼쪽 목록에서 근로자를 선택하면 상세 정보가 표시됩니다
+      </Text>
+    </View>
+  ) :
 
-              <View style={styles.tableHeader}>
-                <TableTh text="날짜" />
-                <TableTh text="출근" />
-                <TableTh text="퇴근" />
-                <TableTh text="상태" />
-                <TableTh text="이의제기" />
-              </View>
+  /* 3) 급여 명세서 모드 */
+  showPayroll ? (
+    <View style={styles.placeholder}>
+      <Text>급여 명세서 보기 (향후 연결)</Text>
+    </View>
+  ) :
 
-              {selectedWorker.attendanceRecords.map(rec => (
-                <TouchableOpacity
-                  key={rec.date}
-                  onPress={()=>openObjection(rec)}
-                  activeOpacity={0.8}
-                  style={[styles.tableRow, rec.objection?.hasObjection && { backgroundColor:'#FFF7ED' }]}
-                >
-                  <TableTd text={rec.date} />
-                  <TableTd text={`${rec.checkInTime} (${rec.checkInPeriod})`} color="#16A34A" />
-                  <TableTd text={`${rec.checkOutTime} (${rec.checkOutPeriod})`} color="#DC2626" />
-                  <View style={[styles.td, { flex:1.2 }]}>
-                    <StatusPill status={rec.status} />
-                  </View>
-                  <View style={[styles.td, { flex:2 }]}>
-                    {rec.objection?.hasObjection ? (
-                      <View>
-                        <Text style={{ fontSize:12, color:'#9A3412' }}>이의제기</Text>
-                        <Text style={{ fontSize:12, color:'#6B7280' }}>{rec.objection.message}</Text>
-                      </View>
-                    ) : <Text style={{ color:'#6B7280' }}>-</Text>}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        )}
+  /* 4) 자격증 보기 모드 */
+  showCertificates ? (
+    <View style={styles.placeholder}>
+      <Text>자격증 보기 (향후 연결)</Text>
+    </View>
+  ) :
+
+  /* 5) 기본 근로자 상세 정보 화면 */
+  (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: 24, alignItems: 'center' }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* 기본 프로필 */}
+      <View style={[styles.card, { padding:20 }]}>
+        <View style={{ flexDirection:'row', alignItems:'center' }}>
+          <View style={[styles.bigAvatar, { backgroundColor:'#E0ECFF' }]}>
+            <Text style={{ color:'#2563EB', fontWeight:'700', fontSize:24 }}>
+              {selectedWorker.initial}
+            </Text>
+          </View>
+          <View style={{ marginLeft:16 }}>
+            <Text style={styles.name}>{selectedWorker.name}</Text>
+            <Text style={styles.muted}>{selectedWorker.role} • {selectedWorker.site}</Text>
+            <Text style={styles.muted}>{selectedWorker.phone ?? '010-1234-5678'}</Text>
+          </View>
+        </View>
       </View>
 
+      {/* 개인정보 */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>개인정보</Text>
+        <View style={{ height:8 }} />
+        <Field label="주소" value={selectedWorker.address} />
+        <Field label="생년월일" value={selectedWorker.birthDate} />
+        <EditableField
+          label="직종"
+          value={selectedWorker.role}
+          onSave={(v)=> {
+            setWorkers(ws => ws.map(w => w.id === selectedWorker?.id ? { ...w, role: v } : w));
+            setSelectedWorker(prev => (prev ? { ...prev, role: v } : prev));
+          }}
+        />
+        <EditableField
+          label="현장명"
+          value={selectedWorker.site}
+          onSave={(v)=> {
+            setWorkers(ws => ws.map(w => w.id === selectedWorker?.id ? { ...w, site: v } : w));
+            setSelectedWorker(prev => (prev ? { ...prev, site: v } : prev));
+          }}
+        />
+      </View>
+
+      {/* 기타 정보 */}
+      <View style={styles.card}>
+        <Field label="성별" value={selectedWorker.gender} />
+        <Field label="국적" value={selectedWorker.nationality} />
+        <Field label="전화번호" value={selectedWorker.phone} />
+      </View>
+
+      {/* 문서 버튼 */}
+      <View style={{ width:'100%', maxWidth:880 }}>
+        <DocButton title="근로 계약서 보기" subtitle="View Work Contract" onPress={()=>Alert.alert('계약서 보기')} />
+        <DocButton title="급여 명세서 보기" subtitle="View Payroll Statement" tone="yellow" onPress={()=>setShowPayroll(true)} />
+        <DocButton
+          title="자격증 보기"
+          subtitle="View Certificate"
+          tone="green"
+          onPress={() =>
+            navigation.navigate('ManagerCertificates', {
+              worker: {
+                id: selectedWorker.id,
+                name: selectedWorker.name,
+                role: selectedWorker.role,
+                site: selectedWorker.site,
+              },
+            })
+          }
+        />
+      </View>
+
+      {/* 출퇴근 기록 */}
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <View>
+            <Text style={styles.sectionTitle}>출퇴근 기록</Text>
+            <Text style={styles.subtitleSmall}>Attendance History</Text>
+          </View>
+          <TouchableOpacity style={styles.outlineBtn} onPress={()=>Alert.alert('다운로드')}>
+            <Text style={{ color:'#374151' }}>다운로드</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.tableHeader}>
+          <TableTh text="날짜" />
+          <TableTh text="출근" />
+          <TableTh text="퇴근" />
+          <TableTh text="상태" />
+          <TableTh text="이의제기" />
+        </View>
+
+        {selectedWorker.attendanceRecords.map(rec => (
+          <TouchableOpacity
+            key={rec.date}
+            onPress={()=>openObjection(rec)}
+            activeOpacity={0.8}
+            style={[styles.tableRow, rec.objection?.hasObjection && { backgroundColor:'#FFF7ED' }]}
+          >
+            <TableTd text={rec.date} />
+            <TableTd text={`${rec.checkInTime} (${rec.checkInPeriod})`} color="#16A34A" />
+            <TableTd text={`${rec.checkOutTime} (${rec.checkOutPeriod})`} color="#DC2626" />
+            <View style={[styles.td, { flex:1.2 }]}>
+              <StatusPill status={rec.status} />
+            </View>
+            <View style={[styles.td, { flex:2 }]}>
+              {rec.objection?.hasObjection ? (
+                <View>
+                  <Text style={{ fontSize:12, color:'#9A3412' }}>이의제기</Text>
+                  <Text style={{ fontSize:12, color:'#6B7280' }}>{rec.objection.message}</Text>
+                </View>
+              ) : <Text style={{ color:'#6B7280' }}>-</Text>}
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
+  )}
+</View>
       {/* 이의제기 모달 */}
       <Modal visible={objectionOpen} transparent animationType="fade" onRequestClose={()=>setObjectionOpen(false)}>
         <View style={styles.modalBackdrop}>
