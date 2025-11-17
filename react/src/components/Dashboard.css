@@ -323,6 +323,12 @@
   border-top: 1px solid #e5e7eb;
 }
 
+/* ✅ 헤더/바디 둘 다 text-center가 이기도록 더 구체적으로 */
+.site-table th.text-center,
+.site-table td.text-center {
+  text-align: center;
+}
+
 .text-center {
   text-align: center;
 }
