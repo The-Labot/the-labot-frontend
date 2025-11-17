@@ -245,10 +245,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               <tr>
                 <th>현장명</th>
                 <th>위치</th>
-                <th>관리자 수</th>
-                <th>근로자 수</th>
-                <th>최근 보고</th>
-                <th>작업현황</th>
+                <th className="text-center">관리자 수</th>
+                <th className="text-center">근로자 수</th>
+                <th className="text-center">최근 보고</th>
+                <th className="text-center">작업현황</th>
               </tr>
             </thead>
             <tbody>
@@ -256,10 +256,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                 <tr key={site.id}>
                   <td>{site.name}</td>
                   <td>{site.location}</td>
-                  <td className="center">{site.managerCount}명</td>
-                  <td className="center">{site.activeWorkers}명</td>
-                  <td className="center">{site.lastReportDate}</td>
-                  <td className="center">
+                  <td className="text-center">{site.managerCount}명</td>
+                  <td className="text-center">{site.activeWorkers}명</td>
+                  <td className="text-center">{site.lastReportDate}</td>
+                  <td className="text-center">
                     <button
                       className="detail-btn"
                       onClick={() => setSelectedSite(site)}
