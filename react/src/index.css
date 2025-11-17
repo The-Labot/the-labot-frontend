@@ -1,68 +1,335 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* src/index.css */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ===== 기본 리셋 ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+#root {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ===== 로그인 공통 스타일 ===== */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+/* 카드 */
+.login-card {
+  width: 420px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 40px 48px 36px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* 로고 + 타이틀 */
+.login-logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.login-logo-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background-color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-title {
+  font-size: 16px;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  color: #111827;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* 폼 공통 */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 14px;
+  color: #374151;
+}
+
+.form-input {
+  height: 48px;
+  width: 100%;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* 버튼 공통 */
+.primary-button {
+  margin-top: 12px;
+  height: 48px;
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  opacity: 0.95;
+}
+
+/* 로그인 하단 링크 */
+.login-links {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.muted-link,
+.primary-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.muted-link {
+  color: #6b7280;
+}
+
+.muted-link:hover {
+  text-decoration: underline;
+}
+
+.primary-link {
+  color: #3b82f6;
+}
+
+.primary-link:hover {
+  text-decoration: underline;
+}
+
+.login-divider {
+  color: #e5e7eb;
+}
+
+/* ===== 회원가입(Signup) 스타일 ===== */
+
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 16px;
+  background-color: #f9fafb;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 960px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 40px 48px 40px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* 위쪽 로고/제목 (로그인과 거의 동일) */
+.signup-logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.signup-logo-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background-color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.signup-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* 탭 버튼 */
+.signup-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.signup-tab {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #9ca3af;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.signup-tab--active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* 섹션 타이틀 */
+.signup-section-title {
+  margin-top: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* 그리드 레이아웃 */
+.signup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.signup-grid--single {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 768px) {
+  .signup-grid {
+    grid-template-columns: 1fr;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* 도움 텍스트 */
+.signup-helper-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* 버튼 그룹 */
+.signup-buttons {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.secondary-button {
+  padding: 12px 32px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background-color: #f3f4f6;
+}
+/* ===== 회원가입 버튼 정렬 / 스타일 ===== */
+
+.signup-buttons {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center; /* 가운데 정렬 */
+  align-items: center;
+  gap: 12px;               /* 버튼 사이 간격 */
+}
+
+.signup-btn {
+  width: 96px;             /* 두 버튼 같은 너비 */
+  height: 44px;            /* 같은 높이 */
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 텍스트 정중앙 */
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* 취소 버튼 */
+.signup-btn--secondary {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #6b7280;
+}
+
+.signup-btn--secondary:hover {
+  background-color: #f3f4f6;
+}
+
+/* 등록 버튼 */
+.signup-btn--primary {
+  border: none;
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.signup-btn--primary:hover {
+  opacity: 0.95;
 }
