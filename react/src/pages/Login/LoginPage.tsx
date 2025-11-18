@@ -7,7 +7,7 @@ export default function LoginPage() {
 
   const handleLoginSuccess = () => {
     // 나중에 실제 로그인 성공 시 대시보드로 이동
-    navigate("/dashboard");
+    navigate("/office-select");
   };
 
   const handleSignUpClick = () => {
