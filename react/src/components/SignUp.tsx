@@ -1,181 +1,112 @@
-// src/components/SignUp.tsx
 import { useState } from "react";
-
-type Mode = "new" | "existing";
 
 interface SignUpProps {
   onCancelClick?: () => void;
+  onSubmitSuccess?: () => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onCancelClick }) => {
-  const [mode, setMode] = useState<Mode>("new");
+const SignUp: React.FC<SignUpProps> = ({ onCancelClick, onSubmitSuccess }) => {
+  const [form, setForm] = useState({
+    userId: "",
+    name: "",
+    password: "",
+    email: "",
+    phone: "",
+  });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  // API는 나중에 연결할 예정이므로 지금은 submit만 처리
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: API 연동 시 여기서 회원가입 요청
-    console.log("submit, mode:", mode);
+    console.log("회원가입 데이터:", form);
+
+    alert("회원가입 요청됨 (API 연결 전)");
+
+    if (onSubmitSuccess) onSubmitSuccess();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* 탭 버튼 */}
-      <div className="signup-tabs">
-        <button
-          type="button"
-          className={
-            "signup-tab " + (mode === "new" ? "signup-tab--active" : "")
-          }
-          onClick={() => setMode("new")}
-        >
-          새로운 본사 등록
-        </button>
-        <button
-          type="button"
-          className={
-            "signup-tab " + (mode === "existing" ? "signup-tab--active" : "")
-          }
-          onClick={() => setMode("existing")}
-        >
-          기존 본사 참여
-        </button>
+    <form className="signup-container" onSubmit={handleSubmit}>
+      {/* 상단 아이콘 + 제목 */}
+      <div className="signup-header">
+        <div className="signup-icon">
+          <img src="/assets/signup-icon.png" alt="" />
+        </div>
+        <h1 className="signup-title">본사관리자 회원가입</h1>
+        <p className="signup-subtitle">Head Office Manager Registration</p>
       </div>
 
-      {/* 사용자 정보 공통 섹션 */}
-      <h2 className="signup-section-title">사용자 정보</h2>
-      <div className="signup-grid" style={{ marginBottom: 32 }}>
+      {/* 입력 폼 */}
+      <div className="signup-grid">
+
         <div>
-          <label className="form-label">아이디</label>
+          <label className="form-label">아이디 *</label>
           <input
+            type="text"
             className="form-input"
+            name="userId"
             placeholder="아이디를 입력하세요"
+            value={form.userId}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label className="form-label">이름 *</label>
+          <input
             type="text"
-          />
-        </div>
-        <div>
-          <label className="form-label">비밀번호</label>
-          <input
             className="form-input"
-            placeholder="비밀번호를 입력하세요"
-            type="password"
-          />
-        </div>
-        <div>
-          <label className="form-label">이름</label>
-          <input
-            className="form-input"
+            name="name"
             placeholder="이름을 입력하세요"
-            type="text"
+            value={form.name}
+            onChange={handleChange}
           />
         </div>
+
         <div>
-          <label className="form-label">이메일</label>
+          <label className="form-label">비밀번호 *</label>
           <input
+            type="password"
             className="form-input"
-            placeholder="이메일을 입력하세요"
+            name="password"
+            placeholder="비밀번호를 입력하세요"
+            value={form.password}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label className="form-label">이메일 *</label>
+          <input
             type="email"
-          />
-        </div>
-        <div className="signup-grid--single" style={{ gridColumn: "1 / -1" }}>
-          <label className="form-label">주소</label>
-          <input
             className="form-input"
-            placeholder="주소를 입력하세요"
-            type="text"
+            name="email"
+            placeholder="이메일을 입력하세요"
+            value={form.email}
+            onChange={handleChange}
           />
         </div>
+
+        <div style={{ gridColumn: "1 / -1" }}>
+          <label className="form-label">전화번호 *</label>
+          <input
+            type="text"
+            className="form-input"
+            name="phone"
+            placeholder="전화번호를 입력하세요"
+            value={form.phone}
+            onChange={handleChange}
+          />
+        </div>
+
       </div>
 
-      {/* 모드별 섹션 */}
-      {mode === "new" ? (
-        <>
-          <h2 className="signup-section-title">본사 정보</h2>
-          <div className="signup-grid">
-            <div className="signup-grid--single" style={{ gridColumn: "1 / -1" }}>
-              <label className="form-label">본사 코드</label>
-              <input
-                className="form-input"
-                placeholder="본사 코드를 입력하세요"
-                type="text"
-              />
-              <p className="signup-helper-text">
-                이 코드는 다른 관리자가 본사에 참여할 때 사용됩니다.
-              </p>
-            </div>
-
-            <div>
-              <label className="form-label">본사명</label>
-              <input
-                className="form-input"
-                placeholder="본사명을 입력하세요"
-                type="text"
-              />
-            </div>
-            <div>
-              <label className="form-label">대표자명</label>
-              <input
-                className="form-input"
-                placeholder="대표자명을 입력하세요"
-                type="text"
-              />
-            </div>
-
-            <div>
-              <label className="form-label">사업자등록번호</label>
-              <input
-                className="form-input"
-                placeholder="사업자등록번호를 입력하세요"
-                type="text"
-              />
-            </div>
-
-            <div className="signup-grid--single" style={{ gridColumn: "1 / -1" }}>
-              <label className="form-label">주소</label>
-              <input
-                className="form-input"
-                placeholder="주소를 입력하세요"
-                type="text"
-              />
-            </div>
-
-            <div>
-              <label className="form-label">사무실 전화번호</label>
-              <input
-                className="form-input"
-                placeholder="사무실 전화번호를 입력하세요"
-                type="tel"
-              />
-            </div>
-            <div>
-              <label className="form-label">사무실 이메일</label>
-              <input
-                className="form-input"
-                placeholder="사무실 이메일을 입력하세요"
-                type="email"
-              />
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2 className="signup-section-title">본사 코드</h2>
-          <div className="signup-grid signup-grid--single">
-            <div>
-              <label className="form-label">본사 코드</label>
-              <input
-                className="form-input"
-                placeholder="관리자로부터 받은 본사 코드를 입력하세요"
-                type="text"
-              />
-              <p className="signup-helper-text">
-                관리자로부터 제공받은 본사 코드를 입력하세요.
-              </p>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 버튼들 */}
-       <div className="signup-buttons">
+      {/* 버튼 */}
+      <div className="signup-buttons">
         <button
           type="button"
           className="signup-btn signup-btn--secondary"
@@ -183,11 +114,9 @@ const SignUp: React.FC<SignUpProps> = ({ onCancelClick }) => {
         >
           취소
         </button>
-        <button
-          type="submit"
-          className="signup-btn signup-btn--primary"
-        >
-          등록
+
+        <button type="submit" className="signup-btn signup-btn--primary">
+          회원가입
         </button>
       </div>
     </form>
