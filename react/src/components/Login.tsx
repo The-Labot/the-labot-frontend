@@ -1,6 +1,7 @@
 // src/components/Login.tsx
 import { Building2 } from "lucide-react";
 import { useState } from "react";
+import { login } from "../api/authApi";
 
 interface LoginProps {
   onSignUpClick: () => void;
@@ -8,16 +9,46 @@ interface LoginProps {
 }
 
 export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
+  // 🔹 화면에서 실제로 입력받는 값만 상태로 관리
   const [formData, setFormData] = useState({
-    id: "",
+    phoneNumber: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Login attempt:", formData);
-    // TODO: 실제 로그인 로직
-    onLoginSuccess();
+
+    // 🔹 요청 보낼 때만 clientType: "WEB" 붙여서 전송
+    const payload = {
+      phoneNumber: formData.phoneNumber,
+      password: formData.password,
+      clientType: "WEB" as const,
+    };
+
+    try {
+      console.log("Login attempt:", payload);
+
+      const res = await login(payload); // { phoneNumber, password, clientType }
+
+      console.log("Login response:", res.data);
+
+      // 필요하면 여기서 토큰 꺼내서 localStorage에 저장
+      // const accessToken = res.data.data.accessToken;
+      // if (accessToken) {
+      //   localStorage.setItem("accessToken", accessToken);
+      // }
+
+      alert("로그인에 성공했습니다.");
+      onLoginSuccess(); // 👉 대시보드로 이동 등
+    } catch (error: any) {
+      console.error("로그인 실패:", error);
+
+      if (error.response) {
+        alert(`로그인 실패 (${error.response.status})`);
+      } else {
+        alert("서버와 통신 중 오류가 발생했습니다.");
+      }
+    }
   };
 
   return (
@@ -32,19 +63,22 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
 
       {/* 폼 */}
       <form onSubmit={handleSubmit} className="login-form">
-        {/* 아이디 */}
+        {/* 전화번호(아이디) */}
         <div className="form-field">
-          <label htmlFor="id" className="form-label">
-            아이디
+          <label htmlFor="phoneNumber" className="form-label">
+            전화번호 (아이디)
           </label>
           <input
-            id="id"
+            id="phoneNumber"
             type="text"
             className="form-input"
-            placeholder="아이디를 입력하세요"
-            value={formData.id}
+            placeholder="로그인용 전화번호를 입력하세요"
+            value={formData.phoneNumber}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, id: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                phoneNumber: e.target.value,
+              }))
             }
           />
         </div>

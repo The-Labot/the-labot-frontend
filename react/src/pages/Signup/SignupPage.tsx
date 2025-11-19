@@ -1,12 +1,14 @@
-// src/pages/Signup/SignupPage.tsx
+// 예: React Router 쓰는 경우
 import { Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import SignUp from "../../components/SignUp";
 
 export default function SignupPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="signup-page">
       <div className="signup-card">
-        {/* 로고 + 제목 */}
         <div className="signup-logo-wrapper">
           <div className="signup-logo-circle">
             <Building2 size={32} color="#ffffff" />
@@ -14,8 +16,10 @@ export default function SignupPage() {
           <h1 className="signup-title">본사관리자 회원가입</h1>
         </div>
 
-        {/* 실제 폼 UI */}
-        <SignUp />
+        <SignUp
+          onCancelClick={() => navigate("/login")}
+          onSubmitSuccess={() => navigate("/login")}
+        />
       </div>
     </div>
   );

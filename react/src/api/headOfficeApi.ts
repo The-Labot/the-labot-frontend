@@ -1,0 +1,41 @@
+import apiClient from "./apiClient";
+
+export interface CreateHeadOfficeRequest {
+  name: string;
+  address: string;
+  phoneNumber: string;
+  representative: string;
+}
+
+export interface HeadOfficeData {
+  id: number;
+  name: string;
+  address: string;
+  phoneNumber: string;
+  representative: string;
+  secretCode: string;
+}
+
+// 공통 응답형
+export interface ApiResponse<T> {
+  status: number;
+  message: string;
+  data: T;
+}
+
+export type CreateHeadOfficeResponse = ApiResponse<HeadOfficeData>;
+
+export const createHeadOffice = (data: CreateHeadOfficeRequest) => {
+  return apiClient.post<CreateHeadOfficeResponse>("/auth/head-office", data);
+};
+
+export interface CheckHeadOfficeRequest {
+  secretCode: string;
+}
+
+export const checkHeadOffice = (data: CheckHeadOfficeRequest) => {
+  return apiClient.post<ApiResponse<HeadOfficeData>>(
+    "/auth/head-office/check",
+    data
+  );
+};

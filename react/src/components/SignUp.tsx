@@ -1,4 +1,6 @@
+// src/components/SignUp.tsx
 import { useState } from "react";
+import { signUpAdmin } from "../api/authApi"; // 경로는 프로젝트 구조에 맞게
 
 interface SignUpProps {
   onCancelClick?: () => void;
@@ -7,26 +9,41 @@ interface SignUpProps {
 
 const SignUp: React.FC<SignUpProps> = ({ onCancelClick, onSubmitSuccess }) => {
   const [form, setForm] = useState({
-    userId: "",
+    phoneNumber: "",
     name: "",
     password: "",
     email: "",
-    phone: "",
+    address: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // API는 나중에 연결할 예정이므로 지금은 submit만 처리
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("회원가입 데이터:", form);
 
-    alert("회원가입 요청됨 (API 연결 전)");
+    try {
+      console.log("회원가입 요청 바디:", form);
 
-    if (onSubmitSuccess) onSubmitSuccess();
+      const res = await signUpAdmin(form);
+
+      console.log("회원가입 응답:", res.data);
+      alert("회원가입이 완료되었습니다.");
+
+      onSubmitSuccess?.();
+    } catch (error: any) {
+      console.error("회원가입 실패:", error);
+
+      if (error.response) {
+        // 백엔드까지는 도달한 경우 (status 코드 있음)
+        alert(`회원가입 실패 (${error.response.status})`);
+      } else {
+        // 네트워크 에러 (현재처럼 ERR_FAILED 등)
+        alert("서버와 통신 중 오류가 발생했습니다.");
+      }
+    }
   };
 
   return (
@@ -42,19 +59,6 @@ const SignUp: React.FC<SignUpProps> = ({ onCancelClick, onSubmitSuccess }) => {
 
       {/* 입력 폼 */}
       <div className="signup-grid">
-
-        <div>
-          <label className="form-label">아이디 *</label>
-          <input
-            type="text"
-            className="form-input"
-            name="userId"
-            placeholder="아이디를 입력하세요"
-            value={form.userId}
-            onChange={handleChange}
-          />
-        </div>
-
         <div>
           <label className="form-label">이름 *</label>
           <input
@@ -96,13 +100,24 @@ const SignUp: React.FC<SignUpProps> = ({ onCancelClick, onSubmitSuccess }) => {
           <input
             type="text"
             className="form-input"
-            name="phone"
+            name="phoneNumber"
             placeholder="전화번호를 입력하세요"
-            value={form.phone}
+            value={form.phoneNumber}
             onChange={handleChange}
           />
         </div>
 
+        <div style={{ gridColumn: "1 / -1" }}>
+          <label className="form-label">주소 *</label>
+          <input
+            type="text"
+            className="form-input"
+            name="address"
+            placeholder="주소를 입력하세요"
+            value={form.address}
+            onChange={handleChange}
+          />
+        </div>
       </div>
 
       {/* 버튼 */}
