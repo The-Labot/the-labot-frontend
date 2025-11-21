@@ -3,9 +3,14 @@ version: '3.8'
 services:
   frontend:
     container_name: frontend
-    build:
-      context: ./react
-      dockerfile: Dockerfile
+
+    #CD 1단계에서 빌드해서 이미지 만들어서 도커허브에 올리기 때문에 필요없어짐
+    #build:
+      #context: ./react
+      #dockerfile: Dockerfile
+    
+    #그래서 도커허브에서 이 이름을 가진 이미지를 찾아오라고 시키면 됨
+    image: rmsckd1640/the-labot-frontend:latest
     ports:
       - "80:80"
     restart: always
