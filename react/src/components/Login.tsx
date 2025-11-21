@@ -5,11 +5,11 @@ import { login } from "../api/authApi";
 
 interface LoginProps {
   onSignUpClick: () => void;
-  onLoginSuccess: () => void;
+  // ✅ accessToken(앞의 Bearer 제거된 순수 토큰)을 넘겨줌
+  onLoginSuccess: (accessToken: string) => void;
 }
 
 export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
-  // 🔹 화면에서 실제로 입력받는 값만 상태로 관리
   const [formData, setFormData] = useState({
     phoneNumber: "",
     password: "",
@@ -18,7 +18,6 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // 🔹 요청 보낼 때만 clientType: "WEB" 붙여서 전송
     const payload = {
       phoneNumber: formData.phoneNumber,
       password: formData.password,
@@ -28,23 +27,36 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
     try {
       console.log("Login attempt:", payload);
 
-      const res = await login(payload); // { phoneNumber, password, clientType }
-
+      const res = await login(payload);
       console.log("Login response:", res.data);
 
-      // 필요하면 여기서 토큰 꺼내서 localStorage에 저장
-      // const accessToken = res.data.data.accessToken;
-      // if (accessToken) {
-      //   localStorage.setItem("accessToken", accessToken);
-      // }
+      // ✅ 백엔드 응답에서 token 꺼내기
+      // 예: { token: "Bearer eyJhbGciOi...", role, userId, name }
+      const rawToken: string | undefined = res.data?.token;
+
+      if (!rawToken) {
+        alert("로그인 응답에서 token 값을 찾을 수 없습니다.");
+        return;
+      }
+
+      // ✅ "Bearer " prefix 제거 (있으면)
+      const accessToken = rawToken.startsWith("Bearer ")
+        ? rawToken.slice(7)
+        : rawToken;
+
+      // ✅ 상위(LoginPage)로 토큰 전달
+      onLoginSuccess(accessToken);
 
       alert("로그인에 성공했습니다.");
-      onLoginSuccess(); // 👉 대시보드로 이동 등
     } catch (error: any) {
       console.error("로그인 실패:", error);
 
       if (error.response) {
-        alert(`로그인 실패 (${error.response.status})`);
+        alert(
+          `로그인 실패 (${error.response.status})\n${
+            error.response.data?.message ?? ""
+          }`
+        );
       } else {
         alert("서버와 통신 중 오류가 발생했습니다.");
       }

@@ -15,6 +15,8 @@ import { SiteDetail } from "./SiteDetail";
 
 interface DashboardProps {
   onLogout: () => void;
+  onCreateSite: () => void;
+  onOpenMyPage: () => void; // ✅ 추가
 }
 
 interface Site {
@@ -48,8 +50,7 @@ const mockSites: Site[] = [
     progress: 62,
     safetyStatus: "alert",
     lastReportDate: "2024-11-09",
-  }
-  ,
+  },
   {
     id: "3",
     name: "인천 물류센터 건설",
@@ -90,10 +91,13 @@ const mockSites: Site[] = [
     safetyStatus: "alert",
     lastReportDate: "2024-11-09",
   },
-  // ... (나머지 동일)
 ];
 
-export default function Dashboard({ onLogout }: DashboardProps) {
+export default function Dashboard({
+  onLogout,
+  onCreateSite,
+  onOpenMyPage,
+}: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [regionFilter, setRegionFilter] = useState("all");
   const [safetyFilter, setSafetyFilter] = useState("all");
@@ -119,7 +123,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
   if (selectedSite) {
     return (
-      <SiteDetail siteName={selectedSite.name} onBack={() => setSelectedSite(null)} />
+      <SiteDetail
+        siteName={selectedSite.name}
+        onBack={() => setSelectedSite(null)}
+      />
     );
   }
 
@@ -149,7 +156,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
 
             {showUserMenu && (
               <div className="nav-menu">
-                <button className="nav-menu-item">
+                <button
+                  className="nav-menu-item"
+                  onClick={onOpenMyPage}         // ✅ 마이페이지 이동
+                >
                   <User className="w-4 h-4" />
                   마이페이지
                 </button>
@@ -163,7 +173,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         </div>
       </nav>
 
-      {/* 메인 */}
+      {/* 메인 이하 기존 코드 그대로 */}
       <main className="main">
         {/* 요약 카드 2개 */}
         <div className="card-grid">
@@ -191,13 +201,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         {/* 버튼 + 검색 필터 */}
         <div className="toolbar">
           <div className="toolbar-left">
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={onCreateSite}>
               <Plus className="btn-icon" />
               새 현장 추가
-            </button>
-            <button className="btn-secondary">
-              <Download className="btn-icon" />
-              보고서 내보내기
             </button>
           </div>
 
@@ -223,17 +229,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               <option value="인천">인천</option>
               <option value="부산">부산</option>
               <option value="대전">대전</option>
-            </select>
-
-            <select
-              className="filter-select"
-              value={safetyFilter}
-              onChange={(e) => setSafetyFilter(e.target.value)}
-            >
-              <option value="all">전체 안전 상태</option>
-              <option value="normal">정상</option>
-              <option value="alert">주의</option>
-              <option value="danger">위험</option>
             </select>
           </div>
         </div>
