@@ -47,7 +47,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.logoIcon}>⛑️</Text>
             </View>
             <Text style={styles.title}>Labor Construction Management</Text>
-            <Text style={styles.subtitle}>노무 현장 관리 시스템</Text>
+            <Text style={styles.subtitle}>노무= 현장 관리 시스템</Text>
           </View>
 
           {/* 사용자 유형 선택 */}
