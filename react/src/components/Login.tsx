@@ -5,8 +5,8 @@ import { login } from "../api/authApi";
 
 interface LoginProps {
   onSignUpClick: () => void;
-  // ✅ accessToken(앞의 Bearer 제거된 순수 토큰)을 넘겨줌
-  onLoginSuccess: (accessToken: string) => void;
+  // 선택사항: accessToken(앞의 Bearer 제거된 순수 토큰)을 상위로 넘겨줌
+  onLoginSuccess?: (accessToken: string) => void;
 }
 
 export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
@@ -30,8 +30,7 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
       const res = await login(payload);
       console.log("Login response:", res.data);
 
-      // ✅ 백엔드 응답에서 token 꺼내기
-      // 예: { token: "Bearer eyJhbGciOi...", role, userId, name }
+      // 로그인 응답: { token: "Bearer ...", role: "ROLE_ADMIN", userId, name }
       const rawToken: string | undefined = res.data?.token;
 
       if (!rawToken) {
@@ -39,13 +38,22 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
         return;
       }
 
-      // ✅ "Bearer " prefix 제거 (있으면)
-      const accessToken = rawToken.startsWith("Bearer ")
-        ? rawToken.slice(7)
-        : rawToken;
+      // ✅ 항상 "Bearer ..." 형태로 맞춰서 저장
+      const bearerToken =
+        rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
-      // ✅ 상위(LoginPage)로 토큰 전달
-      onLoginSuccess(accessToken);
+      // ✅ accessToken: Bearer 제거한 순수 토큰 (상위 컴포넌트에서 필요하면 사용)
+      const accessToken = bearerToken.slice("Bearer ".length);
+
+      // ✅ 이후 모든 API에서 쓰도록 localStorage 에 저장
+      localStorage.setItem("authToken", bearerToken); // axios 인터셉터에서 사용
+      localStorage.setItem("adminName", res.data?.name ?? "");
+      localStorage.setItem("adminId", String(res.data?.userId ?? ""));
+
+      // ✅ 예전 구조 유지: 상위로도 토큰 전달 (선택)
+      if (onLoginSuccess) {
+        onLoginSuccess(accessToken);
+      }
 
       alert("로그인에 성공했습니다.");
     } catch (error: any) {

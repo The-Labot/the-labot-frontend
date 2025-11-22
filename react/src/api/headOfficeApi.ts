@@ -26,7 +26,7 @@ export interface ApiResponse<T> {
 export type CreateHeadOfficeResponse = ApiResponse<HeadOfficeData>;
 
 export const createHeadOffice = (data: CreateHeadOfficeRequest) => {
-  return apiClient.post<CreateHeadOfficeResponse>("/auth/head-office", data);
+  return apiClient.post<CreateHeadOfficeResponse>("/admin/head-office", data);
 };
 
 export interface CheckHeadOfficeRequest {
@@ -35,7 +35,7 @@ export interface CheckHeadOfficeRequest {
 
 export const checkHeadOffice = (data: CheckHeadOfficeRequest) => {
   return apiClient.post<ApiResponse<HeadOfficeData>>(
-    "/auth/head-office/check",
+    "/admin/head-office/select",
     data
   );
 };
