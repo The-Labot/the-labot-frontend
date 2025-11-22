@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080/api", // 백엔드 기본 주소
+  baseURL: import.meta.env.VITE_API_BASE_URL, //환경에 따라 다르게 작동
   headers: {
     "Content-Type": "application/json",
   },

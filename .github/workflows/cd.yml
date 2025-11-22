@@ -10,16 +10,27 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      #깃허브 저장소에 있는 코드를 깃허브 깃허브 액션 실행 서버로 가져오기
+      #깃허브 저장소에 있는 코드를 깃허브 깃허브 액션 실행 서버로 가져오기 (코드내려받기)
       - name: checkout code
         uses: actions/checkout@v4
-    
+      
+      ###캐싱을 위해 필수적인 buildx 도구 설치
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       #도커허브에 로그인
       - name: log in to docker hub
         uses: docker/login-action@v3
         with:
           username: rmsckd1640
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      ###빌드전에 배포 설정 파일 생성하기###
+      #상대경로설정이라 딱히 시크릿 설정은 안함요
+      - name: create .env.production
+        run: |
+          #경로상에 임시로 파일 만들고 이미지 만들꺼임요
+          echo "VITE_API_BASE_URL=" > ./react/.env.production
       
       #빌드할 소스 위치, 이미지 생성 파일(Dockerfile), 빌드 끝나면 업로드, 이미지에 이름 달기
       - name: build and push docker image
@@ -29,6 +40,10 @@ jobs:
           file: ./react/Dockerfile
           push: true
           tags: rmsckd1640/the-labot-frontend:latest
+
+          ### 빌드하고 푸시했으면 캐시 저장소 사용 설정 해야지
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   
   #이제 EC2갈거임
   deploy:
