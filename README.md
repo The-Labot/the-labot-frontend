@@ -7,5 +7,5 @@ react 최상단 루트 (`react/`)에 `.env` 파일 생성후 아래처럼 설정
 - `.env`
 
 ```properties
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:8080/api
 ```
