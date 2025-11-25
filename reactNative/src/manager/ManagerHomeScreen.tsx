@@ -14,7 +14,7 @@ import { RootStackParamList } from '../../App';
 
 import WorkStatusPanel from './WorkStatusPanel';
 import WorkerManagementScreen from './WorkerManagementScreen';
-import SafetyReportScreen from './SafetyReportScreen';
+import SafetyReportScreen from './ManagerHazardsScreen.tsx';
 import ManagerAnnouncementsScreen from './ManagerAnnouncementsScreen';
 import SafetyTrainingScreen from './SafetyTrainingScreen';
 import DailyReportScreen from './DailyReportScreen';   // ✅ 이 줄 추가
@@ -39,7 +39,7 @@ type NavigationItem = {
 const navigationItems: NavigationItem[] = [
   { id: 'work-status',       title: '작업 현황',      emoji: '📊' },
   { id: 'worker-management', title: '근로자 관리',    emoji: '👥' },
-  { id: 'safety-report',     title: '안전 신고 현황', emoji: '⚠️' },
+  { id: 'safety-report',     title: '위험 신고 현황', emoji: '⚠️' },
   { id: 'announcements',     title: '공지사항',       emoji: '📢' },
   { id: 'training',          title: '안전 교육 일지', emoji: '🎓' },
   { id: 'daily-report',      title: '작업 일보',      emoji: '📄' },

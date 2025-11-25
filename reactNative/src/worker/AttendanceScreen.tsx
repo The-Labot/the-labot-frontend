@@ -1,18 +1,46 @@
 // src/worker/AttendanceScreen.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
+import Geolocation from '@react-native-community/geolocation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { getTempAccessToken } from '../api/auth';
+import { BASE_URL } from '../api/config';
+import { StyleSheet } from 'react-native';
+import { PermissionsAndroid, Platform } from "react-native";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Attendance'>;
 
 type AttendanceStatus = 'not-checked-in' | 'checked-in' | 'checked-out';
+
+// ⭐ 출근/퇴근 API 요청 함수
+async function sendAttendanceAPI(latitude: number, longitude: number) {
+  const token = getTempAccessToken();
+  if (!token) throw new Error('로그인이 필요합니다.');
+
+  const res = await fetch(`${BASE_URL}/worker/attendance/clock-in-out`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ latitude, longitude }),
+  });
+
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+}
 
 const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
   const [status, setStatus] = useState<AttendanceStatus>('not-checked-in');
@@ -20,36 +48,110 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
   const [checkInTime, setCheckInTime] = useState<string>('');
   const [checkOutTime, setCheckOutTime] = useState<string>('');
 
-  // 현재 시간 1초마다 업데이트
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      setCurrentTime(`${h}:${m}:${s}`);
+  // 현재시간 실시간 업데이트
+
+
+    useEffect(() => {
+  // ⭐ Android 위치 권한 요청
+  const requestLocationPermission = async () => {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      Alert.alert(
+        "위치 권한 필요",
+        "출퇴근 기능을 사용하려면 위치 권한을 허용해주세요."
+      );
+    }
+  };
+
+  // Android만 권한 요청
+  if (Platform.OS === 'android') {
+    requestLocationPermission();
+  }
+
+  // 현재 시간 실시간 업데이트
+  const intervalId = setInterval(() => {
+    const now = new Date();
+    setCurrentTime(
+      `${String(now.getHours()).padStart(2, '0')}:${String(
+        now.getMinutes(),
+      ).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+    );
+  }, 1000);
+
+  return () => clearInterval(intervalId);
+}, []);
+
+  // ⭐ GPS → API 호출 → 성공 시 UI 업데이트
+const requestAttendance = async (type: 'IN' | 'OUT') => {
+  try {
+    console.log('📍 GPS 요청 시작');
+
+    // 타입 제거 → any로 처리 (GeolocationResponse 타입 없음)
+    const location: any = await new Promise((resolve, reject) => {
+      Geolocation.getCurrentPosition(
+        pos => resolve(pos.coords),
+        err => reject(err),
+        { enableHighAccuracy: true, timeout: 20000 },
+      );
+    });
+
+    console.log('📍 위도/경도:', location);
+
+    const token = getTempAccessToken();
+    if (!token) {
+      Alert.alert('오류', '로그인이 필요합니다.');
+      return;
+    }
+
+    const body = {
+      latitude: location.latitude,
+      longitude: location.longitude,
     };
 
-    updateTime();
-    const intervalId = setInterval(updateTime, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
+    console.log('📡 출퇴근 API 요청:', body);
 
-  const handleCheckIn = () => {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    setCheckInTime(`${h}:${m}`);
-    setStatus('checked-in');
-  };
+    const res = await fetch(`${BASE_URL}/worker/attendance/clock-in-out`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
 
-  const handleCheckOut = () => {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    setCheckOutTime(`${h}:${m}`);
-    setStatus('checked-out');
-  };
+    const json = await res.json();
+    console.log('📡 출퇴근 응답:', json);
+
+    if (!res.ok) {
+      Alert.alert("오류", json.message ?? "출퇴근 처리 실패");
+      return;
+    }
+
+    // UI 업데이트
+    if (type === 'IN') {
+      setStatus('checked-in');
+      setCheckInTime(new Date().toISOString().substring(11, 16));
+    } else {
+      setStatus('checked-out');
+      setCheckOutTime(new Date().toISOString().substring(11, 16));
+    }
+
+    Alert.alert("성공", json.message);
+
+  } catch (err) {
+    console.log("🔥 출퇴근 Error:", err);
+    Alert.alert("오류", "GPS 정보를 가져올 수 없습니다.");
+  }
+};
+
+  // 출근 버튼
+  const handleCheckIn = () => requestAttendance('IN');
+
+  // 퇴근 버튼
+  const handleCheckOut = () => requestAttendance('OUT');
 
   const getStatusText = () => {
     switch (status) {
@@ -65,23 +167,22 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
   const statusStyle = (() => {
     switch (status) {
       case 'not-checked-in':
-        return { bg: '#E5E7EB', color: '#374151' }; // 회색
+        return { bg: '#E5E7EB', color: '#374151' };
       case 'checked-in':
-        return { bg: '#BBF7D0', color: '#15803D' }; // 초록
+        return { bg: '#BBF7D0', color: '#15803D' };
       case 'checked-out':
-        return { bg: '#DBEAFE', color: '#1D4ED8' }; // 파랑
+        return { bg: '#DBEAFE', color: '#1D4ED8' };
     }
   })();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* 헤더 */}
+        {/* ===== 헤더 ===== */}
         <View style={styles.header}>
           <View style={styles.headerInner}>
             <TouchableOpacity
               style={styles.backButton}
-              activeOpacity={0.7}
               onPress={() => navigation.goBack()}
             >
               <Text style={styles.backText}>←</Text>
@@ -94,30 +195,20 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* 메인 내용 */}
+        {/* ===== 상태 뱃지 ===== */}
         <View style={styles.content}>
-          {/* 상태 뱃지 */}
           <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: statusStyle.bg },
-            ]}
+            style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}
           >
-            <Text
-              style={[
-                styles.statusBadgeText,
-                { color: statusStyle.color },
-              ]}
-            >
+            <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
               현재 상태: {getStatusText()}
             </Text>
           </View>
 
-          {/* 큰 원형 버튼 */}
+          {/* ===== 원형 버튼 ===== */}
           <View style={styles.circleWrapper}>
             {status === 'not-checked-in' && (
               <TouchableOpacity
-                activeOpacity={0.85}
                 style={[styles.circleButton, styles.circleCheckIn]}
                 onPress={handleCheckIn}
               >
@@ -129,7 +220,6 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
 
             {status === 'checked-in' && (
               <TouchableOpacity
-                activeOpacity={0.85}
                 style={[styles.circleButton, styles.circleCheckOut]}
                 onPress={handleCheckOut}
               >
@@ -148,7 +238,7 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </View>
 
-          {/* 현재 시간 카드 */}
+          {/* ===== 시간 카드 ===== */}
           <View style={styles.card}>
             <View style={styles.cardLabelRow}>
               <Text style={styles.cardLabelIcon}>🕒</Text>
@@ -157,7 +247,6 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.cardTimeText}>{currentTime}</Text>
           </View>
 
-          {/* 출근 / 퇴근 시간 카드 */}
           {(checkInTime || checkOutTime) && (
             <View style={[styles.card, styles.cardLight]}>
               <View style={styles.timeGrid}>
@@ -179,16 +268,9 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
           )}
         </View>
 
-        {/* 하단 버튼 영역 */}
+        {/* ===== 하단 버튼 ===== */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.bottomButton}
-            onPress={() => {
-              // TODO: 출퇴근 기록 보기 화면으로 이동
-              // navigation.navigate('AttendanceHistory');
-            }}
-          >
+          <TouchableOpacity style={styles.bottomButton}>
             <Text style={styles.bottomButtonIcon}>📄</Text>
             <Text style={styles.bottomButtonText}>출퇴근 기록 보기</Text>
           </TouchableOpacity>
@@ -198,6 +280,7 @@ const AttendanceScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
+// ⚠️ 여기까지 — 스타일 아래는 기존 코드 유지!
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
   container: { flex: 1, backgroundColor: '#F3F4F6' },

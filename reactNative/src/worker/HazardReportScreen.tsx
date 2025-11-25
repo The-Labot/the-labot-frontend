@@ -1,210 +1,206 @@
-// src/screens/HazardReportScreen.tsx
-import React, { useState } from 'react';
+// 📌 src/worker/HazardReportScreen.tsx
+
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
   Text,
-  StyleSheet,
-  StatusBar,
-  ScrollView,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
+  Alert,
+  Image,
+} from "react-native";
+import { launchImageLibrary } from "react-native-image-picker";
+import { StyleSheet } from "react-native";
+import { getTempAccessToken } from "../api/auth";
+import { BASE_URL } from "../api/config";
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HazardReport'>;
+export default function HazardReportScreen({ navigation }: any) {
+  const [hazardType, setHazardType] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [urgent, setUrgent] = useState(false);
 
-const RISK_TYPES = [
-  '낙하물 위험 (Falling Objects)',
-  '화재 위험 (Fire Risk)',
-  '감전 위험 (Electric Shock)',
-  '붕괴 위험 (Collapse Risk)',
-  '기타 (Other)',
-];
+  const [photo, setPhoto] = useState<any>(null);
 
-const HazardReportScreen: React.FC<Props> = ({ navigation }) => {
-  const [hasPhoto, setHasPhoto] = useState(false);
-  const [location, setLocation] = useState('');
-  const [riskType, setRiskType] = useState<string | null>(null);
-  const [description, setDescription] = useState('');
-  const [showError, setShowError] = useState(false);
+  // ================================
+  // 📌 이미지 선택
+  // ================================
+    const pickImage = async () => {
+    const fakePhoto = {
+      uri: "https://picsum.photos/640/480",
+      type: "image/jpeg",
+      fileName: "hazard_test.jpg",
+    };
 
-  const handleSubmit = () => {
-    const isValid =
-      hasPhoto && location.trim() !== '' && riskType && description.trim() !== '';
+    setPhoto(fakePhoto);
+    Alert.alert("테스트 이미지가 선택되었습니다!");
+  };
 
-    if (!isValid) {
-      setShowError(true);
+  // ================================
+  // 📌 위험요소 신고 API
+  // ================================
+const submitHazard = async () => {
+  try {
+    console.log("=== 🔥 [HazardSubmit] START ===");
+    console.log("입력값:", { hazardType, location, description, urgent, photo });
+
+    if (!hazardType || !location || !description || !photo) {
+      Alert.alert("오류", "모든 필드를 입력하고 사진을 첨부해주세요!");
       return;
     }
 
-    // TODO: 실제 신고 API 연결
-    setShowError(false);
-    // 일단은 이전 화면으로만 돌아가도록
-    navigation.goBack();
-  };
+    const token = getTempAccessToken();
+    console.log("토큰:", token);
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
+    if (!token) {
+      Alert.alert("오류", "로그인이 필요합니다.");
+      return;
+    }
 
-      {/* 상단 헤더 */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.backArrow}>‹</Text>
-          </TouchableOpacity>
+    // 🔥 FormData 로그 찍기
+    const formData = new FormData();
+    formData.append("hazardType", hazardType);
+    formData.append("location", location);
+    formData.append("description", description);
+    formData.append("urgent", urgent.toString());
 
-          <View style={styles.headerTextWrapper}>
-            <Text style={styles.headerTitle}>위험요소 신고</Text>
-            <Text style={styles.headerSubtitle}>Hazard Report</Text>
-          </View>
-        </View>
-      </View>
+    const fileToUpload: any = {
+      uri: photo.uri,
+      type: photo.type || "image/jpeg",
+      name: photo.fileName || "hazard.jpg",
+    };
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 사진/영상 첨부 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              사진/영상 첨부 <Text style={styles.required}>*</Text>
-            </Text>
+    formData.append("file", fileToUpload as any);
 
-            <View style={styles.card}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={[
-                  styles.photoBox,
-                  hasPhoto && styles.photoBoxSelected,
-                ]}
-                onPress={() => {
-                  // TODO: 카메라/갤러리 연동
-                  setHasPhoto(true);
-                }}
-              >
-                <View style={styles.photoIconCircle}>
-                  <Text style={styles.photoIcon}>📷</Text>
-                </View>
-                <Text style={styles.photoText}>사진 추가</Text>
-                <Text style={styles.photoSubText}>Add Photo</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    console.log("전송할 파일 정보:", fileToUpload);
 
-          {/* 위치/구역 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              위치/구역 <Text style={styles.required}>*</Text>
-            </Text>
+    console.log("=== 🔥 [HazardSubmit] Fetch 요청 시작 ===");
 
-            <View style={styles.card}>
-              <TextInput
-                style={styles.input}
-                placeholder="예: 3층 동쪽 계단, 2구역 작업장 등"
-                placeholderTextColor="#9CA3AF"
-                value={location}
-                onChangeText={setLocation}
-              />
-            </View>
-          </View>
+    const response = await fetch(`${BASE_URL}/worker/hazards`, {
+      method: "POST",
+      headers: {
+        Authorization: token,
+      },
+      body: formData,
+    });
 
-          {/* 위험 유형 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              위험 유형 <Text style={styles.required}>*</Text>
-            </Text>
+    console.log("=== 🔥 [HazardSubmit] Fetch 응답 도착 ===");
+    console.log("응답 status:", response.status);
+    console.log("응답 ok:", response.ok);
+    console.log("응답 headers:", response.headers);
 
-            <View style={styles.card}>
-              {RISK_TYPES.map(item => {
-                const isSelected = riskType === item;
-                return (
-                  <TouchableOpacity
-                    key={item}
-                    style={[
-                      styles.riskItem,
-                      isSelected && styles.riskItemSelected,
-                    ]}
-                    activeOpacity={0.8}
-                    onPress={() => setRiskType(item)}
-                  >
-                    <Text
-                      style={[
-                        styles.riskText,
-                        isSelected && styles.riskTextSelected,
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+    const resultText = await response.text();
+    console.log("🔥 서버 응답 원본 TEXT:", resultText);
 
-          {/* 상세 설명 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              상세 설명 <Text style={styles.required}>*</Text>
-            </Text>
+    let json = null;
+    try {
+      json = JSON.parse(resultText);
+      console.log("🔥 서버 응답 JSON:", json);
+    } catch (e) {
+      console.log("⚠ JSON 파싱 실패 — 서버가 JSON을 안줌:", e);
+    }
 
-            <View style={styles.card}>
-              <TextInput
-                style={styles.textArea}
-                placeholder="현장 상황을 정확하게 기술해주세요&#10;예: 3층 계단 난간이 부식되어 흔들림"
-                placeholderTextColor="#9CA3AF"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-          </View>
+    // ❗ 실패 처리
+    if (!response.ok) {
+      const errorMsg =
+        json?.message ||
+        `서버 오류 발생 (status ${response.status})`;
+      Alert.alert("오류", errorMsg);
+      return;
+    }
 
-          {/* 신고 제출 버튼 */}
-          <TouchableOpacity
-            style={styles.submitButton}
-            activeOpacity={0.85}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.submitButtonText}>⚠️  신고 제출하기</Text>
-          </TouchableOpacity>
-
-          {/* 에러 메시지 박스 */}
-          {showError && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorMain}>
-                사진 첨부는 필수입니다
-              </Text>
-              <Text style={styles.errorMain}>
-                현장 상황을 정확하게 기술해주세요
-              </Text>
-              <Text style={styles.errorSub}>
-                Photo is required / Please accurately describe the site
-                condition
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+    // 성공 처리
+    Alert.alert("성공", "위험요소 신고가 등록되었습니다!", [
+      { text: "확인", onPress: () => navigation.goBack() },
+    ]);
+  } catch (err) {
+    console.log("🔥 [HazardSubmit] CATCH ERROR:", err);
+    Alert.alert("오류", `신고 중 문제가 발생했습니다.\n${String(err)}`);
+  }
 };
 
-export default HazardReportScreen;
+  return (
+    <SafeAreaView style={{ flex: 1, padding: 20 }}>
+      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 20 }}>
+        위험요소 신고
+      </Text>
+
+      {/* 위험 유형 */}
+      <TextInput
+        placeholder="위험 유형 (예: Electric Shock)"
+        value={hazardType}
+        onChangeText={setHazardType}
+        style={{ backgroundColor: "#fff", padding: 12, borderRadius: 8, marginBottom: 12 }}
+      />
+
+      {/* 위치 */}
+      <TextInput
+        placeholder="위치 (예: 3층 계단)"
+        value={location}
+        onChangeText={setLocation}
+        style={{ backgroundColor: "#fff", padding: 12, borderRadius: 8, marginBottom: 12 }}
+      />
+
+      {/* 설명 */}
+      <TextInput
+        placeholder="설명"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        style={{ backgroundColor: "#fff", padding: 12, borderRadius: 8, height: 200, marginBottom: 12 }}
+      />
+
+      {/* 긴급 여부 */}
+      <TouchableOpacity
+        onPress={() => setUrgent(!urgent)}
+        style={{
+          padding: 12,
+          borderRadius: 8,
+          backgroundColor: urgent ? "#FCA5A5" : "#E5E7EB",
+          marginBottom: 12,
+        }}
+      >
+        <Text>{urgent ? "긴급: 예" : "긴급: 아니오"}</Text>
+      </TouchableOpacity>
+
+      {/* 이미지 선택 */}
+      <TouchableOpacity
+        onPress={pickImage}
+        style={{
+          backgroundColor: "#93C5FD",
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 20,
+        }}
+      >
+        <Text style={{ color: "#fff", textAlign: "center" }}>사진 선택</Text>
+      </TouchableOpacity>
+
+      {photo && (
+        <Image
+          source={{ uri: photo.uri }}
+          style={{ width: "100%", height: 200, borderRadius: 8, marginBottom: 20 }}
+        />
+      )}
+
+      {/* 제출 버튼 */}
+      <TouchableOpacity
+        onPress={submitHazard}
+        style={{
+          backgroundColor: "#e22424ff",
+          padding: 16,
+          borderRadius: 10,
+        }}
+      >
+        <Text style={{ color: "#fff", textAlign: "center", fontSize: 16 }}>
+          신고 제출
+        </Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F5F5F7' },

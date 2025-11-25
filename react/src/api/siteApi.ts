@@ -27,3 +27,24 @@ export const updateSiteDetail = async (
     },
   });
 };
+//삭제
+export const deleteSite = async (accessToken: string, siteId: number) => {
+  return apiClient.delete(`/admin/sites/${siteId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
+export const addSiteManager = async (
+  accessToken: string,
+  siteId: number,
+  body: { phoneNumber: string; name: string }
+) => {
+  return apiClient.post(`/admin/sites/${siteId}/manager`, body, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+};

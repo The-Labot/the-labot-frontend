@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getSiteDetail, updateSiteDetail } from "../api/siteApi";
+import { getSiteDetail, updateSiteDetail, deleteSite  } from "../api/siteApi";
 import "./SiteDetailPage.css";
 import { ArrowLeft, Pencil } from "lucide-react";
+import { addSiteManager } from "../api/siteApi";
 
 export default function SiteDetailPage() {
   const { siteId } = useParams();
   const navigate = useNavigate();
   const [siteData, setSiteData] = useState<any>(null);
   const [editing, setEditing] = useState(false);
-
+  const [showManagerForm, setShowManagerForm] = useState(false);
+  const [managerPhone, setManagerPhone] = useState("");
+  const [managerName, setManagerName] = useState("");
   const accessToken = localStorage.getItem("accessToken");
 
   /* 📌 데이터 불러오기 */
@@ -62,22 +65,48 @@ export default function SiteDetailPage() {
 
       {/* --- 상단 헤더 --- */}
       <div className="header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          <ArrowLeft size={20} />
-        </button>
-        <h1>현장 상세정보</h1>
+  <button className="back-btn" onClick={() => navigate(-1)}>
+    <ArrowLeft size={20} />
+  </button>
+  <h1>현장 상세정보</h1>
 
-        {!editing && (
-          <button className="edit-btn" onClick={() => setEditing(true)}>
-            <Pencil size={18} /> 정보 수정
-          </button>
-        )}
-        {editing && (
-          <button className="save-btn" onClick={handleSave}>
-            저장하기
-          </button>
-        )}
-      </div>
+  <div className="header-right">
+    {!editing && (
+      <>
+        <button className="edit-btn" onClick={() => setEditing(true)}>
+          <Pencil size={18} /> 정보 수정
+        </button>
+
+        <button
+          className="delete-btn"
+          onClick={async () => {
+            const confirmDelete = window.confirm(
+              "정말 삭제하시겠습니까?\n삭제된 현장은 복구할 수 없습니다."
+            );
+            if (!confirmDelete) return;
+
+            try {
+              await deleteSite(accessToken!, Number(siteId));
+              alert("현장 삭제가 완료되었습니다.");
+              navigate("/dashboard"); // 삭제 후 대시보드로 이동
+            } catch (err) {
+              console.error(err);
+              alert("삭제 실패! 관리자에게 문의하세요.");
+            }
+          }}
+        >
+          삭제
+        </button>
+      </>
+    )}
+
+    {editing && (
+      <button className="save-btn" onClick={handleSave}>
+        저장하기
+      </button>
+    )}
+  </div>
+</div>
 
       {/* --- 기본 정보 카드 --- */}
       <div className="info-card">
@@ -189,6 +218,64 @@ export default function SiteDetailPage() {
           />
         </label>
       </div>
+      {/* --- 현장관리자 등록 --- */}
+<div className="info-card">
+  <h2>현장관리자 등록</h2>
+
+  {!showManagerForm && (
+    <button
+      className="manager-add-btn"
+      onClick={() => setShowManagerForm(true)}
+    >
+      현장관리자 등록하기
+    </button>
+  )}
+
+  {showManagerForm && (
+    <div className="manager-form">
+      <label>
+        전화번호 (로그인용)
+        <input
+          value={managerPhone}
+          onChange={(e) => setManagerPhone(e.target.value)}
+          placeholder="01012345678"
+        />
+      </label>
+
+      <label>
+        현장관리자 이름
+        <input
+          value={managerName}
+          onChange={(e) => setManagerName(e.target.value)}
+          placeholder="홍길동"
+        />
+      </label>
+
+      <button
+        className="manager-submit-btn"
+        onClick={async () => {
+          try {
+            await addSiteManager(accessToken!, Number(siteId), {
+              phoneNumber: managerPhone,
+              name: managerName,
+            });
+
+            alert("현장관리자 등록 완료!");
+
+            setManagerPhone("");
+            setManagerName("");
+            setShowManagerForm(false);
+          } catch (err) {
+            console.error(err);
+            alert("등록 실패! 관리자에게 문의하세요.");
+          }
+        }}
+      >
+        등록하기
+      </button>
+    </div>
+    )}
+  </div>
     </div>
   );
 }
