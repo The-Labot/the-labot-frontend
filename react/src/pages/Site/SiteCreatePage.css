@@ -314,6 +314,18 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
+.dual-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.dual-input-row span {
+  width: 32px;
+  font-size: 13px;
+  color: #333;
+}
 
 /* 반응형 */
 @media (max-width: 900px) {

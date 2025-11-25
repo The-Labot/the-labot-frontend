@@ -10,26 +10,42 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert, // ★ 추가
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { loginManager} from './api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 type UserType = 'manager' | 'worker';
+
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedUserType, setSelectedUserType] = useState<UserType>('worker');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false); // ★ 로딩 상태
 
-  const handleLogin = () => {
-    // TODO: 나중에 여기서 실제 로그인 검증 (API 연동) 추가하면 됨
-    if (selectedUserType === 'worker') {
-      navigation.navigate('WorkerHome');
-    } else {
-      navigation.navigate('ManagerHome');
-    }
-  };
+  const handleLogin = async () => {
+  if (!phone || !password) {
+    Alert.alert('알림', '전화번호와 비밀번호를 입력해주세요.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const data = await loginManager(phone, password);
+    console.log('로그인 성공 응답:', data);
+    // loginManager 안에서 이미 토큰은 setTempAccessToken으로 저장됨
+
+    // 여기서 바로 화면 전환
+    navigation.replace('ManagerHome');
+  } catch (e) {
+    Alert.alert('로그인 실패', (e as Error).message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -158,9 +174,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.9}
                 style={styles.loginButton}
-                onPress={handleLogin}
+                onPress={loading ? undefined : handleLogin}
               >
-                <Text style={styles.loginButtonText}>로그인</Text>
+                <Text style={styles.loginButtonText}>
+                  {loading ? '로그인 중...' : '로그인'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -182,6 +200,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
+// 아래 styles 는 그대로
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
   scrollContent: {

@@ -179,7 +179,12 @@
   font-size: 12px;
   color: #9ca3af;
 }
-
+.regen-button {
+  width: 200px;        /* 버튼 폭 */
+  padding: 10px 0;     /* 버튼 높이 */
+  margin: 0 auto;      /* 중앙 정렬 */
+  display: block;      /* 블록 → 중앙 배치 가능 */
+}
 /* 반응형 */
 @media (max-width: 900px) {
   .mypage-header {
@@ -207,4 +212,5 @@
   .code-input {
     width: 100%;
   }
+  
 }

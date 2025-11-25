@@ -6,6 +6,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import OfficeSelectionPage from "./pages/Office/OfficeSelectionPage";
 import SiteCreatePage from "./pages/Site/SiteCreatePage";
 import MyPagePage from "./pages/MyPage/MyPagePage"; // ✅ 추가
+import SiteDetailPage from "./pages/SiteDetailPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/site/create" element={<SiteCreatePage />} />
 
+        <Route path="/site/:siteId" element={<SiteDetailPage />} />
         {/* ✅ 마이페이지 */}
         <Route path="/mypage" element={<MyPagePage />} />
       </Routes>

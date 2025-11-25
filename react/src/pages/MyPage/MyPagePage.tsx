@@ -1,50 +1,31 @@
+// src/pages/MyPage/MyPagePage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Edit3 } from "lucide-react";
 import "./MyPagePage.css";
-import apiClient from "../../api/apiClient";
-
-// 백엔드 문서 기준 응답 예시:
-// {
-//   "status": 200,
-//   "message": "본사 상세 조회 성공",
-//   "data": {
-//     "id": 3,
-//     "name": "박찬홍 본사",
-//     "address": "성남시 분당구",
-//     "phoneNumber": "02-1111-2222",
-//     "representative": "박찬홍",
-//     "secretCode": "19fe46c6"
-//   }
-// }
-interface HeadOfficeDetailResponse {
-  id: number;
-  name: string;
-  address: string;
-  phoneNumber: string;
-  representative: string;
-  secretCode: string;
-}
-
-interface HeadOfficeApiResponse {
-  status: number;
-  message: string;
-  data: HeadOfficeDetailResponse;
-}
+import type { HeadOfficeData, ApiResponse } from "../../api/adminHeadOfficeApi";
+import {
+  getHeadOffice,
+  updateHeadOffice,
+  regenerateHeadOfficeCode
+} from "../../api/adminHeadOfficeApi";
 
 interface HeadOfficeInfo {
-  headOfficeName: string;  // name
-  headOfficeCode: string;  // secretCode
-  ceoName: string;         // representative
-  phoneNumber: string;     // phoneNumber
-  email: string;           // (API엔 없어서 프론트에서만 관리)
-  address: string;         // address
-  addressDetail: string;   // (API엔 없어서 프론트에서만 관리)
+  headOfficeName: string;
+  headOfficeCode: string;
+  ceoName: string;
+  phoneNumber: string;
+  email: string;          // 프론트 전용
+  address: string;
+  addressDetail: string;  // 프론트 전용
 }
 
 export default function MyPagePage() {
   const navigate = useNavigate();
 
+  // ------------------------------
+  // 상태 관리
+  // ------------------------------
   const [form, setForm] = useState<HeadOfficeInfo>({
     headOfficeName: "",
     headOfficeCode: "",
@@ -59,30 +40,24 @@ export default function MyPagePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleBack = () => {
-    navigate("/dashboard");
-  };
-
+  // ------------------------------
+  // 입력 핸들러
+  // ------------------------------
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCancel = () => {
-    // TODO: 서버 값으로 롤백하려면, 처음 GET 결과를 별도로 저장해뒀다가 여기서 복원
-    setIsEditing(false);
+  // ------------------------------
+  // 뒤로가기
+  // ------------------------------
+  const handleBack = () => {
+    navigate("/dashboard");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // TODO: 여기서 PUT /api/admin/head-office 연동 예정
-    console.log("본사 정보 수정 payload:", form);
-    alert("본사 정보가 임시로 저장되었습니다. (PUT 연동 예정)");
-    setIsEditing(false);
-  };
-
-  // ✅ 마이페이지 진입 시 본사 정보 조회
+  // ------------------------------
+  // 본사 정보 조회 (GET)
+  // ------------------------------
   useEffect(() => {
     const fetchHeadOffice = async () => {
       try {
@@ -95,28 +70,10 @@ export default function MyPagePage() {
           return;
         }
 
-        // IMPORTANT:
-        // apiClient의 baseURL이 "/api" 라고 가정하므로
-        // 여기서는 "/admin/head-office" 만 작성
-        const res = await apiClient.get<HeadOfficeApiResponse>(
-          "/admin/head-office",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await getHeadOffice(token);
+        const data: HeadOfficeData = res.data.data;
 
-        const apiData = res.data;
-
-        if (!apiData || !apiData.data) {
-          throw new Error(
-            "서버 응답 형식이 예상과 다릅니다. (data 필드 없음)"
-          );
-        }
-
-        const data = apiData.data;
-
+        // 프론트 전용 필드(email, addressDetail)는 유지
         setForm((prev) => ({
           ...prev,
           headOfficeName: data.name ?? "",
@@ -124,27 +81,16 @@ export default function MyPagePage() {
           ceoName: data.representative ?? "",
           phoneNumber: data.phoneNumber ?? "",
           address: data.address ?? "",
-          // email, addressDetail은 API에서 안 주니까 기존 값 유지
         }));
       } catch (err: any) {
-        console.error("본사 조회 실패:", err);
+        console.error("❌ 본사 정보 조회 실패:", err);
 
-        // axios 에러 형태 처리
         if (err.response) {
-          const status = err.response.status;
-          const message =
-            err.response.data?.message ||
-            "서버에서 오류 응답을 반환했습니다.";
           setError(
-            `본사 정보를 불러오지 못했습니다. (status: ${status}) ${message}`
+            `본사 정보를 불러오지 못했습니다. (status: ${err.response.status})`
           );
-        } else if (err.request) {
-          setError("서버에 연결할 수 없습니다. (네트워크 오류)");
         } else {
-          setError(
-            err.message ||
-              "본사 정보를 불러오는 중 알 수 없는 오류가 발생했습니다."
-          );
+          setError("네트워크 오류가 발생했습니다.");
         }
       } finally {
         setLoading(false);
@@ -153,7 +99,87 @@ export default function MyPagePage() {
 
     fetchHeadOffice();
   }, []);
+    // ------------------------------
+  // 수정 취소
+  // ------------------------------
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+  // 본사 코드 재생성 (GET /admin/head-office/secret-code)
+// ------------------------------
+const handleRegenerateCode = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
 
+    const res = await regenerateHeadOfficeCode(token);
+    const newCode = res.data.data;
+
+    alert("본사 코드가 재생성되었습니다!");
+
+    setForm((prev) => ({
+      ...prev,
+      headOfficeCode: newCode,
+    }));
+  } catch (err: any) {
+    console.error("❌ 본사 코드 재생성 실패:", err);
+
+    if (err.response) {
+      alert(
+        `재생성 실패 (status: ${err.response.status}) ${err.response.data?.message}`
+      );
+    } else {
+      alert("네트워크 오류로 재생성에 실패했습니다.");
+    }
+  }
+};
+  // ------------------------------
+  // 본사 수정 (PUT)
+  // ------------------------------
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const payload = {
+        name: form.headOfficeName,
+        address: form.address,
+        phoneNumber: form.phoneNumber,
+        representative: form.ceoName,
+        secretCode: form.headOfficeCode, // 수정 불가지만 API는 요구
+      };
+
+      console.log("📌 본사 수정 요청 payload:", payload);
+
+      const res = await updateHeadOffice(token, payload);
+      console.log("📌 본사 수정 성공:", res);
+
+      alert("본사 정보가 성공적으로 수정되었습니다.");
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error("❌ 본사 수정 실패:", err);
+
+      if (err.response) {
+        alert(
+          `본사 수정 실패: (status ${err.response.status}) ${err.response.data?.message}`
+        );
+      } else {
+        alert("네트워크 오류로 본사 수정에 실패했습니다.");
+      }
+    }
+  };
+
+  // ------------------------------
+  // 화면 렌더링
+  // ------------------------------
   return (
     <div className="mypage-page">
       <div className="mypage-header">
@@ -197,30 +223,18 @@ export default function MyPagePage() {
         </div>
       </div>
 
-      <form
-        id="mypage-form"
-        className="mypage-form"
-        onSubmit={handleSubmit}
-      >
+      <form id="mypage-form" className="mypage-form" onSubmit={handleSubmit}>
         {loading && (
-          <div style={{ marginBottom: 12, fontSize: 13, color: "#6b7280" }}>
-            본사 정보를 불러오는 중입니다...
-          </div>
+          <div className="loading-text">본사 정보를 불러오는 중입니다...</div>
         )}
-        {error && (
-          <div style={{ marginBottom: 12, fontSize: 13, color: "#b91c1c" }}>
-            {error}
-          </div>
-        )}
+        {error && <div className="error-text">{error}</div>}
 
-        {/* 본사 정보 */}
+        {/* 📌 본사 정보 카드 */}
         <section className="form-card">
           <h2 className="form-card-title">본사 정보</h2>
           <div className="form-grid">
             <div className="form-field">
-              <label htmlFor="headOfficeName">
-                본사명 <span className="required">*</span>
-              </label>
+              <label htmlFor="headOfficeName">본사명 *</label>
               <input
                 id="headOfficeName"
                 name="headOfficeName"
@@ -253,18 +267,6 @@ export default function MyPagePage() {
               />
             </div>
 
-            <div className="form-field">
-              <label htmlFor="email">대표 이메일</label>
-              <input
-                id="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="hq@example.com"
-              />
-            </div>
-
             <div className="form-field form-field-full">
               <label htmlFor="address">사업장 주소</label>
               <input
@@ -289,21 +291,34 @@ export default function MyPagePage() {
           </div>
         </section>
 
-        {/* 본사 코드 */}
+        {/* 📌 본사 코드 카드 */}
         <section className="form-card">
           <h2 className="form-card-title">본사 코드</h2>
           <p className="help-text">
-            회원가입 시 발급된 본사 코드입니다. 해당 코드를 다른 관리자에게
-            전달하면 같은 본사로 가입할 수 있습니다.
+            회원가입 시 발급된 본사 코드입니다. 다른 관리자도 이 코드를 입력하면
+            같은 본사로 가입됩니다.
           </p>
+
           <div className="code-row">
             <input
               className="code-input readonly-input"
               value={form.headOfficeCode}
               readOnly
             />
-            <span className="code-hint">※ 본사 코드는 수정할 수 없습니다.</span>
-          </div>
+             <button
+            type="button"
+            className="regen-button"
+            style={{ marginLeft: "12px", padding: "1px auto" }}
+            onClick={handleRegenerateCode}
+            disabled={!isEditing}   // 수정 모드에서만 활성화
+          >
+            본사 코드 재생성
+          </button>
+        </div>
+
+        <p className="code-hint">※ 본사 코드를 재생성하면 기존 코드는 사용할 수 없습니다.</p>
+        <p className="code-hint">※ 정보수정 버튼을 눌러야 본사코드재생성 버튼이 활성화 됩니다.</p>
+
         </section>
       </form>
     </div>

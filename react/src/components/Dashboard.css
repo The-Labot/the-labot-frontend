@@ -353,3 +353,15 @@
   font-size: 14px;
   color: #9ca3af;
 }
+.site-view-button {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.site-view-button:hover {
+  background: #f3f4f6;
+}

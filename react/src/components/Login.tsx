@@ -38,19 +38,17 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
         return;
       }
 
-      // ✅ 항상 "Bearer ..." 형태로 맞춰서 저장
-      const bearerToken =
-        rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
+      // ✅ 백엔드가 "Bearer ..." 를 주면 앞부분 잘라내고, 아니면 그대로 사용
+      const accessToken = rawToken.startsWith("Bearer ")
+        ? rawToken.slice("Bearer ".length)
+        : rawToken;
 
-      // ✅ accessToken: Bearer 제거한 순수 토큰 (상위 컴포넌트에서 필요하면 사용)
-      const accessToken = bearerToken.slice("Bearer ".length);
-
-      // ✅ 이후 모든 API에서 쓰도록 localStorage 에 저장
-      localStorage.setItem("authToken", bearerToken); // axios 인터셉터에서 사용
+      // ✅ 이후 모든 API에서 쓰도록 localStorage 에 '순수 토큰' 저장
+      localStorage.setItem("authToken", accessToken); // axios 인터셉터에서 Bearer 붙임
       localStorage.setItem("adminName", res.data?.name ?? "");
       localStorage.setItem("adminId", String(res.data?.userId ?? ""));
 
-      // ✅ 예전 구조 유지: 상위로도 토큰 전달 (선택)
+      // 선택적으로 상위 컴포넌트에 토큰 전달
       if (onLoginSuccess) {
         onLoginSuccess(accessToken);
       }
