@@ -36,10 +36,16 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   try {
     const data = await loginManager(phone, password);
     console.log('로그인 성공 응답:', data);
-    // loginManager 안에서 이미 토큰은 setTempAccessToken으로 저장됨
 
-    // 여기서 바로 화면 전환
-    navigation.replace('ManagerHome');
+    const role = data.role;
+
+    if (role === 'ROLE_MANAGER') {
+      navigation.replace('ManagerHome');   // 현장 관리자 홈
+    } else if (role === 'ROLE_WORKER') {
+      navigation.replace('WorkerHome');    // 현장 근로자 홈
+    } else {
+      Alert.alert('로그인 오류', '알 수 없는 사용자 유형입니다.');
+    }
   } catch (e) {
     Alert.alert('로그인 실패', (e as Error).message);
   } finally {
