@@ -337,8 +337,7 @@ android/build/
 android/.idea/
 android/local.properties
 
-# Gradle wrapper (keep properties, ignore jar)
-android/gradle/wrapper/gradle-wrapper.jar
+
 
 # iOS build artifacts
 ios/Pods/
