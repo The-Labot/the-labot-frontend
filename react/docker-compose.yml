@@ -13,9 +13,34 @@ services:
     image: rmsckd1640/the-labot-frontend:latest
     ports:
       - "80:80"
+      - "443:443" # ec2외부의 443문과 내부 nginx의 443문을 연결해라(매핑해라)
     restart: always
+
+    #인증서와 인증용 파일을 공유할 볼륨 2개 추가
+    #볼륨은 ec2 서버와 컨테이너가 같이 쓰는 공유 폴더 (마법의 터널)
+    #certbot이 인증서를 저장하면 nginx가 가져다씀
+    # : 기준으로 왼쪽은 ec2 내부 경로 오른쪽은 컨테이너 내부 경로
+    # 오른쪽에 파일을 저장하면 왼쪽에도 저장되게 해라!
+    volumes:
+      - ./certbot/conf:/etc/letsencrpty
+      - ./certbot/www:/var/www/certbot
+
     networks:
       - the-labot-network
+
+  #새로운 컨테이너 certbot
+  certbot:
+    #certbot도 누군가 도커 이미지로 잘 만들어둬서 가져다 쓸꺼임
+    image: certbot/certbot
+    container_name: certbot
+    #frontend랑 똑같은 폴더를 공유 (여기에 인증서 저장함)
+    volumes:
+      - ./certbot/conf:/etc/letsencrpty
+      - ./certbot/www:/var/www/certbot
+    #entrypoint란 컨테이너가 켜지자마자 가장 먼저 실행할 명령어
+    #작성된 명령어는 리눅스 쉘 스크립트
+    #주기적으로 인증서 갱신하는 코드
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
  the-labot-network:
