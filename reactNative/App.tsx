@@ -13,6 +13,8 @@ import AttendanceScreen from './src/worker/AttendanceScreen';
 import MapScreen from './src/worker/MapScreen';
 import ManagerCertificatesScreen from './src/manager/ManagerCertificatesScreen';
 import ManagerMyPageScreen from './src/manager/MyPageScreen'; // ✅ 이건 관리자용
+import WorkerNoticeList from './src/worker/WorkerNoticeList';
+import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
 
 export type RootStackParamList = {
       Login: undefined;
@@ -27,6 +29,10 @@ export type RootStackParamList = {
     ManagerCertificates: {       // ✅ 추가
     worker: { id: number; name: string; role: string; site: string };
   };
+  // 📌 공지사항 화면
+      WorkerNoticeList: undefined;
+      WorkerNoticeDetail: { noticeId: number };
+
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,6 +57,8 @@ export default function App() {
         <Stack.Screen name="Map" component={MapScreen} />
         <Stack.Screen name="ManagerCertificates" component={ManagerCertificatesScreen} />
         
+        <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
+        <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
       </Stack.Navigator>
     </NavigationContainer>
   );

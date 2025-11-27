@@ -1,5 +1,6 @@
-// src/screens/HomeScreen.tsx
-import React from 'react';
+// 📌 src/screens/HomeScreen.tsx
+
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   View,
@@ -11,9 +12,22 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-
+import { BASE_URL } from '../api/config';
+import { getTempAccessToken } from '../api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerHome'>;
+
+type Notice = {
+  id: number;
+  title: string;
+  category: string;
+  pinned: boolean;
+  urgent: boolean;
+  date: string;
+  writer: string;
+};
+
+// 메뉴 아이템 유지
 type WorkerMenuScreen =
   | 'WorkerMyPage'
   | 'Map'
@@ -26,7 +40,7 @@ type MenuItem = {
   subtitle: string;
   emoji: string;
   bgColor: string;
-  screen: WorkerMenuScreen; 
+  screen: WorkerMenuScreen;
 };
 
 const menuItems: MenuItem[] = [
@@ -44,7 +58,7 @@ const menuItems: MenuItem[] = [
     subtitle: 'Map Location',
     emoji: '📍',
     bgColor: '#FFEBD7',
-    screen: 'Map', 
+    screen: 'Map',
   },
   {
     id: 3,
@@ -65,6 +79,49 @@ const menuItems: MenuItem[] = [
 ];
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const [notices, setNotices] = useState<Notice[]>([]);
+
+  // 🔥 공지사항 가져오기
+  const fetchNotices = async () => {
+  try {
+    const token = getTempAccessToken();
+    const res = await fetch(`${BASE_URL}/worker/notices`, {
+      method: 'GET',
+      headers: { Authorization: token },
+    });
+
+    const json = await res.json();
+    console.log("공지사항 API 응답:", json);
+
+    // 🔥 json 자체가 배열이므로 그대로 정렬
+    const sorted = json.sort(
+      (a: Notice, b: Notice) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    setNotices(sorted.slice(0, 5));
+  } catch (err) {
+    console.log('공지사항 fetch 오류:', err);
+  }
+};
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  // 카테고리 색상 매핑
+  const getTagStyle = (category: string) => {
+    switch (category) {
+      case '안전':
+        return { bg: '#DBEAFE', color: '#1D4ED8' };
+      case '일정':
+        return { bg: '#FFEDD5', color: '#C2410C' };
+      case '현장':
+        return { bg: '#E2FBEA', color: '#15803D' };
+      default:
+        return { bg: '#F3F4F6', color: '#374151' };
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
@@ -89,17 +146,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* 메뉴 그리드 */}
+          {/* 메뉴 */}
           <View style={styles.menuGrid}>
             {menuItems.map(item => (
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.8}
                 style={[styles.menuCard, { backgroundColor: item.bgColor }]}
-                onPress={() => {
-                  console.log('pressed menu:', item.title, item.screen);
-                  navigation.navigate(item.screen);   // ✅ 실제 화면 이동
-                }}
+                onPress={() => navigation.navigate(item.screen)}
               >
                 <View style={styles.menuIconWrapper}>
                   <Text style={styles.menuEmoji}>{item.emoji}</Text>
@@ -111,49 +165,50 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
-                {/* 공지사항 섹션 */}
-      <View style={styles.noticeSection}>
-        <View style={styles.noticeHeader}>
-          <Text style={styles.noticeTitle}>공지 사항</Text>
-          <TouchableOpacity
-            style={styles.noticeAddButton}
-            activeOpacity={0.8}
-            onPress={() => {
-              // TODO: 새 공지 추가 버튼 눌렀을 때 동작
-            }}
-          >
-            <Text style={styles.noticeAddPlus}>＋</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* 공지 1 */}
-        <View style={styles.noticeCard}>
-          <View style={styles.noticeRow}>
-            <View style={[styles.noticeTag, styles.noticeTagSafe]}>
-              <Text style={styles.noticeTagText}>안전</Text>
-            </View>
-            <View style={styles.noticeTextWrapper}>
-              <Text style={styles.noticeMain}>안전모 착용 의무화 안내</Text>
-              <Text style={styles.noticeDate}>2025.10.28</Text>
-            </View>
-          </View>
-        </View>
+          {/* 공지사항 */}
+          <View style={styles.noticeSection}>
+            <View style={styles.noticeHeader}>
+              <Text style={styles.noticeTitle}>공지 사항</Text>
 
-        {/* 공지 2 */}
-        <View style={styles.noticeCard}>
-          <View style={styles.noticeRow}>
-            <View style={[styles.noticeTag, styles.noticeTagSchedule]}>
-              <Text style={styles.noticeTagText}>일정</Text>
+              {/* 🔵 전체 공지 보기 버튼 */}
+              <TouchableOpacity
+                style={styles.noticeAddButton}
+                onPress={() => navigation.navigate('WorkerNoticeList')}
+              >
+                <Text style={styles.noticeAddPlus}>＋</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.noticeTextWrapper}>
-              <Text style={styles.noticeMain}>11월 현장 근무 일정 안내</Text>
-              <Text style={styles.noticeDate}>2025.10.25</Text>
-            </View>
+
+            {/* 최신 공지 5개 */}
+            {notices.map(item => {
+              const { bg, color } = getTagStyle(item.category);
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.noticeCard}
+                  onPress={() =>
+                    navigation.navigate('WorkerNoticeDetail', { noticeId: item.id })
+                  }
+                >
+                  <View style={styles.noticeRow}>
+                    <View style={[styles.noticeTag, { backgroundColor: bg }]}>
+                      <Text style={[styles.noticeTagText, { color }]}>{item.category}</Text>
+                    </View>
+
+                    <View style={styles.noticeTextWrapper}>
+                <Text style={styles.noticeMain}>
+                  {item.urgent ? '🚨 ' : ''}
+                  {item.title}
+                </Text>
+                <Text style={styles.noticeDate}>{item.date}</Text>
+              </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </View>
-      </View>
         </ScrollView>
-        
       </View>
     </SafeAreaView>
   );

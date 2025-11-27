@@ -26,16 +26,23 @@ export default function HazardReportScreen({ navigation }: any) {
   // ================================
   // 📌 이미지 선택
   // ================================
-    const pickImage = async () => {
-    const fakePhoto = {
-      uri: "https://picsum.photos/640/480",
-      type: "image/jpeg",
-      fileName: "hazard_test.jpg",
-    };
+  const pickImage = async () => {
+  const result = await launchImageLibrary({
+    mediaType: "photo",
+    quality: 1,
+  });
 
-    setPhoto(fakePhoto);
-    Alert.alert("테스트 이미지가 선택되었습니다!");
-  };
+  if (result.didCancel) return;
+
+  const asset = result.assets?.[0];
+  if (!asset) return;
+
+  setPhoto({
+    uri: asset.uri,
+    type: asset.type,
+    fileName: asset.fileName,
+  });
+};
 
   // ================================
   // 📌 위험요소 신고 API
