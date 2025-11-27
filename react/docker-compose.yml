@@ -22,7 +22,7 @@ services:
     # : 기준으로 왼쪽은 ec2 내부 경로 오른쪽은 컨테이너 내부 경로
     # 오른쪽에 파일을 저장하면 왼쪽에도 저장되게 해라!
     volumes:
-      - ./certbot/conf:/etc/letsencrpty
+      - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
 
     networks:
@@ -35,7 +35,7 @@ services:
     container_name: certbot
     #frontend랑 똑같은 폴더를 공유 (여기에 인증서 저장함)
     volumes:
-      - ./certbot/conf:/etc/letsencrpty
+      - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     #entrypoint란 컨테이너가 켜지자마자 가장 먼저 실행할 명령어
     #작성된 명령어는 리눅스 쉘 스크립트
