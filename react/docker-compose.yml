@@ -22,15 +22,15 @@ services:
     # : 기준으로 왼쪽은 ec2 내부 경로 오른쪽은 컨테이너 내부 경로
     # 오른쪽에 파일을 저장하면 왼쪽에도 저장되게 해라!
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt #발급받은 인증서가 저장되는 곳
+      - ./certbot/www:/var/www/certbot #인증용 파일(임시 토큰)을 올려두는 곳. certbot이 확인용 파일 숨겨놓는 곳
 
     networks:
       - the-labot-network
 
   #새로운 컨테이너 certbot
   certbot:
-    #certbot도 누군가 도커 이미지로 잘 만들어둬서 가져다 쓸꺼임
+    #certbot을 누군가 도커 이미지로 잘 만들어둬서 가져다 쓸꺼임
     image: certbot/certbot
     container_name: certbot
     #frontend랑 똑같은 폴더를 공유 (여기에 인증서 저장함)
@@ -40,6 +40,7 @@ services:
     #entrypoint란 컨테이너가 켜지자마자 가장 먼저 실행할 명령어
     #작성된 명령어는 리눅스 쉘 스크립트
     #주기적으로 인증서 갱신하는 코드
+    #12시간마다 깨어나서 유효기간 확인하고 자동으로 갱신해줌 (certbot의 인증서 유효기간은 90일)
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
