@@ -1,1 +1,0 @@
-/Users/donghyun/Desktop/the-labot-frontend/reactNative/android/app/build/intermediates/cxx/Debug/3r6a2oq5/obj/arm64-v8a
