@@ -10,14 +10,13 @@ pnpm-debug.log*
 lerna-debug.log*
 
 ############################
-# Node
+# Node (모든 하위 프로젝트)
 ############################
-node_modules/
-dist/
-dist-ssr/
-*.local
+*/node_modules/
+*/dist/
 metro-cache/
 .bundle/
+*.local
 
 ############################
 # Editor / OS
@@ -29,81 +28,62 @@ metro-cache/
 *.swo
 *.tmp
 *.lock
-*.suo
-*.njsproj
-*.sln
-*.ntvs*
 
 ############################
-# React Native (common)
+# Android (모든 하위 폴더)
 ############################
-build/
-coverage/
-releases/
-third-party/
-*.js.meta
+*/android/.gradle/
+*/android/build/
+*/android/app/build/
+*/android/app/.cxx/
+*/android/local.properties
+*/android/.idea/
+
+# ❗ Gradle Wrapper — ignore 금지
+!*/android/gradlew
+!*/android/gradlew.bat
+!*/android/gradle/wrapper/gradle-wrapper.jar
+!*/android/gradle/wrapper/gradle-wrapper.properties
 
 ############################
-# Android (빌드 결과물만 ignore)
+# iOS (모든 하위 폴더)
 ############################
-android/.gradle/
-android/build/
-android/app/build/
-android/app/.cxx/
-android/.idea/
-android/local.properties
-*.iml
+*/ios/Pods/
+*/ios/build/
+*/ios/DerivedData/
+*/ios/Podfile.lock
+*/ios/.xcode.env
+*/ios/.xcode.env.local
 
-# ❗ Gradle Wrapper (필수 → ignore 금지)
-!android/gradlew
-!android/gradlew.bat
-!android/gradle/wrapper/gradle-wrapper.jar
-!android/gradle/wrapper/gradle-wrapper.properties
-
-############################
-# iOS
-############################
-ios/Pods/
-ios/build/
-ios/DerivedData/
-ios/Podfile.lock
-ios/.xcode.env
-ios/.xcode.env.local
-
-# Xcode project user data
+# Xcode user data
 *.pbxuser
 *.mode1v3
 *.mode2v3
 *.perspectivev3
-xcuserdata/
+*/ios/**/xcuserdata/
 *.xccheckout
 *.moved-aside
 *.xcuserstate
-project.xcworkspace
-DerivedData/
 *.ipa
 *.hmap
 
-# ❗ Xcode project files (필수 → ignore 금지)
-!ios/**/*.xcodeproj
-!ios/**/*.xcworkspace
-!ios/**/*.pbxproj
-!ios/**/*.xcsettings
-!ios/**/*.xcworkspacedata
-!ios/**/*.xcscheme
+# ❗ Xcode 프로젝트 (ignore 금지)
+!*/ios/**/*.xcodeproj
+!*/ios/**/*.xcworkspace
+!*/ios/**/*.pbxproj
+!*/ios/**/*.xcsettings
+!*/ios/**/*.xcworkspacedata
+!*/ios/**/*.xcscheme
 
 ############################
-# Env files (민감정보)
+# Env files
 ############################
 .env
 .env.*
-.env.local
-.env.development.local
-.env.production.local
 .xcode.env.local
 
 ############################
-# Certificates / keys
+# Secrets / Keys
 ############################
 *.pem
 *.key
@@ -121,18 +101,11 @@ google-services.json
 GoogleService-Info.plist
 
 ############################
-# AWS / SSH / Secrets
+# AWS / SSH
 ############################
-*.pem
 .ssh/
 .aws/
 id_rsa
 id_rsa.pub
 known_hosts
-
-############################
-# Fastlane secrets
-############################
-fastlane/.env
-ios/fastlane/.env
 
