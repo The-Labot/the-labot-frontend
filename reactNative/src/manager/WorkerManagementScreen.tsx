@@ -338,301 +338,279 @@ function processObjection() {
           contentContainerStyle={{ paddingBottom: 24 }}
         />
       </View>
+      {/* ---------------- Right Panel (새 근로자 등록 패널) ---------------- */}
+<View style={styles.right}>
+  {showRegister ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: 24 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ---------------- 서류 첨부 ---------------- */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>서류 첨부</Text>
+        <Text style={styles.subtitleSmall}>Document Attachments</Text>
 
-      {/* ---------------- Right Panel ---------------- */}
-      <View style={styles.right}>
-        {/* 1) 근로자 등록 패널 */}
-        {showRegister ? (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 24, alignItems: "center" }}
-          >
-            <View style={[styles.card, { padding: 20 }]}>
-              <Text style={styles.sectionTitle}>근로자 등록</Text>
-              <Text style={styles.subtitleSmall}>Register Worker</Text>
+        <View style={{ height: 16 }} />
 
-              <View style={{ height: 16 }} />
+        {/* 계약서 생성 */}
+        <TouchableOpacity
+          style={styles.docBtn}
+          onPress={() => Alert.alert("계약서 생성 화면으로 이동 예정")}
+        >
+          <Text style={{ color: "#111827", fontWeight: "600" }}>계약서 생성</Text>
+          <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
+        </TouchableOpacity>
 
-              {/* ---------------- 서류 첨부 ---------------- */}
-              <View style={[styles.card, { width: "100%" }]}>
-                <Text style={styles.sectionTitle}>서류 첨부</Text>
-                <Text style={styles.mutedSmall}>Document Attachments</Text>
+        {/* 신분증 촬영 */}
+        <TouchableOpacity
+          style={styles.docBtn}
+          onPress={() => Alert.alert("신분증 촬영 / OCR 기능 예정")}
+        >
+          <Text style={{ color: "#111827", fontWeight: "600" }}>신분증 촬영</Text>
+          <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
+        </TouchableOpacity>
 
-                <View style={{ height: 12 }} />
-
-                <TouchableOpacity
-                  style={[styles.docBtn]}
-                  onPress={() => Alert.alert("계약서 생성 화면")}
-                >
-                  <Text style={{ color: "#111827" }}>계약서 생성</Text>
-                  <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.docBtn]}
-                  onPress={() =>
-                    Alert.alert("신분증 촬영 (카메라 실행 예정 화면)")
-                  }
-                >
-                  <Text style={{ color: "#111827" }}>신분증 촬영</Text>
-                  <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* ---------------- 계약 정보 ---------------- */}
-              <View style={[styles.card, { width: "100%" }]}>
-                <Text style={styles.sectionTitle}>계약 정보</Text>
-                <Text style={styles.subtitleSmall}>Contract Details</Text>
-
-                <View style={{ height: 12 }} />
-
-                <Field label="근무 시간" value="예: 08:00 ~ 18:00" />
-                <Field label="휴게 시간" value="예: 12:00 ~ 13:00" />
-                <Field label="계약 시작일" value="날짜 선택" />
-                <Field label="계약 종료일" value="날짜 선택" />
-                <Field label="일급" value="일급을 입력하세요" />
-                <Field label="업무 내용" value="업무를 입력하세요" />
-              </View>
-
-              {/* ---------------- 개인정보 ---------------- */}
-              <View style={[styles.card, { width: "100%" }]}>
-                <Text style={styles.sectionTitle}>개인 정보</Text>
-                <Text style={styles.subtitleSmall}>Personal Information</Text>
-                <View style={{ height: 12 }} />
-
-                {/* 전화번호 */}
-                <View style={{ marginVertical: 6 }}>
-                  <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
-                    전화번호
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="로그인용 전화번호 (- 없이)"
-                    keyboardType="phone-pad"
-                    value={regPhone}
-                    onChangeText={setRegPhone}
-                  />
-                </View>
-
-                {/* 이름 */}
-                <View style={{ marginVertical: 6 }}>
-                  <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
-                    이름
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="근로자 이름"
-                    value={regName}
-                    onChangeText={setRegName}
-                  />
-                </View>
-              </View>
-
-              {/* ---------------- 등록/취소 버튼 ---------------- */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "flex-end",
-                  width: "100%",
-                }}
-              >
-                <TouchableOpacity
-                  style={[styles.outlineBtn, { marginRight: 8 }]}
-                  onPress={() => setShowRegister(false)}
-                >
-                  <Text>취소</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.primaryBtnSmall}
-                  onPress={handleRegisterWorker}
-                >
-                  <Text style={styles.primaryBtnText}>등록</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
-        ) : !selectedWorker ? (
-          /* ---------------- 근로자 선택 X ---------------- */
-          <View style={styles.empty}>
-            <Text style={{ color: "#9CA3AF", fontSize: 16 }}>
-              근로자를 선택하세요
-            </Text>
-            <Text style={{ color: "#9CA3AF", marginTop: 4, fontSize: 12 }}>
-              왼쪽 목록에서 근로자를 선택하면 상세 정보가 표시됩니다
-            </Text>
-          </View>
-        ) : showPayroll ? (
-          /* ---------------- 급여 명세서 보기 ---------------- */
-          <View style={styles.placeholder}>
-            <Text>급여 명세서 보기 (향후 연결)</Text>
-          </View>
-        ) : showCertificates ? (
-          /* ---------------- 자격증 보기 ---------------- */
-          <View style={styles.placeholder}>
-            <Text>자격증 보기 (향후 연결)</Text>
-          </View>
-        ) : (
-          /* ---------------- 기본 근로자 상세 화면 ---------------- */
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 24, alignItems: "center" }}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* -------- 프로필 카드 -------- */}
-            <View style={[styles.card, { padding: 20 }]}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View style={[styles.bigAvatar, { backgroundColor: "#E0ECFF" }]}>
-                  <Text style={{ color: "#2563EB", fontWeight: "700", fontSize: 24 }}>
-                    {selectedWorker.initial}
-                  </Text>
-                </View>
-
-                <View style={{ marginLeft: 16 }}>
-                  <Text style={styles.name}>{selectedWorker.name}</Text>
-                  <Text style={styles.muted}>
-                    {selectedWorker.role} • {selectedWorker.site}
-                  </Text>
-                  <Text style={styles.muted}>
-                    {selectedWorker.phone ?? "-"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* -------- 개인정보 -------- */}
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>개인정보</Text>
-              <View style={{ height: 8 }} />
-
-              <Field label="주소" value={selectedWorker.address} />
-              <Field label="생년월일" value={selectedWorker.birthDate} />
-
-              <EditableField
-                label="직종"
-                value={selectedWorker.role}
-                onSave={(v) => {
-                  setWorkers(ws =>
-                    ws.map(w => (w.id === selectedWorker.id ? { ...w, role: v } : w))
-                  );
-                  setSelectedWorker(prev => prev ? { ...prev, role: v } : prev);
-                }}
-              />
-
-              <EditableField
-                label="현장명"
-                value={selectedWorker.site}
-                onSave={(v) => {
-                  setWorkers(ws =>
-                    ws.map(w => (w.id === selectedWorker.id ? { ...w, site: v } : w))
-                  );
-                  setSelectedWorker(prev => prev ? { ...prev, site: v } : prev);
-                }}
-              />
-            </View>
-
-            {/* -------- 기타 정보 -------- */}
-            <View style={styles.card}>
-              <Field label="성별" value={selectedWorker.gender} />
-              <Field label="국적" value={selectedWorker.nationality} />
-              <Field label="전화번호" value={selectedWorker.phone} />
-            </View>
-
-            {/* -------- 문서 관련 버튼 -------- */}
-            <View style={{ width: "100%", maxWidth: 880 }}>
-              <DocButton
-                title="근로 계약서 보기"
-                subtitle="View Work Contract"
-                onPress={() => Alert.alert("계약서 보기")}
-              />
-              <DocButton
-                title="급여 명세서 보기"
-                subtitle="View Payroll Statement"
-                tone="yellow"
-                onPress={() => setShowPayroll(true)}
-              />
-              <DocButton
-                title="자격증 보기"
-                subtitle="View Certificate"
-                tone="green"
-                onPress={() =>
-                  navigation.navigate("ManagerCertificates", {
-                    worker: {
-                      id: selectedWorker.id,
-                      name: selectedWorker.name,
-                      role: selectedWorker.role,
-                      site: selectedWorker.site,
-                    },
-                  })
-                }
-              />
-            </View>
-
-            {/* -------- 출퇴근 기록 -------- */}
-            <View style={styles.card}>
-              <View style={styles.cardHeaderRow}>
-                <View>
-                  <Text style={styles.sectionTitle}>출퇴근 기록</Text>
-                  <Text style={styles.subtitleSmall}>Attendance History</Text>
-                </View>
-                <TouchableOpacity style={styles.outlineBtn}>
-                  <Text style={{ color: "#374151" }}>다운로드</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* 테이블 헤더 */}
-              <View style={styles.tableHeader}>
-                <TableTh text="날짜" />
-                <TableTh text="출근" />
-                <TableTh text="퇴근" />
-                <TableTh text="상태" />
-                <TableTh text="이의제기" />
-              </View>
-
-              {/* 테이블 ROW */}
-              {selectedWorker.attendanceRecords.map((rec) => (
-                <TouchableOpacity
-                  key={rec.date}
-                  onPress={() => openObjection(rec)}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.tableRow,
-                    rec.objection?.hasObjection && { backgroundColor: "#FFF7ED" },
-                  ]}
-                >
-                  <TableTd text={rec.date} />
-                  <TableTd
-                    text={`${rec.checkInTime} (${rec.checkInPeriod})`}
-                    color="#16A34A"
-                  />
-                  <TableTd
-                    text={`${rec.checkOutTime} (${rec.checkOutPeriod})`}
-                    color="#DC2626"
-                  />
-                  <View style={[styles.td, { flex: 1.2 }]}>
-                    <StatusPill status={rec.status} />
-                  </View>
-
-                  <View style={[styles.td, { flex: 2 }]}>
-                    {rec.objection?.hasObjection ? (
-                      <View>
-                        <Text style={{ fontSize: 12, color: "#9A3412" }}>
-                          이의제기
-                        </Text>
-                        <Text style={{ fontSize: 12, color: "#6B7280" }}>
-                          {rec.objection.message}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text style={{ color: "#6B7280" }}>-</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        )}
+        <View
+          style={{
+            backgroundColor: "#F3F9FF",
+            borderRadius: 12,
+            padding: 14,
+            marginTop: 12,
+          }}
+        >
+          <Text style={{ color: "#2563EB", fontSize: 12 }}>
+            신분증 촬영 시 OCR 기술로 개인정보가 자동으로 입력됩니다.
+            {"\n"}정확도 향상을 위해 신분증을 평평하게 놓고 촬영해주세요.
+          </Text>
+        </View>
       </View>
+
+      {/* ---------------- 계약 정보 ---------------- */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>계약 정보</Text>
+        <Text style={styles.subtitleSmall}>Contract Details</Text>
+
+        <View style={{ height: 16 }} />
+
+        {/* 계약 시작일 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>계약 시작일</Text>
+          <TextInput
+            placeholder="연도. 월. 일."
+            value={regContractStartDate}
+            onChangeText={setRegContractStartDate}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 계약 종료일 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>계약 종료일</Text>
+          <TextInput
+            placeholder="연도. 월. 일."
+            value={regContractEndDate}
+            onChangeText={setRegContractEndDate}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 임금 산정 시작일 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>임금 산정 시작일</Text>
+          <TextInput
+            placeholder="2025-01-01"
+            value={regWageStartDate}
+            onChangeText={setRegWageStartDate}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 임금 산정 종료일 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>임금 산정 종료일</Text>
+          <TextInput
+            placeholder="2025-12-31"
+            value={regWageEndDate}
+            onChangeText={setRegWageEndDate}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 계약 형태 (일용직 / 월정제) */}
+        <Text style={styles.inputLabel}>계약 형태</Text>
+        <Toggle2
+          values={["일용직", "월정제"]}
+          value={regContractType}
+          onChange={setRegContractType}
+          wide
+        />
+
+        {/* 일급 */}
+        <View style={{ marginTop: 12 }}>
+          <Text style={styles.inputLabel}>일급</Text>
+          <TextInput
+            placeholder="일급을 입력하세요"
+            keyboardType="numeric"
+            value={regSalary}
+            onChangeText={setRegSalary}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 업무 내용 */}
+        <View style={{ marginTop: 12 }}>
+          <Text style={styles.inputLabel}>업무 내용</Text>
+          <TextInput
+            placeholder="담당 업무를 입력하세요"
+            value={regJobType}
+            onChangeText={setRegJobType}
+            style={styles.input}
+          />
+        </View>
+      </View>
+
+      {/* ---------------- 개인정보 ---------------- */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>개인 정보</Text>
+        <Text style={styles.subtitleSmall}>Personal Information</Text>
+
+        <View style={{ height: 16 }} />
+
+        {/* 이름 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>이름</Text>
+          <TextInput
+            placeholder="이름을 입력하세요"
+            value={regName}
+            onChangeText={setRegName}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 주민등록번호 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>주민등록번호</Text>
+          <TextInput
+            placeholder="예: 900505-1234567"
+            value={regResidentId}
+            onChangeText={setRegResidentId}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 성별 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>성별</Text>
+          <TextInput
+            placeholder="성별을 입력하세요"
+            value={regNationality}
+            onChangeText={setRegNationality}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 연락처 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>연락처</Text>
+          <TextInput
+            placeholder="010-0000-0000"
+            keyboardType="phone-pad"
+            value={regPhone}
+            onChangeText={setRegPhone}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 비상 연락처 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>비상 연락처</Text>
+          <TextInput
+            placeholder="010-0000-0000"
+            keyboardType="phone-pad"
+            value={regEmergencyNumber}
+            onChangeText={setRegEmergencyNumber}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 주소 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>주소</Text>
+          <TextInput
+            placeholder="주소를 입력하세요"
+            value={regAddress}
+            onChangeText={setRegAddress}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 현장명 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>현장명</Text>
+          <TextInput
+            placeholder="예: ○○건설 현장"
+            value={regSiteName}
+            onChangeText={setRegSiteName}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 은행 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>은행</Text>
+          <TextInput
+            placeholder="예: 신한은행"
+            value={regBankName}
+            onChangeText={setRegBankName}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 계좌번호 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>계좌번호</Text>
+          <TextInput
+            placeholder="입력하세요"
+            keyboardType="numeric"
+            value={regAccountNumber}
+            onChangeText={setRegAccountNumber}
+            style={styles.input}
+          />
+        </View>
+
+        {/* 예금주 */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.inputLabel}>예금주</Text>
+          <TextInput
+            placeholder="예금주명"
+            value={regAccountHolder}
+            onChangeText={setRegAccountHolder}
+            style={styles.input}
+          />
+        </View>
+      </View>
+
+      {/* ---------------- 등록 버튼 ---------------- */}
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <TouchableOpacity
+          style={[styles.outlineBtn, { marginRight: 8 }]}
+          onPress={() => setShowRegister(false)}
+        >
+          <Text>취소</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.primaryBtnSmall} onPress={handleRegisterWorker}>
+          <Text style={styles.primaryBtnText}>등록</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  ) : (
+    <View style={styles.empty}>
+      <Text style={{ color: "#9CA3AF" }}>근로자를 선택하세요</Text>
+    </View>
+  )}
+</View>
 
       {/* -------- 이의제기 모달 -------- */}
       <Modal
@@ -1139,4 +1117,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   toggleItemSel: { backgroundColor: '#2563EB' },
+    inputLabel: {
+    color: "#6B7280",
+    fontSize: 12,
+    marginBottom: 4,
+  },
 });
