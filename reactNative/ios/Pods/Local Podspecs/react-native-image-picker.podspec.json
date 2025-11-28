@@ -1,0 +1,63 @@
+{
+  "name": "react-native-image-picker",
+  "version": "8.2.1",
+  "summary": "A React Native module that allows you to use native UI to select media from the device library or directly from the camera",
+  "license": "MIT",
+  "authors": "Johan du Toit (Johan-dutoit)",
+  "homepage": "https://github.com/react-native-image-picker/react-native-image-picker",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source": {
+    "git": "https://github.com/react-native-image-picker/react-native-image-picker.git",
+    "tag": "v8.2.1"
+  },
+  "source_files": "ios/*.{h,m,mm}",
+  "resource_bundles": {
+    "RNImagePickerPrivacyInfo": [
+      "ios/PrivacyInfo.xcprivacy"
+    ]
+  },
+  "frameworks": [
+    "Photos",
+    "PhotosUI",
+    "AVFoundation",
+    "CoreMedia"
+  ],
+  "compiler_flags": "-DRCT_NEW_ARCH_ENABLED=1",
+  "dependencies": {
+    "React-Core": [],
+    "React-RCTFabric": [],
+    "ReactCodegen": [],
+    "RCTRequired": [],
+    "RCTTypeSafety": [],
+    "ReactCommon/turbomodule/bridging": [],
+    "ReactCommon/turbomodule/core": [],
+    "React-NativeModulesApple": [],
+    "Yoga": [],
+    "React-Fabric": [],
+    "React-graphics": [],
+    "React-utils": [],
+    "React-featureflags": [],
+    "React-debug": [],
+    "React-ImageManager": [],
+    "React-rendererdebug": [],
+    "React-jsi": [],
+    "React-renderercss": [],
+    "hermes-engine": [],
+    "glog": [],
+    "boost": [],
+    "DoubleConversion": [],
+    "fast_float": [],
+    "fmt": [],
+    "RCT-Folly": [],
+    "SocketRocket": [],
+    "RCT-Folly/Fabric": []
+  },
+  "pod_target_xcconfig": {
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1 ",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED"
+  }
+}

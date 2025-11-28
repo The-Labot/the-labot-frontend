@@ -1,0 +1,177 @@
+{
+  "name": "react-native-maps",
+  "version": "1.26.18",
+  "summary": "React Native Mapview component for iOS + Android",
+  "authors": "Leland Richardson <leland.m.richardson@gmail.com>",
+  "homepage": "https://github.com/react-native-maps/react-native-maps#readme",
+  "license": "MIT",
+  "platforms": {
+    "ios": "15.1"
+  },
+  "source": {
+    "git": "https://github.com/react-native-maps/react-native-maps.git",
+    "tag": "v1.26.18"
+  },
+  "module_name": "ReactNativeMaps",
+  "default_subspecs": "Maps",
+  "subspecs": [
+    {
+      "name": "Generated",
+      "source_files": "ios/generated/**/*.{h,m,mm,cpp,swift}",
+      "exclude_files": [
+        "ios/generated/RCTModuleProviders.h",
+        "ios/generated/RCTModuleProviders.mm",
+        "ios/generated/RCTUnstableModulesRequiringMainQueueSetupProvider.h",
+        "ios/generated/RCTUnstableModulesRequiringMainQueueSetupProvider.mm",
+        "ios/generated/RCTAppDependencyProvider.h",
+        "ios/generated/RCTAppDependencyProvider.mm",
+        "ios/generated/RCTThirdPartyComponentsProvider.h",
+        "ios/generated/RCTThirdPartyComponentsProvider.mm",
+        "ios/generated/RCTModulesConformingToProtocolsProvider.h",
+        "ios/generated/RCTModulesConformingToProtocolsProvider.mm"
+      ],
+      "public_header_files": "ios/generated/**/*.h",
+      "compiler_flags": "-DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32  -DRCT_NEW_ARCH_ENABLED=1",
+      "dependencies": {
+        "React-Core": [],
+        "React-RCTFabric": [],
+        "ReactCodegen": [],
+        "RCTRequired": [],
+        "RCTTypeSafety": [],
+        "ReactCommon/turbomodule/bridging": [],
+        "ReactCommon/turbomodule/core": [],
+        "React-NativeModulesApple": [],
+        "Yoga": [],
+        "React-Fabric": [],
+        "React-graphics": [],
+        "React-utils": [],
+        "React-featureflags": [],
+        "React-debug": [],
+        "React-ImageManager": [],
+        "React-rendererdebug": [],
+        "React-jsi": [],
+        "React-renderercss": [],
+        "hermes-engine": [],
+        "glog": [],
+        "boost": [],
+        "DoubleConversion": [],
+        "fast_float": [],
+        "fmt": [],
+        "RCT-Folly": [],
+        "SocketRocket": [],
+        "RCT-Folly/Fabric": []
+      },
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\"",
+        "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+        "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1 ",
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED"
+      }
+    },
+    {
+      "name": "Maps",
+      "source_files": "ios/AirMaps/**/*.{h,m,mm,swift}",
+      "public_header_files": [
+        "ios/AirMaps/UIView+AirMap.h",
+        "ios/AirMaps/RCTConvert+AirMap.h"
+      ],
+      "compiler_flags": "-DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32  -DRCT_NEW_ARCH_ENABLED=1",
+      "dependencies": {
+        "react-native-maps/Generated": [],
+        "React-Core": [],
+        "React-RCTFabric": [],
+        "ReactCodegen": [],
+        "RCTRequired": [],
+        "RCTTypeSafety": [],
+        "ReactCommon/turbomodule/bridging": [],
+        "ReactCommon/turbomodule/core": [],
+        "React-NativeModulesApple": [],
+        "Yoga": [],
+        "React-Fabric": [],
+        "React-graphics": [],
+        "React-utils": [],
+        "React-featureflags": [],
+        "React-debug": [],
+        "React-ImageManager": [],
+        "React-rendererdebug": [],
+        "React-jsi": [],
+        "React-renderercss": [],
+        "hermes-engine": [],
+        "glog": [],
+        "boost": [],
+        "DoubleConversion": [],
+        "fast_float": [],
+        "fmt": [],
+        "RCT-Folly": [],
+        "SocketRocket": [],
+        "RCT-Folly/Fabric": []
+      },
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\"",
+        "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+        "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1 ",
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED"
+      },
+      "script_phases": [
+        {
+          "name": "react-native-maps patches",
+          "script": "\n           set -x\n           echo \"Running Google Maps detection script...\"\n           DEFINES_DIR=\"${PODS_TARGET_SRCROOT}/ios/AirMaps\"\n           DEFINES_FILE=\"${DEFINES_DIR}/RNMapsDefines.h\"\n\n           mkdir -p \"$DEFINES_DIR\"\n\n           if [ -d \"$PODS_ROOT/GoogleMaps\" ] && [ -d \"$PODS_ROOT/Google-Maps-iOS-Utils\" ]; then\n             echo \"#define HAVE_GOOGLE_MAPS 1\" > \"$DEFINES_FILE\"\n             echo \"✅ Google Maps libraries detected. HAVE_GOOGLE_MAPS defined.\"\n           else\n             echo \"#define HAVE_GOOGLE_MAPS 0\" > \"$DEFINES_FILE\"\n             echo \"❌ Google Maps libraries NOT detected. HAVE_GOOGLE_MAPS set to 0.\"\n           fi\n\n           if [ -f \"$DEFINES_FILE\" ]; then\n             echo \"✅ Successfully wrote to $DEFINES_FILE\"\n             cat \"$DEFINES_FILE\"\n           else\n             echo \"❌ ERROR: Failed to write to $DEFINES_FILE\"\n           fi\n\n             set -e\n                 echo \"🔧 Patching @import GoogleMaps...\"\n\n                 FILES=(\n                   \"$PODS_ROOT/Google-Maps-iOS-Utils/Sources/GoogleMapsUtilsObjC/include/GMSMarker+GMUClusteritem.h\"\n                   \"$PODS_ROOT/Google-Maps-iOS-Utils/Sources/GoogleMapsUtilsObjC/include/GMUGeoJSONParser.h\"\n                   \"$PODS_ROOT/Google-Maps-iOS-Utils/Sources/GoogleMapsUtilsObjC/include/GMUPolygon.h\"\n                   \"$PODS_ROOT/Google-Maps-iOS-Utils/Sources/GoogleMapsUtilsObjC/include/GMUWeightedLatLng.h\"\n                   \"$PODS_ROOT/GoogleMaps/Maps/Sources/GMSEmpty.h\"\n                 )\n\n                 for file in \"${FILES[@]}\"; do\n                   if [ -f \"$file\" ]; then\n                     if grep -q \"@import GoogleMaps;\" \"$file\"; then\n                       sed -i '' 's/@import GoogleMaps;/#import <GoogleMaps\\/GoogleMaps.h>/' \"$file\"\n                       echo \"✅ Patched: $file\"\n                     else\n                       echo \"ℹ️ No @import in: $file\"\n                     fi\n                   else\n                     echo \"⚠️ Not found: $file\"\n                   fi\n                 done\n         ",
+          "execution_position": "before_compile"
+        }
+      ]
+    },
+    {
+      "name": "Google",
+      "source_files": "ios/AirGoogleMaps/**/*.{h,m,mm,swift}",
+      "resource_bundles": {
+        "GoogleMapsPrivacy": [
+          "ios/AirGoogleMaps/Resources/GoogleMapsPrivacy.bundle"
+        ]
+      },
+      "compiler_flags": "-DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -DHAVE_GOOGLE_MAPS=1 -DHAVE_GOOGLE_MAPS_UTILS=1  -DRCT_NEW_ARCH_ENABLED=1",
+      "dependencies": {
+        "GoogleMaps": [
+          "9.4.0"
+        ],
+        "Google-Maps-iOS-Utils": [
+          "6.1.0"
+        ],
+        "react-native-maps/Generated": [],
+        "react-native-maps/Maps": [],
+        "React-Core": [],
+        "React-RCTFabric": [],
+        "ReactCodegen": [],
+        "RCTRequired": [],
+        "RCTTypeSafety": [],
+        "ReactCommon/turbomodule/bridging": [],
+        "ReactCommon/turbomodule/core": [],
+        "React-NativeModulesApple": [],
+        "Yoga": [],
+        "React-Fabric": [],
+        "React-graphics": [],
+        "React-utils": [],
+        "React-featureflags": [],
+        "React-debug": [],
+        "React-ImageManager": [],
+        "React-rendererdebug": [],
+        "React-jsi": [],
+        "React-renderercss": [],
+        "hermes-engine": [],
+        "glog": [],
+        "boost": [],
+        "DoubleConversion": [],
+        "fast_float": [],
+        "fmt": [],
+        "RCT-Folly": [],
+        "SocketRocket": [],
+        "RCT-Folly/Fabric": []
+      },
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\"",
+        "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+        "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1 ",
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED"
+      }
+    }
+  ]
+}

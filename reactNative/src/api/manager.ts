@@ -17,3 +17,16 @@ export async function getManagerSites() {
 
   return await res.json();
 }
+
+export async function getDailyReportDetail(reportId: number) {
+  const token = getTempAccessToken();
+
+  const res = await fetch(`${BASE_URL}/manager/reports/${reportId}`, {
+    method: "GET",
+    headers: {
+      Authorization: token,
+    },
+  });
+
+  return await res.json();
+}
