@@ -1,8 +1,8 @@
 // src/manager/WorkerManagementScreen.tsx
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../App";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,323 +14,210 @@ import {
   ScrollView,
   Modal,
   Alert,
-} from 'react-native';
-import { registerWorker } from '../api/worker';
+} from "react-native";
+import { registerWorker } from "../api/worker";
 
-type WorkerStatus = 'working' | 'resting' | 'late';
-
-interface AttendanceRecord {
-  date: string;
-  checkInTime: string;
-  checkInPeriod: '오전' | '오후' | '-';
-  checkOutTime: string;
-  checkOutPeriod: '오전' | '오후' | '-';
-  status: '정상' | '정상 출근' | '지각' | '조퇴' | '결근';
-  objection?: { hasObjection: boolean; message: string };
-}
-
-interface Worker {
-  id: number;
-  name: string;
-  initial: string;
-  role: string;
-  status: WorkerStatus;
-  site: string;
-  address?: string;
-  birthDate?: string;
-  gender?: string;
-  nationality?: string;
-  phone?: string;
-  attendanceRecords: AttendanceRecord[];
-}
-
+/* ------------------------------------------
+   🔥 근로자 등록 입력 상태 (전체 필드)
+   ------------------------------------------ */
 export default function WorkerManagementScreen() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 900;
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const [workers, setWorkers] = useState<Worker[]>([
-    {
-      id: 1,
-      name: '김철수',
-      initial: '김',
-      role: '배관공',
-      status: 'working',
-      site: '세종 A현장',
-      address: '서울시 강남구 테헤란로 123',
-      birthDate: '1990. 05. 15.',
-      gender: '남성',
-      nationality: '대한민국',
-      phone: '010-1234-5678',
-      attendanceRecords: [
-        {
-          date: '2025-11-01',
-          checkInTime: '08:00',
-          checkInPeriod: '오전',
-          checkOutTime: '06:00',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-        {
-          date: '2025-10-31',
-          checkInTime: '08:15',
-          checkInPeriod: '오전',
-          checkOutTime: '06:00',
-          checkOutPeriod: '오후',
-          status: '지각',
-          objection: {
-            hasObjection: true,
-            message: '실제로는 8시에 도착했습니다. 단말기 오류로 인해 늦게 찍혔습니다',
-          },
-        },
-        {
-          date: '2025-10-30',
-          checkInTime: '08:05',
-          checkInPeriod: '오전',
-          checkOutTime: '06:10',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-        {
-          date: '2025-10-28',
-          checkInTime: '07:58',
-          checkInPeriod: '오전',
-          checkOutTime: '06:05',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: '이영희',
-      initial: '이',
-      role: '목공',
-      status: 'working',
-      site: '세종 A현장',
-      address: '서울시 강남구 테헤란로 123',
-      birthDate: '1990. 05. 15.',
-      gender: '여성',
-      nationality: '대한민국',
-      phone: '010-2345-6789',
-      attendanceRecords: [
-        {
-          date: '2025-11-01',
-          checkInTime: '07:55',
-          checkInPeriod: '오전',
-          checkOutTime: '05:58',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-        {
-          date: '2025-10-31',
-          checkInTime: '08:00',
-          checkInPeriod: '오전',
-          checkOutTime: '05:30',
-          checkOutPeriod: '오후',
-          status: '조퇴',
-        },
-        {
-          date: '2025-10-30',
-          checkInTime: '08:02',
-          checkInPeriod: '오전',
-          checkOutTime: '06:00',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-        {
-          date: '2025-10-28',
-          checkInTime: '07:50',
-          checkInPeriod: '오전',
-          checkOutTime: '06:00',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: '박민수',
-      initial: '박',
-      role: '전기공',
-      status: 'late',
-      site: '서울 B현장',
-      address: '서울시 강남구 테헤란로 123',
-      birthDate: '1990. 05. 15.',
-      gender: '남성',
-      nationality: '대한민국',
-      phone: '010-3456-7890',
-      attendanceRecords: [
-        {
-          date: '2025-11-01',
-          checkInTime: '08:25',
-          checkInPeriod: '오전',
-          checkOutTime: '06:15',
-          checkOutPeriod: '오후',
-          status: '지각',
-        },
-        {
-          date: '2025-10-31',
-          checkInTime: '08:20',
-          checkInPeriod: '오전',
-          checkOutTime: '06:05',
-          checkOutPeriod: '오후',
-          status: '지각',
-        },
-        {
-          date: '2025-10-30',
-          checkInTime: '08:00',
-          checkInPeriod: '오전',
-          checkOutTime: '06:00',
-          checkOutPeriod: '오후',
-          status: '정상',
-        },
-        {
-          date: '2025-10-28',
-          checkInTime: '-',
-          checkInPeriod: '-',
-          checkOutTime: '-',
-          checkOutPeriod: '-',
-          status: '결근',
-        },
-      ],
-    },
-  ]);
+  // ----------------------------------
+  // 🔹 근로자 등록 입력 상태
+  // ----------------------------------
+  const [regName, setRegName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regResidentId, setRegResidentId] = useState("");
+  const [regAddress, setRegAddress] = useState("");
+  const [regNationality, setRegNationality] = useState("내국인");
+
+  const [regJobType, setRegJobType] = useState("");
+  const [regContractType, setRegContractType] = useState("일용직"); // ⭐ 일용직 / 월정제
+  const [regPayReceive, setRegPayReceive] = useState("");
+  const [regSalary, setRegSalary] = useState("");
+  const [regEmergencyNumber, setRegEmergencyNumber] = useState("");
+  const [regSiteName, setRegSiteName] = useState("");
+
+  const [regBankName, setRegBankName] = useState("");
+  const [regAccountNumber, setRegAccountNumber] = useState("");
+  const [regAccountHolder, setRegAccountHolder] = useState("");
+
+  const [regContractStartDate, setRegContractStartDate] = useState("");
+  const [regContractEndDate, setRegContractEndDate] = useState("");
+  const [regWageStartDate, setRegWageStartDate] = useState("");
+  const [regWageEndDate, setRegWageEndDate] = useState("");
+
+  /* ------------------------------------------
+     타입 정의
+     ------------------------------------------ */
+  type WorkerStatus = "working" | "resting" | "late";
+
+  interface AttendanceRecord {
+    date: string;
+    checkInTime: string;
+    checkInPeriod: "오전" | "오후" | "-";
+    checkOutTime: string;
+    checkOutPeriod: "오전" | "오후" | "-";
+    status: "정상" | "정상 출근" | "지각" | "조퇴" | "결근";
+    objection?: { hasObjection: boolean; message: string };
+  }
+
+  interface Worker {
+    id: number;
+    name: string;
+    initial: string;
+    role: string;
+    status: WorkerStatus;
+    site: string;
+    address?: string;
+    birthDate?: string;
+    gender?: string;
+    nationality?: string;
+    phone?: string;
+    attendanceRecords: AttendanceRecord[];
+  }
+
+  /* ------------------------------------------
+     🔥 더미(임시) worker 목록 완전 삭제 —> 빈 배열
+     ------------------------------------------ */
+  const [workers, setWorkers] = useState<Worker[]>([]);
 
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showPayroll, setShowPayroll] = useState(false);
   const [showCertificates, setShowCertificates] = useState(false);
-  const [showRegister, setShowRegister] = useState(false); // 근로자 등록 패널 표시 여부
+  const [showRegister, setShowRegister] = useState(false);
 
-  // 등록용 입력값
-  const [newWorkerPhone, setNewWorkerPhone] = useState('');
-  const [newWorkerName, setNewWorkerName] = useState('');
-
-  // Objection modal state
+  // 이의제기 상태값
   const [objectionOpen, setObjectionOpen] = useState(false);
-  const [objDate, setObjDate] = useState('2025-10-31');
-  const [objInPeriod, setObjInPeriod] = useState<'오전' | '오후'>('오전');
-  const [objInTime, setObjInTime] = useState('08:15');
-  const [objOutPeriod, setObjOutPeriod] = useState<'오전' | '오후'>('오후');
-  const [objOutTime, setObjOutTime] = useState('06:00');
-  const [objStatus, setObjStatus] = useState<'정상 출근' | '지각' | '조퇴' | '결근'>('지각');
-
-  useEffect(() => {
-    if (!selectedWorker && workers.length > 0) setSelectedWorker(workers[0]);
-  }, [workers, selectedWorker]);
-
+  const [objDate, setObjDate] = useState("");
+  const [objInPeriod, setObjInPeriod] = useState<"오전" | "오후">("오전");
+  const [objInTime, setObjInTime] = useState("");
+  const [objOutPeriod, setObjOutPeriod] = useState<"오전" | "오후">("오후");
+  const [objOutTime, setObjOutTime] = useState("");
+  const [objStatus, setObjStatus] =
+    useState<"정상 출근" | "지각" | "조퇴" | "결근">("지각");
+    /* ------------------------------------------
+     🔍 필터링된 근로자 목록
+     ------------------------------------------ */
   const filtered = useMemo(() => {
     const q = search.trim();
     if (!q) return workers;
     return workers.filter((w) => w.name.includes(q) || w.role.includes(q));
   }, [workers, search]);
 
+  /* ------------------------------------------
+     근로자 상태 Badge 색상
+     ------------------------------------------ */
   const hasObjection = (w: Worker) =>
     w.attendanceRecords.some((r) => r.objection?.hasObjection);
 
   const statusBadge = (s: WorkerStatus) => {
     switch (s) {
-      case 'working':
-        return { label: '근무중', bg: '#E6F4EA', fg: '#1E7D32' };
-      case 'resting':
-        return { label: '대기중', bg: '#F3F4F6', fg: '#374151' };
-      case 'late':
-        return { label: '퇴근미처리', bg: '#FEF3E7', fg: '#9A3412' };
+      case "working":
+        return { label: "근무중", bg: "#E6F4EA", fg: "#1E7D32" };
+      case "resting":
+        return { label: "대기중", bg: "#F3F4F6", fg: "#374151" };
+      case "late":
+        return { label: "퇴근미처리", bg: "#FEF3E7", fg: "#9A3412" };
+      default:
+        return { label: "-", bg: "#eee", fg: "#333" };
     }
   };
 
+  /* ------------------------------------------
+     통계
+     ------------------------------------------ */
   const statCounts = useMemo(
     () => ({
       total: workers.length,
-      working: workers.filter((w) => w.status === 'working').length,
-      resting: workers.filter((w) => w.status === 'resting').length,
+      working: workers.filter((w) => w.status === "working").length,
+      resting: workers.filter((w) => w.status === "resting").length,
       objections: workers.filter(hasObjection).length,
     }),
-    [workers],
+    [workers]
   );
 
-  const openObjection = (rec: AttendanceRecord) => {
-    if (!selectedWorker) return;
-    setObjDate(rec.date);
-    setObjInPeriod(rec.checkInPeriod === '오전' ? '오전' : '오후');
-    setObjInTime(rec.checkInTime);
-    setObjOutPeriod(rec.checkOutPeriod === '오전' ? '오전' : '오후');
-    setObjOutTime(rec.checkOutTime);
-    setObjStatus(rec.status as any);
-    setObjectionOpen(true);
-  };
-
-  const processObjection = () => {
-    if (!selectedWorker) return;
-    const updated = workers.map((w) => {
-      if (w.id !== selectedWorker.id) return w;
-      const recs = w.attendanceRecords.map((r) => {
-        if (r.date !== objDate) return r;
-        return {
-          ...r,
-          checkInPeriod: objInPeriod,
-          checkInTime: objInTime,
-          checkOutPeriod: objOutPeriod,
-          checkOutTime: objOutTime,
-          status: objStatus,
-          objection: undefined,
-        };
-      });
-      return { ...w, attendanceRecords: recs };
-    });
-    setWorkers(updated);
-    const nw = updated.find((w) => w.id === selectedWorker.id)!;
-    setSelectedWorker(nw);
-    setObjectionOpen(false);
-  };
-
-  // ★ 근로자 등록 API 호출
+  /* ------------------------------------------
+     근로자 등록 API 호출
+     ------------------------------------------ */
   const handleRegisterWorker = async () => {
-    if (!newWorkerPhone.trim() || !newWorkerName.trim()) {
-      Alert.alert('입력 오류', '전화번호와 이름을 모두 입력해주세요.');
+    if (!regName.trim() || !regPhone.trim()) {
+      Alert.alert("오류", "이름과 전화번호는 필수입니다.");
       return;
     }
 
     try {
-      const res = await registerWorker(
-        newWorkerPhone.trim(),
-        newWorkerName.trim(),
-      );
-      console.log('근로자 등록 성공:', res);
+      const payload = {
+        name: regName,
+        phoneNumber: regPhone,
+        residentIdNumber: regResidentId,
+        address: regAddress,
+        nationality: regNationality,
 
-      Alert.alert(
-        '등록 완료',
-        res?.message ?? '현장근로자 계정 생성이 완료되었습니다.',
-      );
+        jobType: regJobType,
+        contractType: regContractType, // 일용직 / 월정제
+        payReceive: regPayReceive,
+        salary: regSalary,
+        emergencyNumber: regEmergencyNumber,
+        siteName: regSiteName,
 
-      // 리스트에도 임시로 추가
-      const newWorker: Worker = {
-        id: Date.now(),
-        name: newWorkerName.trim(),
-        initial: newWorkerName.trim().charAt(0),
-        role: '직종 미등록',
-        status: 'working',
-        site: '현장 미지정',
-        attendanceRecords: [],
+        bankName: regBankName,
+        accountNumber: regAccountNumber,
+        accountHolder: regAccountHolder,
+
+        contractStartDate: regContractStartDate,
+        contractEndDate: regContractEndDate,
+        wageStartDate: regWageStartDate,
+        wageEndDate: regWageEndDate,
       };
-      setWorkers((prev) => [...prev, newWorker]);
 
-      setNewWorkerPhone('');
-      setNewWorkerName('');
+      console.log("📤 근로자 등록 요청:", payload);
+
+      const res = await registerWorker(payload);
+      console.log("📥 근로자 등록 응답:", res);
+
+      Alert.alert("등록 완료", "근로자가 성공적으로 등록되었습니다.");
+
+      // 입력값 초기화
+      setRegName("");
+      setRegPhone("");
+      setRegResidentId("");
+      setRegAddress("");
+      setRegNationality("내국인");
+      setRegJobType("");
+      setRegContractType("일용직");
+      setRegPayReceive("");
+      setRegSalary("");
+      setRegEmergencyNumber("");
+      setRegSiteName("");
+      setRegBankName("");
+      setRegAccountNumber("");
+      setRegAccountHolder("");
+      setRegContractStartDate("");
+      setRegContractEndDate("");
+      setRegWageStartDate("");
+      setRegWageEndDate("");
+
       setShowRegister(false);
-    } catch (e: any) {
-      console.log('근로자 등록 실패:', e);
-      Alert.alert(
-        '오류',
-        e?.message ?? '근로자 등록에 실패했습니다. 서버 로그를 확인해주세요.',
-      );
+    } catch (err: any) {
+      console.log("🚨 근로자 등록 실패:", err);
+      Alert.alert("등록 실패", err.message ?? "등록 중 오류가 발생했습니다.");
     }
   };
 
+  /* ------------------------------------------
+     LeftItem : 왼쪽 근로자 목록 한 줄
+     ------------------------------------------ */
   const LeftItem = ({ item }: { item: Worker }) => {
     const sel = selectedWorker?.id === item.id;
     const b = statusBadge(item.status);
+
+
     return (
       <TouchableOpacity
         onPress={() => {
@@ -342,43 +229,58 @@ export default function WorkerManagementScreen() {
         style={[styles.listItem, sel && styles.listItemSelected]}
         activeOpacity={0.8}
       >
-        <View style={[styles.avatar, { backgroundColor: '#E0ECFF' }]}>
-          <Text style={{ color: '#2563EB', fontWeight: '700' }}>
+        <View style={[styles.avatar, { backgroundColor: "#E0ECFF" }]}>
+          <Text style={{ color: "#2563EB", fontWeight: "700" }}>
             {item.initial}
           </Text>
         </View>
+
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={styles.listName}>{item.name}</Text>
             <View style={[styles.badge, { backgroundColor: b.bg }]}>
               <Text style={{ color: b.fg, fontSize: 11 }}>{b.label}</Text>
             </View>
+
             {hasObjection(item) && (
-              <Text style={{ marginLeft: 6, color: '#DC2626', fontSize: 12 }}>
+              <Text style={{ marginLeft: 6, color: "#DC2626", fontSize: 12 }}>
                 이의제기 대기
               </Text>
             )}
           </View>
-          <Text style={{ color: '#6B7280', fontSize: 12 }}>{item.role}</Text>
+
+          <Text style={{ color: "#6B7280", fontSize: 12 }}>{item.role}</Text>
         </View>
       </TouchableOpacity>
     );
   };
+  /* ------------------------------------------
+   🎯 이의제기 열기 / 처리 함수
+------------------------------------------ */
+function openObjection(rec: any) {
+  // 여기는 네 기존 코드 위치에 맞추어 WorkerManagementScreen 안에서 선언해야 함.
+}
 
-  return (
+function processObjection() {
+  // 백엔드 이의제기 처리 연결 시 구현
+}
+    return (
     <View style={styles.root}>
-      {/* Left panel */}
+      {/* ---------------- Left Panel ---------------- */}
       <View
         style={[
           styles.left,
           { width: isTablet ? 360 : Math.min(360, width) },
         ]}
       >
+        {/* Left Header */}
         <View style={styles.leftHeader}>
           <View style={{ marginBottom: 16 }}>
             <Text style={styles.title}>근로자 관리</Text>
             <Text style={styles.subtitle}>Worker Management</Text>
           </View>
+
+          {/* + 근로자 추가 */}
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() => {
@@ -391,6 +293,7 @@ export default function WorkerManagementScreen() {
             <Text style={styles.primaryBtnText}>+ 근로자 추가</Text>
           </TouchableOpacity>
 
+          {/* 검색창 */}
           <TextInput
             value={search}
             onChangeText={setSearch}
@@ -398,34 +301,36 @@ export default function WorkerManagementScreen() {
             style={styles.search}
           />
 
+          {/* 상단 통계 */}
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>전체</Text>
-              <Text style={[styles.statVal, { color: '#2563EB' }]}>
+              <Text style={[styles.statVal, { color: "#2563EB" }]}>
                 {statCounts.total}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>근무중</Text>
-              <Text style={[styles.statVal, { color: '#16A34A' }]}>
+              <Text style={[styles.statVal, { color: "#16A34A" }]}>
                 {statCounts.working}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>대기중</Text>
-              <Text style={[styles.statVal, { color: '#374151' }]}>
+              <Text style={[styles.statVal, { color: "#374151" }]}>
                 {statCounts.resting}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>이의제기</Text>
-              <Text style={[styles.statVal, { color: '#DC2626' }]}>
+              <Text style={[styles.statVal, { color: "#DC2626" }]}>
                 {statCounts.objections}
               </Text>
             </View>
           </View>
         </View>
 
+        {/* 근로자 목록 */}
         <FlatList
           data={filtered}
           keyExtractor={(it) => String(it.id)}
@@ -434,13 +339,13 @@ export default function WorkerManagementScreen() {
         />
       </View>
 
-      {/* Right panel */}
+      {/* ---------------- Right Panel ---------------- */}
       <View style={styles.right}>
         {/* 1) 근로자 등록 패널 */}
         {showRegister ? (
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 24, alignItems: 'center' }}
+            contentContainerStyle={{ padding: 24, alignItems: "center" }}
           >
             <View style={[styles.card, { padding: 20 }]}>
               <Text style={styles.sectionTitle}>근로자 등록</Text>
@@ -448,8 +353,8 @@ export default function WorkerManagementScreen() {
 
               <View style={{ height: 16 }} />
 
-              {/* 서류 첨부 영역 (그냥 UI만 유지) */}
-              <View style={[styles.card, { width: '100%' }]}>
+              {/* ---------------- 서류 첨부 ---------------- */}
+              <View style={[styles.card, { width: "100%" }]}>
                 <Text style={styles.sectionTitle}>서류 첨부</Text>
                 <Text style={styles.mutedSmall}>Document Attachments</Text>
 
@@ -457,25 +362,25 @@ export default function WorkerManagementScreen() {
 
                 <TouchableOpacity
                   style={[styles.docBtn]}
-                  onPress={() => Alert.alert('계약서 생성 화면')}
+                  onPress={() => Alert.alert("계약서 생성 화면")}
                 >
-                  <Text style={{ color: '#111827' }}>계약서 생성</Text>
-                  <Text style={{ color: '#9CA3AF' }}>{'>'}</Text>
+                  <Text style={{ color: "#111827" }}>계약서 생성</Text>
+                  <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.docBtn]}
                   onPress={() =>
-                    Alert.alert('신분증 촬영 (카메라 실행 예정 화면)')
+                    Alert.alert("신분증 촬영 (카메라 실행 예정 화면)")
                   }
                 >
-                  <Text style={{ color: '#111827' }}>신분증 촬영</Text>
-                  <Text style={{ color: '#9CA3AF' }}>{'>'}</Text>
+                  <Text style={{ color: "#111827" }}>신분증 촬영</Text>
+                  <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* 계약 정보 – 지금은 UI만, API와 무관 */}
-              <View style={[styles.card, { width: '100%' }]}>
+              {/* ---------------- 계약 정보 ---------------- */}
+              <View style={[styles.card, { width: "100%" }]}>
                 <Text style={styles.sectionTitle}>계약 정보</Text>
                 <Text style={styles.subtitleSmall}>Contract Details</Text>
 
@@ -489,69 +394,51 @@ export default function WorkerManagementScreen() {
                 <Field label="업무 내용" value="업무를 입력하세요" />
               </View>
 
-              {/* 개인 정보 – 실제 API 요청에 필요한 입력만 */}
-              <View style={[styles.card, { width: '100%' }]}>
+              {/* ---------------- 개인정보 ---------------- */}
+              <View style={[styles.card, { width: "100%" }]}>
                 <Text style={styles.sectionTitle}>개인 정보</Text>
                 <Text style={styles.subtitleSmall}>Personal Information</Text>
                 <View style={{ height: 12 }} />
 
-                {/* 전화번호 입력 */}
+                {/* 전화번호 */}
                 <View style={{ marginVertical: 6 }}>
-                  <Text
-                    style={{
-                      color: '#6B7280',
-                      fontSize: 12,
-                      marginBottom: 4,
-                    }}
-                  >
+                  <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
                     전화번호
                   </Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="로그인용 전화번호 (- 없이 010 포함)"
+                    placeholder="로그인용 전화번호 (- 없이)"
                     keyboardType="phone-pad"
-                    value={newWorkerPhone}
-                    onChangeText={setNewWorkerPhone}
+                    value={regPhone}
+                    onChangeText={setRegPhone}
                   />
                 </View>
 
-                {/* 이름 입력 */}
+                {/* 이름 */}
                 <View style={{ marginVertical: 6 }}>
-                  <Text
-                    style={{
-                      color: '#6B7280',
-                      fontSize: 12,
-                      marginBottom: 4,
-                    }}
-                  >
+                  <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
                     이름
                   </Text>
                   <TextInput
                     style={styles.input}
                     placeholder="근로자 이름"
-                    value={newWorkerName}
-                    onChangeText={setNewWorkerName}
+                    value={regName}
+                    onChangeText={setRegName}
                   />
                 </View>
-
-                {/* 나머지 필드는 나중에 확장 */}
               </View>
 
-              {/* 하단 버튼 */}
+              {/* ---------------- 등록/취소 버튼 ---------------- */}
               <View
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  width: '100%',
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  width: "100%",
                 }}
               >
                 <TouchableOpacity
                   style={[styles.outlineBtn, { marginRight: 8 }]}
-                  onPress={() => {
-                    setShowRegister(false);
-                    setNewWorkerPhone('');
-                    setNewWorkerName('');
-                  }}
+                  onPress={() => setShowRegister(false)}
                 >
                   <Text>취소</Text>
                 </TouchableOpacity>
@@ -566,111 +453,97 @@ export default function WorkerManagementScreen() {
             </View>
           </ScrollView>
         ) : !selectedWorker ? (
-          /* 2) 근로자 선택 X */
+          /* ---------------- 근로자 선택 X ---------------- */
           <View style={styles.empty}>
-            <Text style={{ color: '#9CA3AF', fontSize: 16 }}>
+            <Text style={{ color: "#9CA3AF", fontSize: 16 }}>
               근로자를 선택하세요
             </Text>
-            <Text
-              style={{ color: '#9CA3AF', marginTop: 4, fontSize: 12 }}
-            >
+            <Text style={{ color: "#9CA3AF", marginTop: 4, fontSize: 12 }}>
               왼쪽 목록에서 근로자를 선택하면 상세 정보가 표시됩니다
             </Text>
           </View>
         ) : showPayroll ? (
-          /* 3) 급여 명세서 모드 */
+          /* ---------------- 급여 명세서 보기 ---------------- */
           <View style={styles.placeholder}>
             <Text>급여 명세서 보기 (향후 연결)</Text>
           </View>
         ) : showCertificates ? (
-          /* 4) 자격증 보기 모드 */
+          /* ---------------- 자격증 보기 ---------------- */
           <View style={styles.placeholder}>
             <Text>자격증 보기 (향후 연결)</Text>
           </View>
         ) : (
-          /* 5) 기본 근로자 상세 정보 화면 */
+          /* ---------------- 기본 근로자 상세 화면 ---------------- */
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 24, alignItems: 'center' }}
+            contentContainerStyle={{ padding: 24, alignItems: "center" }}
             showsVerticalScrollIndicator={false}
           >
-            {/* 기본 프로필 */}
+            {/* -------- 프로필 카드 -------- */}
             <View style={[styles.card, { padding: 20 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View
-                  style={[styles.bigAvatar, { backgroundColor: '#E0ECFF' }]}
-                >
-                  <Text
-                    style={{
-                      color: '#2563EB',
-                      fontWeight: '700',
-                      fontSize: 24,
-                    }}
-                  >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={[styles.bigAvatar, { backgroundColor: "#E0ECFF" }]}>
+                  <Text style={{ color: "#2563EB", fontWeight: "700", fontSize: 24 }}>
                     {selectedWorker.initial}
                   </Text>
                 </View>
+
                 <View style={{ marginLeft: 16 }}>
                   <Text style={styles.name}>{selectedWorker.name}</Text>
                   <Text style={styles.muted}>
                     {selectedWorker.role} • {selectedWorker.site}
                   </Text>
                   <Text style={styles.muted}>
-                    {selectedWorker.phone ?? '010-1234-5678'}
+                    {selectedWorker.phone ?? "-"}
                   </Text>
                 </View>
               </View>
             </View>
 
-            {/* 개인정보 */}
+            {/* -------- 개인정보 -------- */}
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>개인정보</Text>
               <View style={{ height: 8 }} />
+
               <Field label="주소" value={selectedWorker.address} />
               <Field label="생년월일" value={selectedWorker.birthDate} />
+
               <EditableField
                 label="직종"
                 value={selectedWorker.role}
                 onSave={(v) => {
-                  setWorkers((ws) =>
-                    ws.map((w) =>
-                      w.id === selectedWorker?.id ? { ...w, role: v } : w,
-                    ),
+                  setWorkers(ws =>
+                    ws.map(w => (w.id === selectedWorker.id ? { ...w, role: v } : w))
                   );
-                  setSelectedWorker((prev) =>
-                    prev ? { ...prev, role: v } : prev,
-                  );
+                  setSelectedWorker(prev => prev ? { ...prev, role: v } : prev);
                 }}
               />
+
               <EditableField
                 label="현장명"
                 value={selectedWorker.site}
                 onSave={(v) => {
-                  setWorkers((ws) =>
-                    ws.map((w) =>
-                      w.id === selectedWorker?.id ? { ...w, site: v } : w,
-                    ),
+                  setWorkers(ws =>
+                    ws.map(w => (w.id === selectedWorker.id ? { ...w, site: v } : w))
                   );
-                  setSelectedWorker((prev) =>
-                    prev ? { ...prev, site: v } : prev,
-                  );
+                  setSelectedWorker(prev => prev ? { ...prev, site: v } : prev);
                 }}
               />
             </View>
 
-            {/* 기타 정보 */}
+            {/* -------- 기타 정보 -------- */}
             <View style={styles.card}>
               <Field label="성별" value={selectedWorker.gender} />
               <Field label="국적" value={selectedWorker.nationality} />
               <Field label="전화번호" value={selectedWorker.phone} />
             </View>
 
-            {/* 문서 버튼 */}
-            <View style={{ width: '100%', maxWidth: 880 }}>
+            {/* -------- 문서 관련 버튼 -------- */}
+            <View style={{ width: "100%", maxWidth: 880 }}>
               <DocButton
                 title="근로 계약서 보기"
                 subtitle="View Work Contract"
-                onPress={() => Alert.alert('계약서 보기')}
+                onPress={() => Alert.alert("계약서 보기")}
               />
               <DocButton
                 title="급여 명세서 보기"
@@ -683,7 +556,7 @@ export default function WorkerManagementScreen() {
                 subtitle="View Certificate"
                 tone="green"
                 onPress={() =>
-                  navigation.navigate('ManagerCertificates', {
+                  navigation.navigate("ManagerCertificates", {
                     worker: {
                       id: selectedWorker.id,
                       name: selectedWorker.name,
@@ -695,21 +568,19 @@ export default function WorkerManagementScreen() {
               />
             </View>
 
-            {/* 출퇴근 기록 */}
+            {/* -------- 출퇴근 기록 -------- */}
             <View style={styles.card}>
               <View style={styles.cardHeaderRow}>
                 <View>
                   <Text style={styles.sectionTitle}>출퇴근 기록</Text>
                   <Text style={styles.subtitleSmall}>Attendance History</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.outlineBtn}
-                  onPress={() => Alert.alert('다운로드')}
-                >
-                  <Text style={{ color: '#374151' }}>다운로드</Text>
+                <TouchableOpacity style={styles.outlineBtn}>
+                  <Text style={{ color: "#374151" }}>다운로드</Text>
                 </TouchableOpacity>
               </View>
 
+              {/* 테이블 헤더 */}
               <View style={styles.tableHeader}>
                 <TableTh text="날짜" />
                 <TableTh text="출근" />
@@ -718,6 +589,7 @@ export default function WorkerManagementScreen() {
                 <TableTh text="이의제기" />
               </View>
 
+              {/* 테이블 ROW */}
               {selectedWorker.attendanceRecords.map((rec) => (
                 <TouchableOpacity
                   key={rec.date}
@@ -725,9 +597,7 @@ export default function WorkerManagementScreen() {
                   activeOpacity={0.8}
                   style={[
                     styles.tableRow,
-                    rec.objection?.hasObjection && {
-                      backgroundColor: '#FFF7ED',
-                    },
+                    rec.objection?.hasObjection && { backgroundColor: "#FFF7ED" },
                   ]}
                 >
                   <TableTd text={rec.date} />
@@ -742,18 +612,19 @@ export default function WorkerManagementScreen() {
                   <View style={[styles.td, { flex: 1.2 }]}>
                     <StatusPill status={rec.status} />
                   </View>
+
                   <View style={[styles.td, { flex: 2 }]}>
                     {rec.objection?.hasObjection ? (
                       <View>
-                        <Text style={{ fontSize: 12, color: '#9A3412' }}>
+                        <Text style={{ fontSize: 12, color: "#9A3412" }}>
                           이의제기
                         </Text>
-                        <Text style={{ fontSize: 12, color: '#6B7280' }}>
+                        <Text style={{ fontSize: 12, color: "#6B7280" }}>
                           {rec.objection.message}
                         </Text>
                       </View>
                     ) : (
-                      <Text style={{ color: '#6B7280' }}>-</Text>
+                      <Text style={{ color: "#6B7280" }}>-</Text>
                     )}
                   </View>
                 </TouchableOpacity>
@@ -763,7 +634,7 @@ export default function WorkerManagementScreen() {
         )}
       </View>
 
-      {/* 이의제기 모달 */}
+      {/* -------- 이의제기 모달 -------- */}
       <Modal
         visible={objectionOpen}
         transparent
@@ -773,21 +644,22 @@ export default function WorkerManagementScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>이의제기 처리</Text>
+
             {selectedWorker && (
               <>
-                <Text style={{ marginTop: 8, color: '#374151' }}>
-                  {selectedWorker.name} · {selectedWorker.role} ·{' '}
-                  {selectedWorker.site}
+                <Text style={{ marginTop: 8, color: "#374151" }}>
+                  {selectedWorker.name} · {selectedWorker.role} · {selectedWorker.site}
                 </Text>
 
                 <View style={{ height: 12 }} />
                 <Field label="날짜" value={objDate} />
 
+                {/* 출근 시간 */}
                 <View style={{ height: 12 }} />
                 <Text style={styles.label}>수정할 출근 시간</Text>
                 <View style={styles.row2}>
                   <Toggle2
-                    values={['오전', '오후']}
+                    values={["오전", "오후"]}
                     value={objInPeriod}
                     onChange={(v) => setObjInPeriod(v as any)}
                   />
@@ -798,11 +670,12 @@ export default function WorkerManagementScreen() {
                   />
                 </View>
 
+                {/* 퇴근 시간 */}
                 <View style={{ height: 12 }} />
                 <Text style={styles.label}>수정할 퇴근 시간</Text>
                 <View style={styles.row2}>
                   <Toggle2
-                    values={['오전', '오후']}
+                    values={["오전", "오후"]}
                     value={objOutPeriod}
                     onChange={(v) => setObjOutPeriod(v as any)}
                   />
@@ -813,22 +686,18 @@ export default function WorkerManagementScreen() {
                   />
                 </View>
 
+                {/* 상태 변경 */}
                 <View style={{ height: 12 }} />
                 <Text style={styles.label}>출퇴근 상태</Text>
                 <Toggle2
-                  values={['정상 출근', '지각', '조퇴', '결근']}
+                  values={["정상 출근", "지각", "조퇴", "결근"]}
                   value={objStatus}
                   onChange={(v) => setObjStatus(v as any)}
                   wide
                 />
 
                 <View style={{ height: 16 }} />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                  }}
-                >
+                <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
                   <TouchableOpacity
                     style={styles.outlineBtn}
                     onPress={() => setObjectionOpen(false)}
@@ -836,10 +705,7 @@ export default function WorkerManagementScreen() {
                     <Text>취소</Text>
                   </TouchableOpacity>
                   <View style={{ width: 8 }} />
-                  <TouchableOpacity
-                    style={styles.primaryBtnSmall}
-                    onPress={processObjection}
-                  >
+                  <TouchableOpacity style={styles.primaryBtnSmall} onPress={processObjection}>
                     <Text style={styles.primaryBtnText}>처리 완료</Text>
                   </TouchableOpacity>
                 </View>
@@ -852,20 +718,25 @@ export default function WorkerManagementScreen() {
   );
 }
 
-/* ---------- 재사용 컴포넌트 ---------- */
+/* ------------------------------------------
+   🎯 공통 Field 컴포넌트
+------------------------------------------ */
 function Field({ label, value }: { label: string; value?: string }) {
   return (
     <View style={{ marginVertical: 6 }}>
-      <Text style={{ color: '#6B7280', fontSize: 12, marginBottom: 4 }}>
+      <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
         {label}
       </Text>
-      <Text style={{ color: '#111827', fontSize: 14 }}>
-        {value ?? '-'}
+      <Text style={{ color: "#111827", fontSize: 14 }}>
+        {value ?? "-"}
       </Text>
     </View>
   );
 }
 
+/* ------------------------------------------
+   🎯 수정 가능한 EditableField
+------------------------------------------ */
 function EditableField({
   label,
   value,
@@ -875,142 +746,156 @@ function EditableField({
   value?: string;
   onSave: (v: string) => void;
 }) {
-  const [edit, setEdit] = useState(false);
-  const [temp, setTemp] = useState(value ?? '');
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(value ?? "");
+
   return (
     <View style={{ marginVertical: 6 }}>
-      <Text style={{ color: '#6B7280', fontSize: 12, marginBottom: 4 }}>
+      <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
         {label}
       </Text>
-      {edit ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TextInput
-            value={temp}
-            onChangeText={setTemp}
-            style={[styles.input, { flex: 1 }]}
-            autoFocus
-          />
-          <TouchableOpacity
-            onPress={() => {
-              onSave(temp.trim());
-              setEdit(false);
-            }}
-            style={[styles.primaryBtnSmall, { marginLeft: 8 }]}
-          >
-            <Text style={styles.primaryBtnText}>저장</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setTemp(value ?? '');
-              setEdit(false);
-            }}
-            style={[styles.outlineBtn, { marginLeft: 8 }]}
-          >
-            <Text>취소</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View
+
+      {editing ? (
+        <TextInput
+          value={text}
+          onChangeText={setText}
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            backgroundColor: "#F3F4F6",
+            borderWidth: 1,
+            borderColor: "#D1D5DB",
+            borderRadius: 10,
+            paddingHorizontal: 10,
+            height: 40,
           }}
-        >
-          <Text style={{ color: '#111827', fontSize: 14 }}>
-            {value ?? '-'}
-          </Text>
-          <TouchableOpacity onPress={() => setEdit(true)}>
-            <Text style={{ color: '#2563EB' }}>편집</Text>
-          </TouchableOpacity>
-        </View>
+        />
+      ) : (
+        <Text style={{ color: "#111827", fontSize: 14 }}>
+          {value ?? "-"}
+        </Text>
       )}
+
+      <TouchableOpacity
+        onPress={() => {
+          if (editing) onSave(text);
+          setEditing(!editing);
+        }}
+        style={{ marginTop: 6 }}
+      >
+        <Text style={{ color: "#2563EB", fontSize: 12 }}>
+          {editing ? "저장" : "수정"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
+/* ------------------------------------------
+   🎯 테이블용 컴포넌트
+------------------------------------------ */
+function TableTh({ text }: { text: string }) {
+  return (
+    <Text
+      style={{
+        flex: 1,
+        paddingHorizontal: 8,
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#374151",
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+function TableTd({ text, color }: { text: string; color?: string }) {
+  return (
+    <Text
+      style={{
+        flex: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+        fontSize: 13,
+        color: color ?? "#111827",
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  const colorMap: any = {
+    "정상": "#16A34A",
+    "정상 출근": "#16A34A",
+    "지각": "#DC2626",
+    "조퇴": "#DC2626",
+    "결근": "#9CA3AF",
+  };
+
+  return (
+    <View
+      style={{
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        backgroundColor: "#F3F4F6",
+        alignSelf: "flex-start",
+      }}
+    >
+      <Text style={{ fontSize: 12, color: colorMap[status] ?? "#374151" }}>
+        {status}
+      </Text>
+    </View>
+  );
+}
+
+/* ------------------------------------------
+   🎯 문서 버튼
+------------------------------------------ */
 function DocButton({
   title,
   subtitle,
-  onPress,
   tone,
+  onPress,
 }: {
   title: string;
   subtitle: string;
+  tone?: "yellow" | "green";
   onPress: () => void;
-  tone?: 'yellow' | 'green';
 }) {
-  const bg =
-    tone === 'yellow'
-      ? '#FEF9C3'
-      : tone === 'green'
-      ? '#DCFCE7'
-      : '#FFFFFF';
-  const bd = '#E5E7EB';
+  const colors: any = {
+    yellow: "#FACC15",
+    green: "#22C55E",
+    default: "#111827",
+  };
+
   return (
     <TouchableOpacity
+      style={{
+        borderWidth: 1,
+        borderColor: "#D1D5DB",
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 8,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
       onPress={onPress}
-      style={[
-        styles.docBtn,
-        { backgroundColor: bg, borderColor: bd },
-      ]}
     >
       <View>
-        <Text style={{ color: '#111827' }}>{title}</Text>
-        <Text style={{ color: '#6B7280', fontSize: 12 }}>{subtitle}</Text>
+        <Text style={{ color: "#111827" }}>{title}</Text>
+        <Text style={{ color: "#6B7280", fontSize: 12 }}>{subtitle}</Text>
       </View>
-      <Text style={{ color: '#9CA3AF' }}>{'>'}</Text>
+      <Text style={{ color: colors[tone ?? "default"] }}>{">"}</Text>
     </TouchableOpacity>
   );
 }
 
-function StatusPill({ status }: { status: AttendanceRecord['status'] }) {
-  let bg = '#F3F4F6',
-    fg = '#374151';
-  if (status === '정상' || status === '정상 출근') {
-    bg = '#DCFCE7';
-    fg = '#166534';
-  } else if (status === '지각') {
-    bg = '#FFEFD5';
-    fg = '#9A3412';
-  } else if (status === '조퇴') {
-    bg = '#FEF3C7';
-    fg = '#92400E';
-  } else if (status === '결근') {
-    bg = '#FEE2E2';
-    fg = '#991B1B';
-  }
-  return (
-    <View
-      style={{
-        backgroundColor: bg,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-      }}
-    >
-      <Text style={{ color: fg, fontSize: 12 }}>{status}</Text>
-    </View>
-  );
-}
-
-function TableTh({ text }: { text: string }) {
-  return (
-    <View style={[styles.th]}>
-      <Text style={{ color: '#6B7280', fontSize: 12 }}>{text}</Text>
-    </View>
-  );
-}
-function TableTd({ text, color }: { text: string; color?: string }) {
-  return (
-    <View style={[styles.td]}>
-      <Text style={{ color: color ?? '#111827', fontSize: 13 }}>
-        {text}
-      </Text>
-    </View>
-  );
-}
-
+/* ------------------------------------------
+   🎯 Toggle2 (상태 선택)
+------------------------------------------ */
 function Toggle2({
   values,
   value,
@@ -1023,26 +908,38 @@ function Toggle2({
   wide?: boolean;
 }) {
   return (
-    <View style={[styles.toggle, wide && { flexWrap: 'wrap' }]}>
-      {values.map((v) => {
-        const sel = v === value;
-        return (
-          <TouchableOpacity
-            key={v}
-            onPress={() => onChange(v)}
-            style={[styles.toggleItem, sel && styles.toggleItemSel]}
-          >
-            <Text style={{ color: sel ? '#FFFFFF' : '#374151' }}>
-              {v}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View
+      style={{
+        flexDirection: "row",
+        backgroundColor: "#F3F4F6",
+        padding: 4,
+        borderRadius: 10,
+        flex: wide ? 1 : undefined,
+      }}
+    >
+      {values.map((v) => (
+        <TouchableOpacity
+          key={v}
+          style={[
+            {
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              marginRight: 6,
+            },
+            value === v && { backgroundColor: "#2563EB" },
+          ]}
+          onPress={() => onChange(v)}
+        >
+          <Text style={{ color: value === v ? "#fff" : "#374151" }}>{v}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
 
-/* ---------- 스타일 ---------- */
+
+
 const styles = StyleSheet.create({
   name: {
     fontSize: 18,

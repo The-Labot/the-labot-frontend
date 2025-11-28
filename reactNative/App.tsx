@@ -17,6 +17,7 @@ import WorkerNoticeList from './src/worker/WorkerNoticeList';
 import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
 
 import MapManagementScreen from './src/manager/MapManagementScreen';
+import WorkerMapScreen from './src/worker/WorkerMapScreen';
 
 export type RootStackParamList = {
       Login: undefined;
@@ -66,8 +67,11 @@ export default function App() {
         />
 
         <Stack.Screen name="MapManagement" component={MapManagementScreen} />
+        <Stack.Screen name="Map" component={WorkerMapScreen} />
+        
         <Stack.Screen name="ManagerCertificates" component={ManagerCertificatesScreen} />
         
+
         <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
         <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
       </Stack.Navigator>
