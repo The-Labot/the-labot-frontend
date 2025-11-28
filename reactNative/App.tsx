@@ -11,11 +11,12 @@ import ManagerHomeScreen from './src/manager/ManagerHomeScreen';
 import HazardReportScreen from './src/worker/HazardReportScreen';
 import AttendanceScreen from './src/worker/AttendanceScreen';
 import AttendanceHistoryScreen from './src/worker/AttendanceHistoryScreen';
-import MapScreen from './src/worker/MapScreen';
 import ManagerCertificatesScreen from './src/manager/ManagerCertificatesScreen';
 import ManagerMyPageScreen from './src/manager/MyPageScreen'; // ✅ 이건 관리자용
 import WorkerNoticeList from './src/worker/WorkerNoticeList';
 import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
+
+import MapManagementScreen from './src/manager/MapManagementScreen';
 
 export type RootStackParamList = {
       Login: undefined;
@@ -26,6 +27,8 @@ export type RootStackParamList = {
       HazardReport: undefined;
       Attendance: undefined;
       AttendanceHistory: undefined;
+
+      MapManagement: undefined;
       Map: undefined;
 
     ManagerCertificates: {       // ✅ 추가
@@ -62,7 +65,7 @@ export default function App() {
           options={{ headerShown: false }}
         />
 
-        <Stack.Screen name="Map" component={MapScreen} />
+        <Stack.Screen name="MapManagement" component={MapManagementScreen} />
         <Stack.Screen name="ManagerCertificates" component={ManagerCertificatesScreen} />
         
         <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />

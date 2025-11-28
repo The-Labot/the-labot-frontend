@@ -56,7 +56,7 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.quickRow}>
       <TouchableOpacity
         style={styles.quickBtn}
-        onPress={() => navigation.navigate('Map')}
+        onPress={() => navigation.navigate('MapManagement')}
         activeOpacity={0.85}
       >
         <Text style={styles.quickTxt}>현장 지도</Text>
