@@ -14,6 +14,9 @@ build
 .env.local
 .env.*
 
+#CD에서 생성하는 배포 설정 파일은 올리도록 예외처리
+!.env.production
+
 # 4. 버전 관리 & IDE 설정
 .git
 .github
