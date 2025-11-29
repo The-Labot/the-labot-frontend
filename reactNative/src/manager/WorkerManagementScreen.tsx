@@ -2,7 +2,7 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../App";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import {
   Alert,
 } from "react-native";
 import { registerWorker } from "../api/worker";
-
+import { fetchWorkers } from "../api/worker"; // ← 이거 추가
+import { fetchWorkerDetail, updateWorker, patchAttendance } from "../api/worker"; // ← 이거 추가
 /* ------------------------------------------
    🔥 근로자 등록 입력 상태 (전체 필드)
    ------------------------------------------ */
@@ -67,19 +68,61 @@ export default function WorkerManagementScreen() {
   }
 
   interface Worker {
-    id: number;
-    name: string;
-    initial: string;
-    role: string;
-    status: WorkerStatus;
-    site: string;
-    address?: string;
-    birthDate?: string;
-    gender?: string;
-    nationality?: string;
-    phone?: string;
-    attendanceRecords: AttendanceRecord[];
-  }
+  id: number;
+  name: string;
+  position: string;
+  status: "ACTIVE" | "WAITING";
+  initial: string;
+    site?: string;   // ⭐ 선택값(optional)으로 추가
+}
+interface WorkerDetail {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  birthDate: string;
+  gender: string;
+  nationality: string;
+  position: string;
+  status: "ACTIVE" | "WAITING";
+
+  // 계약 & 계좌
+  contractType: string;
+  salary: string;
+  payReceive: string;
+  wageStartDate: string;
+  wageEndDate: string;
+  emergencyNumber: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+
+  siteName: string;
+
+  attendanceHistory: {
+    attendanceId: number;
+    date: string;
+    clockInTime: string | null;
+    clockOutTime: string | null;
+    status: string;
+    objectionMessage: string | null;
+  }[];
+
+  contractFile?: {
+    fileUrl: string;
+    originalFileName: string;
+  };
+
+  payStubFiles?: {
+    fileUrl: string;
+    originalFileName: string;
+  }[];
+
+  licenseFiles?: {
+    fileUrl: string;
+    originalFileName: string;
+  }[];
+}
 
   /* ------------------------------------------
      🔥 더미(임시) worker 목록 완전 삭제 —> 빈 배열
@@ -99,48 +142,163 @@ export default function WorkerManagementScreen() {
   const [objInTime, setObjInTime] = useState("");
   const [objOutPeriod, setObjOutPeriod] = useState<"오전" | "오후">("오후");
   const [objOutTime, setObjOutTime] = useState("");
-  const [objStatus, setObjStatus] =
-    useState<"정상 출근" | "지각" | "조퇴" | "결근">("지각");
+  const [objStatus, setObjStatus] =useState<"정상 출근" | "지각" | "조퇴" | "결근">("지각");
+
+  const [detail, setDetail] = useState<WorkerDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const currentAttendanceIdRef = useRef<number | null>(null);
+
+  const [stats, setStats] = useState({
+  total: 0,
+  active: 0,
+  waiting: 0,
+  objections: 0,
+});
+
+    useEffect(() => {
+  loadWorkers();
+}, []);
+
+function openObjection(rec: any) {
+  setObjDate(rec.date);
+  setObjInTime(rec.clockInTime?.split(":").slice(0,2).join(":") ?? "");
+  setObjOutTime(rec.clockOutTime?.split(":").slice(0,2).join(":") ?? "");
+
+  // 상태 매핑
+  const statusMap: any = {
+    PRESENT: "정상 출근",
+    LATE: "지각",
+    EARLY_LEAVE: "조퇴",
+    ABSENT: "결근",
+  };
+  setObjStatus(statusMap[rec.status] ?? "정상 출근");
+
+  currentAttendanceIdRef.current = rec.attendanceId; // ⭐ PATCH에 필요
+  setObjectionOpen(true);
+}
+
+async function processObjection() {
+  if (!detail) return;
+
+  try {
+    // 사용자가 입력한 시간을 그대로 전달
+    const clockIn = objInTime.length === 5 ? `${objInTime}:00` : objInTime;
+    const clockOut = objOutTime.length === 5 ? `${objOutTime}:00` : objOutTime;
+
+    const reverseStatusMap: any = {
+      "정상 출근": "PRESENT",
+      "지각": "LATE",
+      "조퇴": "EARLY_LEAVE",
+      "결근": "ABSENT",
+    };
+
+    const payload = {
+      clockInTime: clockIn,
+      clockOutTime: clockOut,
+      status: reverseStatusMap[objStatus],
+    };
+
+    console.log("📤 PATCH payload:", payload);
+
+    await patchAttendance(
+      currentAttendanceIdRef.current,
+      payload
+    );
+
+    Alert.alert("완료", "이의제기가 처리되었습니다.");
+    setObjectionOpen(false);
+
+    // 상세 새로고침
+    const refreshed = await fetchWorkerDetail(detail.id);
+    setDetail(refreshed);
+
+  } catch (err) {
+    console.log("❌ 이의제기 PATCH 실패:", err);
+    Alert.alert("에러", "처리에 실패했습니다.");
+  }
+}
+
+async function loadWorkers() {
+  
+  try {
+    const res = await fetchWorkers();
+    console.log("📥 근로자 목록:", res);
+
+    // 🔥 백엔드 응답 구조에서 workers 배열 꺼내기
+    const workerList = res.data?.workers ?? [];
+
+    // 🔥 상태 저장 (좌측 목록에 표시될 요소)
+    setWorkers(
+      workerList.map((w: any) => ({
+        id: w.id,
+        name: w.name,
+        position: w.position,
+        status: w.status,
+        initial: w.name?.[0] ?? "",
+        hasObjection: w.hasObjection ?? false,
+      }))
+    );
+        setStats({
+      total: res.data.totalCount,
+      active: res.data.activeCount,
+      waiting: res.data.waitingCount,
+      objections: res.data.objectionCount,
+    });
+
+  } catch (err) {
+    console.log("🚨 근로자 목록 불러오기 실패:", err);
+  }
+}
+// ------------------------------
+// 🔵 공통 수정 함수
+// ------------------------------
+async function handleWorkerUpdate(changes: any) {
+  if (!detail) return;
+
+  try {
+    console.log("📤 수정 요청 payload:", changes);
+
+    const updated = await updateWorker(detail.id, changes);
+
+    // 상세 정보 갱신
+    const refreshed = await fetchWorkerDetail(detail.id);
+    setDetail(refreshed);
+
+    // 좌측 리스트 갱신
+    await loadWorkers();
+
+    Alert.alert("완료", "변경이 저장되었습니다.");
+  } catch (err) {
+    console.log("🚨 수정 실패:", err);
+    Alert.alert("에러", "수정에 실패했습니다.");
+  }
+}
+
     /* ------------------------------------------
      🔍 필터링된 근로자 목록
      ------------------------------------------ */
   const filtered = useMemo(() => {
     const q = search.trim();
     if (!q) return workers;
-    return workers.filter((w) => w.name.includes(q) || w.role.includes(q));
+    return workers.filter((w) => w.name.includes(q) || w.position.includes(q));
   }, [workers, search]);
 
   /* ------------------------------------------
      근로자 상태 Badge 색상
      ------------------------------------------ */
-  const hasObjection = (w: Worker) =>
-    w.attendanceRecords.some((r) => r.objection?.hasObjection);
 
-  const statusBadge = (s: WorkerStatus) => {
-    switch (s) {
-      case "working":
-        return { label: "근무중", bg: "#E6F4EA", fg: "#1E7D32" };
-      case "resting":
-        return { label: "대기중", bg: "#F3F4F6", fg: "#374151" };
-      case "late":
-        return { label: "퇴근미처리", bg: "#FEF3E7", fg: "#9A3412" };
-      default:
-        return { label: "-", bg: "#eee", fg: "#333" };
-    }
+    const statusBadge = (status: "ACTIVE" | "WAITING") => {
+    if (status === "ACTIVE")
+      return { label: "근무중", bg: "#E6F4EA", fg: "#1E7D32" };
+
+    return { label: "대기중", bg: "#F3F4F6", fg: "#374151" };
   };
 
   /* ------------------------------------------
      통계
      ------------------------------------------ */
-  const statCounts = useMemo(
-    () => ({
-      total: workers.length,
-      working: workers.filter((w) => w.status === "working").length,
-      resting: workers.filter((w) => w.status === "resting").length,
-      objections: workers.filter(hasObjection).length,
-    }),
-    [workers]
-  );
+    
 
   /* ------------------------------------------
      근로자 등록 API 호출
@@ -214,56 +372,60 @@ export default function WorkerManagementScreen() {
      LeftItem : 왼쪽 근로자 목록 한 줄
      ------------------------------------------ */
   const LeftItem = ({ item }: { item: Worker }) => {
-    const sel = selectedWorker?.id === item.id;
-    const b = statusBadge(item.status);
+  const sel = selectedWorker?.id === item.id;
+  const b = statusBadge(item.status);
 
+  return (
+        <TouchableOpacity
+        onPress={async () => {
+            console.log("📌 LeftItem 클릭됨:", item.id);
 
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          setSelectedWorker(item);
-          setShowPayroll(false);
-          setShowCertificates(false);
-          setShowRegister(false);
-        }}
-        style={[styles.listItem, sel && styles.listItemSelected]}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.avatar, { backgroundColor: "#E0ECFF" }]}>
-          <Text style={{ color: "#2563EB", fontWeight: "700" }}>
-            {item.initial}
-          </Text>
-        </View>
+        setSelectedWorker(item);
+        setShowRegister(false);
+        setShowPayroll(false);
+        setShowCertificates(false);
 
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={styles.listName}>{item.name}</Text>
-            <View style={[styles.badge, { backgroundColor: b.bg }]}>
-              <Text style={{ color: b.fg, fontSize: 11 }}>{b.label}</Text>
-            </View>
+        setLoadingDetail(true);
+        try {
+              console.log("📡 상세조회 API 호출 시작");
+          const d = await fetchWorkerDetail(item.id);
+              console.log("📥 상세조회 API 응답:", d);
+          setDetail(d);
+        } catch (e) {
+          console.log("❌ 상세조회 실패:", e);
+        }
+        finally {
+                setLoadingDetail(false);
+              }
+      }}
+      style={[styles.listItem, sel && styles.listItemSelected]}
+    >
+      <View style={[styles.avatar, { backgroundColor: "#E0ECFF" }]}>
+        <Text style={{ color: "#2563EB", fontWeight: "700" }}>
+          {item.initial}
+        </Text>
+      </View>
 
-            {hasObjection(item) && (
-              <Text style={{ marginLeft: 6, color: "#DC2626", fontSize: 12 }}>
-                이의제기 대기
-              </Text>
-            )}
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={styles.listName}>{item.name}</Text>
+
+          <View style={[styles.badge, { backgroundColor: b.bg }]}>
+            <Text style={{ color: b.fg, fontSize: 11 }}>{b.label}</Text>
           </View>
-
-          <Text style={{ color: "#6B7280", fontSize: 12 }}>{item.role}</Text>
         </View>
-      </TouchableOpacity>
-    );
-  };
+
+        <Text style={{ color: "#6B7280", fontSize: 12 }}>
+          {item.position}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
   /* ------------------------------------------
    🎯 이의제기 열기 / 처리 함수
 ------------------------------------------ */
-function openObjection(rec: any) {
-  // 여기는 네 기존 코드 위치에 맞추어 WorkerManagementScreen 안에서 선언해야 함.
-}
 
-function processObjection() {
-  // 백엔드 이의제기 처리 연결 시 구현
-}
     return (
     <View style={styles.root}>
       {/* ---------------- Left Panel ---------------- */}
@@ -306,25 +468,25 @@ function processObjection() {
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>전체</Text>
               <Text style={[styles.statVal, { color: "#2563EB" }]}>
-                {statCounts.total}
+                {stats.total}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>근무중</Text>
               <Text style={[styles.statVal, { color: "#16A34A" }]}>
-                {statCounts.working}
+                {stats.active}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>대기중</Text>
               <Text style={[styles.statVal, { color: "#374151" }]}>
-                {statCounts.resting}
+                {stats.waiting}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLbl}>이의제기</Text>
               <Text style={[styles.statVal, { color: "#DC2626" }]}>
-                {statCounts.objections}
+                {stats.objections}
               </Text>
             </View>
           </View>
@@ -604,6 +766,179 @@ function processObjection() {
           <Text style={styles.primaryBtnText}>등록</Text>
         </TouchableOpacity>
       </View>
+    </ScrollView> //여기까지가 등록 화면임
+  ) : detail ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: 24 }}
+    >
+
+      {/* A. 프로필 카드 */}
+  <View style={styles.card}>
+    {/* 🔵 상태 수정 버튼 */}
+<TouchableOpacity
+  style={{
+    position: "absolute",
+    top: 16,
+    right: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: detail.status === "WAITING" ? "#111" : "#16A34A",
+    borderRadius: 8,
+  }}
+  onPress={() =>
+    handleWorkerUpdate({
+      status: detail.status === "WAITING" ? "ACTIVE" : "WAITING",
+    })
+  }
+>
+  <Text style={{ color: "#fff", fontWeight: "600" }}>
+    {detail.status === "WAITING" ? "근무중으로 변경" : "대기중으로 변경"}
+  </Text>
+</TouchableOpacity>
+
+  <View style={{ flexDirection: "row", alignItems: "center" }}>
+    {/* 아바타 */}
+    <View style={styles.bigAvatar}>
+      <Text style={{ fontSize: 28, color: "#2563EB", fontWeight: "700" }}>
+        {detail.name[0]}
+      </Text>
+    </View>
+
+    {/* 정보 영역 */}
+    <View style={{ marginLeft: 20, flex: 1 }}>
+
+      {/* 이름 + 직종 + 전화번호 가로 배치 */}
+      <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap" }}>
+        <Text style={{ fontSize: 30, fontWeight: "700", color: "#111827", marginRight: 12 }}>
+          {detail.name}
+        </Text>
+
+        <Text style={{ fontSize: 19, color: "#4B5563", marginRight: 12 }}>
+          {detail.position}
+        </Text>
+        <Text style={{ fontSize: 15, color: "#6B7280" }}>
+          {detail.phone}
+        </Text>
+      </View>
+
+      {/* 현장명 */}
+      <Text style={{ marginTop: 6, fontSize: 13, color: "#6B7280" }}>
+
+      </Text>
+
+      
+    </View>
+  </View>
+</View>
+
+       {/* B. 개인정보 */}
+<View style={styles.card}>
+  <Text style={styles.sectionTitle}>개인정보</Text>
+  <View style={{ height: 12 }} />
+
+    {/* 수정 가능 필드 (직종, 현장명) */}
+  <EditableField
+  label="직종"
+  value={detail.position}
+  onSave={(v) => handleWorkerUpdate({ position: v })}
+/>
+
+  <EditableField
+  label="현장명"
+  value={detail.siteName}
+  onSave={(v) => handleWorkerUpdate({ siteName: v })}
+/>
+  <InfoItem label="주소" value={detail.address} />
+  <InfoItem label="생년월일" value={detail.birthDate} />
+  <InfoItem label="성별" value={detail.gender} />
+  <InfoItem label="국적" value={detail.nationality} />
+  <InfoItem label="전화번호" value={detail.phone} />
+  <InfoItem label="비상 연락처" value={detail.emergencyNumber} />
+  <InfoItem label="은행" value={detail.bankName} />
+  <InfoItem label="계좌번호" value={detail.accountNumber} />
+  <InfoItem label="예금주" value={detail.accountHolder} />
+</View>
+
+            {/* C. 문서 버튼 */}
+      <View style={styles.card}>
+        <DocButton
+          title="근로 계약서 보기"
+          subtitle={detail.contractFile?.originalFileName ?? "계약서 없음"}
+          onPress={() => Alert.alert("계약서파일 오픈 예정")}
+        />
+
+        <DocButton
+          title="급여 명세서 보기"
+          subtitle={detail.payStubFiles?.[0]?.originalFileName ?? "명세서 없음"}
+          tone="yellow"
+          onPress={() => Alert.alert("급여명세서 오픈 예정")}
+        />
+
+        <DocButton
+          title="자격증 보기"
+          subtitle={detail.licenseFiles?.[0]?.originalFileName ?? "자격증 없음"}
+          tone="green"
+          onPress={() => Alert.alert("자격증 오픈 예정")}
+        />
+      </View>
+
+            {/* D. 출퇴근 기록 */}
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <View>
+            <Text style={styles.sectionTitle}>출퇴근 기록</Text>
+            <Text style={styles.subtitleSmall}>Attendance History</Text>
+          </View>
+        </View>
+
+        {/* 테이블 헤더 */}
+        <View style={styles.tableHeader}>
+          <TableTh text="날짜" />
+          <TableTh text="출근" />
+          <TableTh text="퇴근" />
+          <TableTh text="상태" />
+          <TableTh text="이의제기" />
+        </View>
+
+        {detail.attendanceHistory.map((h) => {
+          const statusMap: any = {
+            PRESENT: "정상",
+            LATE: "지각",
+            EARLY_LEAVE: "조퇴",
+            ABSENT: "결근",
+          };
+
+          return (
+            <View key={h.attendanceId} style={styles.tableRow}>
+              <TableTd text={h.date} />
+              <TableTd text={h.clockInTime ?? "-"} color="#16A34A" />
+              <TableTd text={h.clockOutTime ?? "-"} color="#DC2626" />
+              <TableTd>
+              <StatusPill status={statusMap[h.status]} />
+              </TableTd>
+              <TableTd>
+              <TouchableOpacity
+                onPress={() => h.objectionMessage && openObjection(h)}
+                disabled={!h.objectionMessage}
+                style={{
+                  backgroundColor: h.objectionMessage ? "#FEE2E2" : "#E5E7EB",
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  borderRadius: 20,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: h.objectionMessage ? "#DC2626" : "#6B7280" }}>
+                  {h.objectionMessage ? "이의제기" : "-"}
+                </Text>
+              </TouchableOpacity>
+              </TableTd>
+            </View>
+          );
+        })}
+      </View>
+
     </ScrollView>
   ) : (
     <View style={styles.empty}>
@@ -613,85 +948,89 @@ function processObjection() {
 </View>
 
       {/* -------- 이의제기 모달 -------- */}
-      <Modal
-        visible={objectionOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setObjectionOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>이의제기 처리</Text>
+      {/* -------- 이의제기 모달 -------- */}
+<Modal
+  visible={objectionOpen}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setObjectionOpen(false)}
+>
+  <View style={styles.modalBackdrop}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>이의제기 처리</Text>
 
-            {selectedWorker && (
-              <>
-                <Text style={{ marginTop: 8, color: "#374151" }}>
-                  {selectedWorker.name} · {selectedWorker.role} · {selectedWorker.site}
-                </Text>
+      {selectedWorker && (
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          <Text style={{ marginTop: 8, color: "#374151", fontSize: 16 }}>
+            {selectedWorker.name} · {selectedWorker.position}
+          </Text>
 
-                <View style={{ height: 12 }} />
-                <Field label="날짜" value={objDate} />
+          <View style={{ height: 16 }} />
 
-                {/* 출근 시간 */}
-                <View style={{ height: 12 }} />
-                <Text style={styles.label}>수정할 출근 시간</Text>
-                <View style={styles.row2}>
-                  <Toggle2
-                    values={["오전", "오후"]}
-                    value={objInPeriod}
-                    onChange={(v) => setObjInPeriod(v as any)}
-                  />
-                  <TextInput
-                    value={objInTime}
-                    onChangeText={setObjInTime}
-                    style={styles.timeInput}
-                  />
-                </View>
+          <Field label="날짜" value={objDate} />
 
-                {/* 퇴근 시간 */}
-                <View style={{ height: 12 }} />
-                <Text style={styles.label}>수정할 퇴근 시간</Text>
-                <View style={styles.row2}>
-                  <Toggle2
-                    values={["오전", "오후"]}
-                    value={objOutPeriod}
-                    onChange={(v) => setObjOutPeriod(v as any)}
-                  />
-                  <TextInput
-                    value={objOutTime}
-                    onChangeText={setObjOutTime}
-                    style={styles.timeInput}
-                  />
-                </View>
-
-                {/* 상태 변경 */}
-                <View style={{ height: 12 }} />
-                <Text style={styles.label}>출퇴근 상태</Text>
-                <Toggle2
-                  values={["정상 출근", "지각", "조퇴", "결근"]}
-                  value={objStatus}
-                  onChange={(v) => setObjStatus(v as any)}
-                  wide
-                />
-
-                <View style={{ height: 16 }} />
-                <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-                  <TouchableOpacity
-                    style={styles.outlineBtn}
-                    onPress={() => setObjectionOpen(false)}
-                  >
-                    <Text>취소</Text>
-                  </TouchableOpacity>
-                  <View style={{ width: 8 }} />
-                  <TouchableOpacity style={styles.primaryBtnSmall} onPress={processObjection}>
-                    <Text style={styles.primaryBtnText}>처리 완료</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
+          {/* 출근 */}
+          <View style={{ marginTop: 20 }}>
+            <Text style={styles.label}>수정할 출근 시간</Text>
+            <TextInput
+              value={objInTime}
+              onChangeText={setObjInTime}
+              placeholder="예: 09:30"
+              style={styles.timeInput}
+            />
           </View>
-        </View>
-      </Modal>
+
+          {/* 퇴근 */}
+          <View style={{ marginTop: 20 }}>
+            <Text style={styles.label}>수정할 퇴근 시간</Text>
+            <TextInput
+              value={objOutTime}
+              onChangeText={setObjOutTime}
+              placeholder="예: 18:00"
+              style={styles.timeInput}
+            />
+          </View>
+
+          {/* 상태 */}
+          <View style={{ marginTop: 20 }}>
+            <Text style={styles.label}>출퇴근 상태</Text>
+            <Toggle2
+              values={["정상 출근", "지각", "조퇴", "결근"]}
+              value={objStatus}
+              onChange={(v) => setObjStatus(v as any)}
+              wide
+            />
+          </View>
+
+          {/* 버튼 */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginTop: 30,
+            }}
+          >
+            <TouchableOpacity
+              style={styles.outlineBtn}
+              onPress={() => setObjectionOpen(false)}
+            >
+              <Text>취소</Text>
+            </TouchableOpacity>
+
+            <View style={{ width: 12 }} />
+
+            <TouchableOpacity
+              style={styles.primaryBtnSmall}
+              onPress={processObjection}
+            >
+              <Text style={styles.primaryBtnText}>처리 완료</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
+    </View>
+  </View>
+</Modal>
     </View>
   );
 }
@@ -727,78 +1066,71 @@ function EditableField({
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(value ?? "");
 
+
   return (
-    <View style={{ marginVertical: 6 }}>
-      <Text style={{ color: "#6B7280", fontSize: 12, marginBottom: 4 }}>
+    <View style={{ marginBottom: 16 }}>
+      {/* 라벨 */}
+      <Text style={{ color: "#6B7280", fontSize: 13, marginBottom: 6 }}>
         {label}
       </Text>
 
-      {editing ? (
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {/* 항상 TextInput 형태로 보이지만 editable만 토글됨 */}
         <TextInput
-          value={text}
+          value={editing ? text : value}
           onChangeText={setText}
+          editable={editing}
           style={{
-            backgroundColor: "#F3F4F6",
+            flex: 1,
+            backgroundColor: editing ? "#FFFFFF" : "#F9FAFB",
             borderWidth: 1,
-            borderColor: "#D1D5DB",
+            borderColor: "#E5E7EB",
             borderRadius: 10,
-            paddingHorizontal: 10,
+            paddingHorizontal: 12,
             height: 40,
+            color: "#111827",
           }}
         />
-      ) : (
-        <Text style={{ color: "#111827", fontSize: 14 }}>
-          {value ?? "-"}
-        </Text>
-      )}
 
-      <TouchableOpacity
-        onPress={() => {
-          if (editing) onSave(text);
-          setEditing(!editing);
-        }}
-        style={{ marginTop: 6 }}
-      >
-        <Text style={{ color: "#2563EB", fontSize: 12 }}>
-          {editing ? "저장" : "수정"}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            if (editing) onSave(text);
+            setEditing(!editing);
+          }}
+          style={{ marginLeft: 10 }}
+        >
+          <Text style={{ color: "#2563EB", fontSize: 13 }}>
+            {editing ? "저장" : "수정"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
-
 /* ------------------------------------------
    🎯 테이블용 컴포넌트
 ------------------------------------------ */
 function TableTh({ text }: { text: string }) {
   return (
-    <Text
-      style={{
-        flex: 1,
-        paddingHorizontal: 8,
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#374151",
-      }}
-    >
-      {text}
-    </Text>
+    <View style={{ flex: 1, paddingVertical: 8, paddingHorizontal: 8 }}>
+      <Text style={{ fontSize: 12, fontWeight: "600", color: "#374151" }}>
+        {text}
+      </Text>
+    </View>
   );
 }
 
-function TableTd({ text, color }: { text: string; color?: string }) {
+function TableTd({ text, color, children }: { text?: string; color?: string; children?: any }) {
   return (
-    <Text
-      style={{
-        flex: 1,
-        paddingHorizontal: 8,
-        paddingVertical: 10,
-        fontSize: 13,
-        color: color ?? "#111827",
-      }}
-    >
-      {text}
-    </Text>
+    <View style={{ flex: 1, paddingVertical: 10, paddingHorizontal: 8 }}>
+      {children ? (
+        children
+      ) : (
+        <Text style={{ fontSize: 13, color: color ?? "#111827" }}>
+          {text}
+        </Text>
+      )}
+    </View>
   );
 }
 
@@ -916,7 +1248,27 @@ function Toggle2({
   );
 }
 
-
+function InfoItem({ label, value }: { label: string; value?: string }) {
+  return (
+    <View
+      style={{
+        backgroundColor: "#F9FAFB",
+        borderWidth: 1,
+        borderColor: "#E5E7EB",
+        borderRadius: 10,
+        padding: 12,
+        marginBottom: 10,
+      }}
+    >
+      <Text style={{ fontSize: 12, color: "#6B7280", marginBottom: 4 }}>
+        {label}
+      </Text>
+      <Text style={{ fontSize: 15, color: "#111827", fontWeight: "500" }}>
+        {value ?? "-"}
+      </Text>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   name: {
@@ -1085,24 +1437,26 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   modalCard: {
-    width: '100%',
-    maxWidth: 560,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-  },
+  width: '100%',
+  maxWidth: 720,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 16,
+  padding: 24,
+},
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#111827' },
   label: { color: '#374151', marginBottom: 6 },
   row2: { flexDirection: 'row', gap: 8 },
   timeInput: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 40,
-  },
+  flex: 1,
+  backgroundColor: '#FFFFFF',
+  borderWidth: 1,
+  borderColor: '#CBD5E1',
+  borderRadius: 10,
+  paddingHorizontal: 14,
+  height: 48,
+  fontSize: 16,
+  color: '#111827',
+},
   toggle: {
     flexDirection: 'row',
     backgroundColor: '#F3F4F6',
