@@ -20,8 +20,17 @@ type Props = NativeStackScreenProps<RootStackParamList, "ManagerMyPage">;
 
 interface SiteDetail {
   siteId: number;
+  headOfficeId: number;
   projectName: string;
+  contractType: string;
+  siteManagerName: string;
+  contractAmount: number;
+  clientName: string;
+  primeContractorName: string;
   address: string;
+  latitude: number;
+  longitude: number;
+  contractDate: string;
   startDate: string;
   endDate: string;
 
@@ -32,11 +41,53 @@ interface SiteDetail {
     informPhoneNumber: string;
   };
 
+  insuranceResponsibility: string;
+  employmentInsuranceSiteNum: string;
+  primeContractorMgmtNum: string;
+
   socialIns: {
+    pensionDailyBizSymbol: string;
     pensionDailyJoinDate: string;
+    pensionRegularBizSymbol: string;
+    pensionRegularJoinDate: string;
+    pensionFee: number;
+    pensionPaid: number;
+    pensionRate: number;
+
+    healthDailyBizSymbol: string;
+    healthDailyJoinDate: string;
+    healthRegularBizSymbol: string;
+    healthRegularJoinDate: string;
+    healthFee: number;
+    healthPaid: number;
+    healthRate: number;
+
+    employDailyMgmtNum: string;
+    employDailyJoinDate: string;
+    employRegularMgmtNum: string;
+    employRegularJoinDate: string;
+    employFee: number;
+    employPaid: number;
+    employRate: number;
+
+    accidentDailyMgmtNum: string;
+    accidentDailyJoinDate: string;
+    accidentRegularMgmtNum: string;
+    accidentRegularJoinDate: string;
+    accidentFee: number;
+    accidentPaid: number;
+    accidentRate: number;
+
+    severanceTarget: boolean;
+    severanceType: string;
+    severanceDeductionNum: string;
+    severanceJoinDate: string;
+    dailyDeductionAmount: number;
+    totalSeverancePaidAmount: number;
+    severancePaymentRate: number;
   };
 
-  siteManagerName: string;
+  kisconReportTarget: boolean;
 }
 
 export default function ManagerMyPageScreen({ navigation }: Props) {
@@ -46,6 +97,18 @@ export default function ManagerMyPageScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [site, setSite] = useState<SiteDetail | null>(null);
 
+    // 동료 관리자 목록 타입
+  interface CoManager {
+    id: number;
+    name: string;
+    role: string;
+    phone: string;
+    isMe: boolean;
+  }
+
+  // state 추가
+  const [coWorkers, setCoWorkers] = useState<CoManager[]>([]);
+  const [loadingWorkers, setLoadingWorkers] = useState(true);
   /** ⭐ 현장 데이터 조회 */
   const fetchMySite = async () => {
   try {
@@ -63,7 +126,6 @@ export default function ManagerMyPageScreen({ navigation }: Props) {
 
     // 🔥 JSON 대신 text로 안전하게 받기
     const text = await res.text();
-    console.log("🔥 서버 응답:", text);
 
     let json = null;
     try {
@@ -80,9 +142,34 @@ export default function ManagerMyPageScreen({ navigation }: Props) {
     setLoading(false);
   }
 };
+  // 동료 관리자 API 호출
+  const fetchCoWorkers = async () => {
+    try {
+      const token = getTempAccessToken();
+      console.log("현재 토큰:", getTempAccessToken());
+      const res = await fetch(`${BASE_URL}/manager/co-workers`, {
+        method: "GET",
+        headers: { Authorization: token },
+      });
+     console.log("📡 응답 status:", res.status);
+
+      const text = await res.text();
+        console.log("📡 응답 text:", text);
+
+      const json = text ? JSON.parse(text) : null;
+
+      setCoWorkers(json?.data ?? []);
+    } catch (err) {
+      console.log("🔥 동료 관리자 조회 실패:", err);
+    } finally {
+      setLoadingWorkers(false);
+    }
+  };
 
   useEffect(() => {
     fetchMySite();
+    fetchCoWorkers();   // ⭐ 동료 관리자 함께 불러오기
+
   }, []);
 
   /** 로그아웃 */
@@ -187,9 +274,130 @@ export default function ManagerMyPageScreen({ navigation }: Props) {
                     {site.laborCostAccount.bankName} / {site.laborCostAccount.accountNumber}
                   </Text>
                 </View>
+                <View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>계약 형태</Text>
+  <Text style={styles.infoValue}>{site.contractType}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>계약 금액</Text>
+  <Text style={styles.infoValue}>{site.contractAmount.toLocaleString()} 원</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>발주처</Text>
+  <Text style={styles.infoValue}>{site.clientName}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>시공사</Text>
+  <Text style={styles.infoValue}>{site.primeContractorName}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>계약일</Text>
+  <Text style={styles.infoValue}>{site.contractDate}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>위도</Text>
+  <Text style={styles.infoValue}>{site.latitude}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>경도</Text>
+  <Text style={styles.infoValue}>{site.longitude}</Text>
+</View>
+
+{/* 보험 책임 */}
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>보험 책임</Text>
+  <Text style={styles.infoValue}>{site.insuranceResponsibility}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>고용보험 번호</Text>
+  <Text style={styles.infoValue}>{site.employmentInsuranceSiteNum}</Text>
+</View>
+
+<View style={styles.infoRow}>
+  <Text style={styles.infoLabel}>원도급사 관리번호</Text>
+  <Text style={styles.infoValue}>{site.primeContractorMgmtNum}</Text>
+</View>
+
+
               </>
             )}
           </View>
+            {/* ⭐ 동료 관리자 카드 */}
+<View style={styles.card}>
+  <View style={styles.sectionHeaderRow}>
+    <Text style={styles.sectionIcon}>👥</Text>
+    <Text style={styles.cardTitle}>현장 관리자</Text>
+    <Text style={styles.managerCountText}>총 {coWorkers.length}명</Text>
+  </View>
+
+  {loadingWorkers ? (
+    <Text style={{ padding: 10, color: "#6B7280" }}>불러오는 중...</Text>
+  ) : coWorkers.length === 0 ? (
+    <Text style={{ padding: 10, color: "#6B7280" }}>등록된 관리자가 없습니다</Text>
+  ) : (
+    coWorkers.map((m, index) => {
+      const isMe = m.isMe;
+
+      return (
+        <View
+          key={`${m.id}-${index}`}
+          style={[
+            styles.managerRow,
+            isMe ? styles.managerRowActive : null,
+          ]}
+        >
+          {/* 아바타 */}
+          <View
+            style={[
+              styles.avatar,
+              isMe ? styles.avatarActive : styles.avatarNormal,
+            ]}
+          >
+            <Text
+              style={[
+                styles.avatarText,
+                isMe ? styles.avatarTextActive : null,
+              ]}
+            >
+              {m.name[0]}
+            </Text>
+          </View>
+
+          {/* 텍스트 */}
+          <View style={{ flex: 1 }}>
+            <View style={styles.managerNameRow}>
+              <Text
+                style={[
+                  styles.managerName,
+                  isMe ? styles.managerNameActive : null,
+                ]}
+              >
+                {m.name}
+              </Text>
+
+              {isMe && (
+                <View style={styles.meBadge}>
+                  <Text style={styles.meBadgeText}>나</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.managerRole}>{m.role}</Text>
+            <Text style={styles.managerContact}>{m.phone}</Text>
+          </View>
+        </View>
+      );
+    })
+  )}
+</View>
+
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -421,4 +629,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9CA3AF',
   },
+
+
 });
