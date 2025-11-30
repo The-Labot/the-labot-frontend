@@ -15,7 +15,7 @@ import ManagerCertificatesScreen from './src/manager/ManagerCertificatesScreen';
 import ManagerMyPageScreen from './src/manager/MyPageScreen'; // ✅ 이건 관리자용
 import WorkerNoticeList from './src/worker/WorkerNoticeList';
 import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
-
+import ContractWriteScreen from './src/screen/ContractWriteScreen';
 import MapManagementScreen from './src/manager/MapManagementScreen';
 import WorkerMapScreen from './src/worker/WorkerMapScreen';
 
@@ -28,7 +28,7 @@ export type RootStackParamList = {
       HazardReport: undefined;
       Attendance: undefined;
       AttendanceHistory: undefined;
-
+      ContractWrite: { contractType: string };
       MapManagement: undefined;
       Map: undefined;
 
@@ -71,7 +71,7 @@ export default function App() {
         
         <Stack.Screen name="ManagerCertificates" component={ManagerCertificatesScreen} />
         
-
+        <Stack.Screen name="ContractWrite" component={ContractWriteScreen} />
         <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
         <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
       </Stack.Navigator>

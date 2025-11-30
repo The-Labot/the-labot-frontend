@@ -129,9 +129,21 @@ const submitHazard = async () => {
 
   return (
     <SafeAreaView style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 20 }}>
-        위험요소 신고
-      </Text>
+      {/* 헤더 */}
+<View style={styles.headerWrapper}>
+  <View style={styles.headerRow}>
+    <TouchableOpacity
+      style={styles.backButton}
+      onPress={() => navigation.goBack()}
+    >
+      <Text style={styles.backArrow}>←</Text>
+    </TouchableOpacity>
+
+    <View style={styles.headerTextWrapper}>
+      <Text style={styles.headerTitle}>위험요소 신고</Text>
+    </View>
+  </View>
+</View>
 
       {/* 위험 유형 */}
       <TextInput
@@ -217,6 +229,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E7EB',
     paddingHorizontal: 16,
     paddingVertical: 10,
+      marginBottom: 12,   // 🔥 추가
+
   },
   headerRow: {
     flexDirection: 'row',

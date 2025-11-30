@@ -52,6 +52,8 @@ export default function WorkerManagementScreen() {
   const [regWageStartDate, setRegWageStartDate] = useState("");
   const [regWageEndDate, setRegWageEndDate] = useState("");
 
+
+  const [contractTypeModal, setContractTypeModal] = useState(false);
   /* ------------------------------------------
      타입 정의
      ------------------------------------------ */
@@ -518,7 +520,7 @@ async function handleWorkerUpdate(changes: any) {
         {/* 계약서 생성 */}
         <TouchableOpacity
           style={styles.docBtn}
-          onPress={() => Alert.alert("계약서 생성 화면으로 이동 예정")}
+          onPress={() => setContractTypeModal(true)}
         >
           <Text style={{ color: "#111827", fontWeight: "600" }}>계약서 생성</Text>
           <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
@@ -599,14 +601,16 @@ async function handleWorkerUpdate(changes: any) {
           />
         </View>
 
-        {/* 계약 형태 (일용직 / 월정제) */}
-        <Text style={styles.inputLabel}>계약 형태</Text>
-        <Toggle2
-          values={["일용직", "월정제"]}
-          value={regContractType}
-          onChange={setRegContractType}
-          wide
-        />
+        {/* 계약 형태 */}
+<View style={{ marginBottom: 12 }}>
+  <Text style={styles.inputLabel}>계약 형태</Text>
+  <TextInput
+    placeholder="예: 일용직 / 월정제 (OCR 자동입력)"
+    value={regContractType}
+    onChangeText={setRegContractType}
+    style={styles.input}
+  />
+</View>
 
         {/* 일급 */}
         <View style={{ marginTop: 12 }}>
@@ -1031,6 +1035,50 @@ async function handleWorkerUpdate(changes: any) {
     </View>
   </View>
 </Modal>
+<Modal
+  visible={contractTypeModal}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setContractTypeModal(false)}
+>
+  <View style={styles.modalBackdrop}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>계약서 유형 선택</Text>
+
+      <View style={{ height: 20 }} />
+
+      {/* 버튼 1 — 일용직 */}
+      <TouchableOpacity
+        style={styles.modalSelectBtn}
+        onPress={() => {
+          setContractTypeModal(false);
+          navigation.navigate("ContractWrite", { contractType: "일용직" });
+        }}
+      >
+        <Text style={styles.modalSelectText}>일용직 근로계약서</Text>
+      </TouchableOpacity>
+
+      {/* 버튼 2 — 월정제 */}
+      <TouchableOpacity
+        style={styles.modalSelectBtn}
+        onPress={() => {
+          setContractTypeModal(false);
+          navigation.navigate("ContractWrite", { contractType: "월정제" });
+        }}
+      >
+        <Text style={styles.modalSelectText}>월정제 근로계약서</Text>
+      </TouchableOpacity>
+
+      {/* 취소 */}
+      <TouchableOpacity
+        style={[styles.outlineBtn, { marginTop: 16 }]}
+        onPress={() => setContractTypeModal(false)}
+      >
+        <Text>취소</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </View>
   );
 }
@@ -1276,6 +1324,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
+  modalSelectBtn: {
+  borderWidth: 1,
+  borderColor: "#D1D5DB",
+  paddingVertical: 14,
+  borderRadius: 10,
+  marginBottom: 12,
+  backgroundColor: "#F9FAFB",
+},
+modalSelectText: {
+  fontSize: 16,
+  color: "#111827",
+  fontWeight: "500",
+  textAlign: "center",
+},
   muted: {
     color: '#6B7280',
     fontSize: 12,

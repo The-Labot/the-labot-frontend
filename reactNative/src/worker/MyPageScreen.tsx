@@ -16,6 +16,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { getTempAccessToken } from '../api/auth';
 import { BASE_URL } from "../api/config";
+import { setTempAccessToken } from '../api/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerMyPage'>;
 
@@ -112,9 +113,15 @@ console.log("📌 token:", token);
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutButton}>
-            <Text style={styles.logoutText}>로그아웃</Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.logoutButton}
+  onPress={() => {
+    setTempAccessToken(""); // 토큰 제거
+    navigation.replace("Login");
+  }}
+>
+  <Text style={styles.logoutText}>로그아웃</Text>
+</TouchableOpacity>
         </View>
       </View>
 
@@ -336,12 +343,16 @@ const styles = StyleSheet.create({
   backButton: { padding: 8 },
   backArrow: { fontSize: 22, color: '#111827' },
   logoutButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
-  },
-  logoutText: { color: '#DC2626', fontWeight: '600' },
+  paddingHorizontal: 20,
+  paddingVertical: 12,
+  backgroundColor: '#FEE2E2',
+  borderRadius: 10,
+},
+logoutText: {
+  color: '#DC2626',
+  fontWeight: '700',
+  fontSize: 15,
+},
 
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
