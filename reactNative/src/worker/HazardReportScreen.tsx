@@ -26,16 +26,23 @@ export default function HazardReportScreen({ navigation }: any) {
   // ================================
   // 📌 이미지 선택
   // ================================
-    const pickImage = async () => {
-    const fakePhoto = {
-      uri: "https://picsum.photos/640/480",
-      type: "image/jpeg",
-      fileName: "hazard_test.jpg",
-    };
+  const pickImage = async () => {
+  const result = await launchImageLibrary({
+    mediaType: "photo",
+    quality: 1,
+  });
 
-    setPhoto(fakePhoto);
-    Alert.alert("테스트 이미지가 선택되었습니다!");
-  };
+  if (result.didCancel) return;
+
+  const asset = result.assets?.[0];
+  if (!asset) return;
+
+  setPhoto({
+    uri: asset.uri,
+    type: asset.type,
+    fileName: asset.fileName,
+  });
+};
 
   // ================================
   // 📌 위험요소 신고 API
@@ -122,9 +129,21 @@ const submitHazard = async () => {
 
   return (
     <SafeAreaView style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 20 }}>
-        위험요소 신고
-      </Text>
+      {/* 헤더 */}
+<View style={styles.headerWrapper}>
+  <View style={styles.headerRow}>
+    <TouchableOpacity
+      style={styles.backButton}
+      onPress={() => navigation.goBack()}
+    >
+      <Text style={styles.backArrow}>←</Text>
+    </TouchableOpacity>
+
+    <View style={styles.headerTextWrapper}>
+      <Text style={styles.headerTitle}>위험요소 신고</Text>
+    </View>
+  </View>
+</View>
 
       {/* 위험 유형 */}
       <TextInput
@@ -210,6 +229,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E7EB',
     paddingHorizontal: 16,
     paddingVertical: 10,
+      marginBottom: 12,   // 🔥 추가
+
   },
   headerRow: {
     flexDirection: 'row',

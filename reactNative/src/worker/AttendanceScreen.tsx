@@ -28,7 +28,7 @@ async function sendAttendanceAPI(latitude: number, longitude: number) {
   const res = await fetch(`${BASE_URL}/worker/attendance/clock-in-out`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: token,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ latitude, longitude }),
@@ -117,7 +117,7 @@ const requestAttendance = async (type: 'IN' | 'OUT') => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: token,
       },
       body: JSON.stringify(body),
     });
@@ -270,10 +270,13 @@ const requestAttendance = async (type: 'IN' | 'OUT') => {
 
         {/* ===== 하단 버튼 ===== */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.bottomButton}>
-            <Text style={styles.bottomButtonIcon}>📄</Text>
-            <Text style={styles.bottomButtonText}>출퇴근 기록 보기</Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+              style={styles.bottomButton}
+              onPress={() => navigation.navigate('AttendanceHistory')}
+            >
+              <Text style={styles.bottomButtonIcon}>📄</Text>
+              <Text style={styles.bottomButtonText}>출퇴근 기록 보기</Text>
+            </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
