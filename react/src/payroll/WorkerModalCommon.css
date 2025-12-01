@@ -1,0 +1,155 @@
+/* ================================
+   글로벌 모달 백그라운드
+================================ */
+.full-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 998;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* ================================
+   중앙 패널
+   (fullscreen 내부 카드형)
+================================ */
+.full-panel {
+  position: fixed;
+  top: 40px;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;
+
+  background: #ffffff;
+  border-radius: 12px;
+
+  padding: 32px;
+  overflow-y: auto;
+  z-index: 999;
+
+  animation: slideDown 0.25s ease-out;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.full-panel2 {
+  position: fixed;
+  top: 40px;
+  bottom: 40px;
+  left: 300px;
+  right: 300px;
+
+  background: #ffffff;
+  border-radius: 12px;
+
+  padding: 32px;
+  overflow-y: auto;
+  z-index: 999;
+
+  animation: slideDown 0.25s ease-out;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ================================
+   닫기 버튼
+================================ */
+.full-close {
+  font-size: 36px;
+  border: none;
+  background: none;
+  color: #444;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+
+/* ================================
+   제목 스타일
+================================ */
+.detail-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin-top: 0px;
+  margin-bottom: 40px;
+  color: #111827;
+}
+
+.detail-title2 {
+  font-size: 25px;
+  font-weight: 700;
+  margin-top: 5px;
+  margin-left: 30px;
+  margin-bottom: 40px;
+  color: #111827;
+}
+
+/* ================================
+   소제목 (섹션 타이틀)
+================================ */
+.detail-subtitle {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ================================
+   공통 테이블 스타일
+================================ */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.detail-table th {
+  background: #f3f4f6;
+  padding: 12px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.detail-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ================================
+   파란색 강조 텍스트
+================================ */
+.blue-text {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+/* ================================
+   fadeIn, slideDown animation
+================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-8%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================================
+   캘린더
+================================ */

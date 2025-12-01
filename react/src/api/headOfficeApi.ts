@@ -39,3 +39,13 @@ export const checkHeadOffice = (data: CheckHeadOfficeRequest) => {
     data
   );
 };
+
+export interface HeadOfficeExistsResponse {
+  hasHeadOffice: boolean;
+}
+
+export const checkHeadOfficeExists = () => {
+  return apiClient.get<ApiResponse<HeadOfficeExistsResponse>>(
+    "/admin/head-office/exists"
+  );
+};

@@ -1,0 +1,206 @@
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.detail-card {
+  background: #ffffff;
+  flex: 1;
+  min-width: 280px;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.08);
+  border: 1px solid #e8e8e8;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.blue-text {
+  color: #1a73e8;
+  font-weight: 700;
+}
+
+/* textarea */
+.detail-textarea {
+  width: 160px;
+  height: 32px;
+  resize: none;
+  padding: 6px 10px;
+  border: 1px solid #d3d8e1;
+  border-radius: 8px;
+  background: #f7f8fa;
+  font-size: 14px;
+  color: #333;
+  text-align: right;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.detail-textarea:focus {
+  background: #fff;
+  border-color: #4a80f6;
+  box-shadow: 0 0 0 3px rgba(90,147,255,0.25);
+}
+
+/* 스위치 + 텍스트 */
+.label-with-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 18px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #cfcfcf;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.switch input:checked + .slider {
+  background-color: #4a80f6;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* 빅카드 */
+.big-number-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 25px;
+  margin-top: 18px;
+  margin-bottom: 22px;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.10);
+  text-align: center;
+  border: 1px solid #e6e6e6;
+}
+
+.big-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.big-amount {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0a58ca;
+}
+
+.big-sub-info {
+  font-size: 14px;
+  color: #6c6c6c;
+}
+
+/* 수정 버튼 */
+.edit-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.edit-btn {
+  background: #eef2ff;
+  color: #3f51b5;
+}
+.edit-btn:hover { background: #dbe2ff; }
+
+.save-btn {
+  background: #4caf50;
+  color: white;
+}
+.save-btn:hover { background: #43a047; }
+
+.cancel-btn {
+  background: #e0e0e0;
+  color: #333;
+}
+.cancel-btn:hover { background: #cacaca; }
+
+/* ===========================
+   통일된 수정 입력 필드 스타일
+   (너가 쉽게 수치 조절할 수 있는 버전)
+=========================== */
+.detail-textarea {
+  width: 150px;         /* ← 가로 크기 */
+  height: 20px;         /* ← 세로 크기 (위아래 높이) */
+  padding: 0px 10px;    /* ← 내부 여백 */
+  border: 1px solid #d0d4da;
+  border-radius: 10px;  /* ← 둥글기 */
+
+  background: #f7f8fa;
+  font-size: 14px;      /* ← 폰트 크기 */
+  font-weight: 500;     /* ← 필요하면 400/600 조절 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: #333;
+  text-align: right;
+
+  resize: none;         /* 크기 조절 불가 */
+  white-space: nowrap;  /* 줄바꿈 금지 */
+  overflow: hidden;     /* 내용 많아져도 늘어나지 않음 */
+  outline: none;
+
+  transition: all 0.2s ease;
+}
+
+.detail-textarea:focus {
+  background: #ffffff;
+  border-color: #4a80f6;
+  box-shadow: 0 0 0 3px rgba(74,128,246,0.25);
+}

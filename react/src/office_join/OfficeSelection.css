@@ -1,0 +1,214 @@
+/* 전체 화면 */
+.office-wrapper {
+  min-height: 100vh;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.office-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 40px;
+}
+
+/* 헤더 */
+.office-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.office-header h1 {
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.office-header p {
+  color: #6b7280;
+  font-size: 18px;
+}
+
+/* 아이콘 */
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.icon-lg {
+  width: 40px;
+  height: 40px;
+}
+
+.icon-square {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.icon-md {
+  width: 32px;
+  height: 32px;
+}
+
+.white {
+  color: white;
+}
+
+/* 색상 */
+.blue {
+  color: #3b82f6;
+}
+.blue-light {
+  background: #dbeafe;
+}
+.yellow {
+  color: #f59e0b;
+}
+.yellow-light {
+  background: #fef3c7;
+}
+.blue-bg {
+  background: #3b82f6;
+}
+
+/* 카드 */
+.office-card-row {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.office-card {
+  width: 420px;
+  background: white;
+  border-radius: 24px;
+  padding: 30px;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.office-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.office-card h2 {
+  margin-bottom: 12px;
+  color: #1f2937;
+}
+
+.desc {
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.card-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.arrow-small {
+  width: 18px;
+  height: 18px;
+}
+
+/* 로그아웃 */
+.office-logout {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.office-logout button {
+  color: #6b7280;
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+
+.office-logout button:hover {
+  background: #e5e7eb;
+}
+
+/* 폼 페이지 공통 */
+.office-form-card {
+  width: 600px;
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.office-form-card.small {
+  width: 500px;
+}
+
+.office-form-card h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #1f2937;
+}
+
+.office-form-card label {
+  display: block;
+  margin-bottom: 20px;
+  color: #374151;
+  font-size: 15px;
+}
+
+.office-form-card input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+.office-form-card input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* 버튼 */
+.form-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  border: 2px solid #d1d5db;
+  padding: 12px 30px;
+  color: #6b7280;
+  border-radius: 12px;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 12px;
+}
+
+.btn-yellow {
+  background: #f59e0b;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 12px;
+}

@@ -1,0 +1,91 @@
+/* ===============================
+   캘린더 전체 박스 (테두리 포함)
+================================ */
+.worker-attendance-modal .calendar-wrapper {
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 14px;
+  background: #ffffff;
+  max-width: 750px;          /* 전체 크기 조절 */
+  margin: 0 auto;            /* 가운데 정렬 */
+}
+
+/* ===============================
+   요일 헤더
+================================ */
+.worker-attendance-modal .calendar-week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #555;
+}
+
+.worker-attendance-modal .calendar-week-header .sun {
+  color: #e63946;
+}
+
+.worker-attendance-modal .calendar-week-header .sat {
+  color: #1e88e5;
+}
+
+/* ===============================
+   달력 그리드
+================================ */
+.worker-attendance-modal .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;                  /* 칸 간격 줄이기 */
+}
+
+/* ===============================
+   날짜 셀 (달력 테두리 적용)
+================================ */
+.worker-attendance-modal .calendar-cell {
+  background: #ffffff;
+  border-radius: 6px;        /* 둥글기 줄임 (달력 느낌) */
+  min-height: 65px;          /* 세로 크기 축소 */
+  border: 1px solid #e5e7eb; /* 달력 테두리 */
+  padding: 6px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  transition: 0.15s ease-in-out;
+}
+
+/* 빈칸 */
+.worker-attendance-modal .calendar-cell.empty {
+  background: #f9fafb;
+  border: 1px solid #f0f0f0;
+}
+
+/* 날짜 숫자 */
+.worker-attendance-modal .day-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* 공수 텍스트 */
+.worker-attendance-modal .manhour {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  color: #1565c0;
+}
+
+/* 출석 없음 */
+.worker-attendance-modal .calendar-cell.no-attendance .manhour {
+  color: #999;
+}
+
+/* hover */
+.worker-attendance-modal .calendar-cell.day:hover {
+  background: #eef4ff;
+  border-color: #3b82f6;
+  cursor: pointer;
+}

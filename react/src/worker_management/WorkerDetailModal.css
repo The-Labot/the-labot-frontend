@@ -1,0 +1,123 @@
+.detail-panel {
+  width: 90%;
+  max-width: 1200px;   /* 실제 최대 가로 폭 */
+}
+
+.worker-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: flex-end; /* 반모달 아래쪽에서 올라오게 */
+}
+
+.worker-modal {
+  width: 150px;
+  max-height: 70%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.close-btn {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.full-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 998;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.full-panel {
+  position: fixed;
+  top: 40px;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;   
+
+  background: #ffffff;
+  z-index: 999;
+  overflow-y: auto;
+  border-radius: 0;   /* 전체화면이므로 라운드 제거 */
+  padding: 32px;
+  animation: slideDown 0.25s ease-out;
+}
+
+/* 위에서 아래로 떨어지는 애니메이션 */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.full-close {
+  font-size: 36px;
+  border: none;
+  background: none;
+  color: #444;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+
+/* =========================================================
+   공통 테이블 스타일 통일
+========================================================= */
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  table-layout: fixed;          /* 모든 테이블 동일한 폭 규칙 적용 */
+}
+
+.detail-table th,
+.detail-table td {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  text-align: left;             /* 전체 기본 정렬 통일 */
+  vertical-align: middle;
+}
+
+.detail-table th {
+  width: 18%;                    /* 모든 th 동일 비율 */
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.detail-table td {
+  width: 32%;                    /* td도 균등하게 */
+  color: #111;
+}
+
+/* 행 hover */
+.detail-table tbody tr:hover {
+  background: #f3f4f6;
+}

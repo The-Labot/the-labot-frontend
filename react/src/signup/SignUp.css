@@ -1,0 +1,112 @@
+/* 전체 페이지 */
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #f3f4f6;
+  padding: 24px;
+  font-family: "Inter", sans-serif;
+}
+
+/* 카드 컨테이너 */
+.signup-card {
+  width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 36px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 헤더 */
+.signup-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.signup-icon {
+  width: 56px;
+  height: 56px;
+  background: #3b82f6;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 12px;
+}
+
+.signup-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.signup-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* 입력 영역 */
+.signup-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.signup-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.signup-input {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+}
+
+.signup-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  outline: none;
+}
+
+/* 버튼 영역 */
+.signup-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.signup-btn {
+  height: 42px;
+  min-width: 100px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.signup-btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.signup-btn.primary:hover {
+  background: #1d4ed8;
+}
+
+.signup-btn.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.signup-btn.secondary:hover {
+  background: #d1d5db;
+}

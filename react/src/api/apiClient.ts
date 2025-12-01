@@ -1,7 +1,7 @@
 // src/api/apiClient.ts
-import axios from "axios";
+import api from "axios";
 
-const apiClient = axios.create({
+const apiClient = api.create({
   // 예: VITE_API_BASE_URL = "http://localhost:8080/api"
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {

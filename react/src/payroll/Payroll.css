@@ -1,0 +1,67 @@
+/* .payroll-wrapper {
+  padding: 32px 24px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.create-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.create-btn:hover {
+  background: #1d4ed8;
+}
+
+.payroll-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.payroll-table th {
+  background: #f9fafb;
+  padding: 16px;
+  font-size: 14px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payroll-table td {
+  padding: 14px;
+  font-size: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payroll-table tr:hover {
+  background: #eff6ff;
+}
+
+.small-btn {
+  background: #3b82f6;
+  color: white;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.small-btn.secondary {
+  background: #6b7280;
+}
+
+.small-btn:hover {
+  opacity: 0.9;
+} */
