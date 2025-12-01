@@ -135,7 +135,7 @@ export function WorkStatusPanel() {
               {summary.workerCount}명
             </Text>
             <View style={[styles.badge, { backgroundColor: "#16A34A" }]}>
-              <Text style={[styles.badgeText, { color: "#FFFFFF" }]}>출근중</Text>
+              <Text style={[styles.badgeText, { color: "#FFFFFF" }]}>근무자</Text>
             </View>
           </View>
         </View>

@@ -18,6 +18,8 @@ import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
 import ContractWriteScreen from './src/screen/ContractWriteScreen';
 import MapManagementScreen from './src/manager/MapManagementScreen';
 import WorkerMapScreen from './src/worker/WorkerMapScreen';
+import WorkerManagementScreen from "./src/manager/WorkerManagementScreen";
+
 
 export type RootStackParamList = {
       Login: undefined;
@@ -34,10 +36,12 @@ export type RootStackParamList = {
 
     ManagerCertificates: {       // ✅ 추가
     worker: { id: number; name: string; role: string; site: string };
+
   };
   // 📌 공지사항 화면
       WorkerNoticeList: undefined;
       WorkerNoticeDetail: { noticeId: number };
+     WorkerManagement: { ocrData?: any } | undefined;
 
 };
 
@@ -74,6 +78,8 @@ export default function App() {
         <Stack.Screen name="ContractWrite" component={ContractWriteScreen} />
         <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
         <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
+
+        <Stack.Screen name="WorkerManagement" component={WorkerManagementScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

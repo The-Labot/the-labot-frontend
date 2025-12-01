@@ -76,6 +76,9 @@ export default function WorkerManagementScreen() {
   status: "ACTIVE" | "WAITING";
   initial: string;
     site?: string;   // ⭐ 선택값(optional)으로 추가
+      hasObjection?: boolean;  // ← 추가!
+
+    
 }
 interface WorkerDetail {
   id: number;
@@ -292,9 +295,9 @@ async function handleWorkerUpdate(changes: any) {
 
     const statusBadge = (status: "ACTIVE" | "WAITING") => {
     if (status === "ACTIVE")
-      return { label: "근무중", bg: "#E6F4EA", fg: "#1E7D32" };
+      return { label: "출근", bg: "#E6F4EA", fg: "#1E7D32" };
 
-    return { label: "대기중", bg: "#F3F4F6", fg: "#374151" };
+    return { label: "퇴근", bg: "#F3F4F6", fg: "#374151" };
   };
 
   /* ------------------------------------------
@@ -373,15 +376,13 @@ async function handleWorkerUpdate(changes: any) {
   /* ------------------------------------------
      LeftItem : 왼쪽 근로자 목록 한 줄
      ------------------------------------------ */
-  const LeftItem = ({ item }: { item: Worker }) => {
+const LeftItem = ({ item }: { item: Worker }) => {
   const sel = selectedWorker?.id === item.id;
   const b = statusBadge(item.status);
 
   return (
-        <TouchableOpacity
-        onPress={async () => {
-            console.log("📌 LeftItem 클릭됨:", item.id);
-
+    <TouchableOpacity
+      onPress={async () => {
         setSelectedWorker(item);
         setShowRegister(false);
         setShowPayroll(false);
@@ -389,16 +390,11 @@ async function handleWorkerUpdate(changes: any) {
 
         setLoadingDetail(true);
         try {
-              console.log("📡 상세조회 API 호출 시작");
           const d = await fetchWorkerDetail(item.id);
-              console.log("📥 상세조회 API 응답:", d);
           setDetail(d);
-        } catch (e) {
-          console.log("❌ 상세조회 실패:", e);
+        } finally {
+          setLoadingDetail(false);
         }
-        finally {
-                setLoadingDetail(false);
-              }
       }}
       style={[styles.listItem, sel && styles.listItemSelected]}
     >
@@ -409,12 +405,28 @@ async function handleWorkerUpdate(changes: any) {
       </View>
 
       <View style={{ flex: 1 }}>
+        {/* 이름 + 상태 + 이의제기 */}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.listName}>{item.name}</Text>
 
-          <View style={[styles.badge, { backgroundColor: b.bg }]}>
+          {/* 출근/퇴근 */}
+          <View style={[styles.badge, { backgroundColor: b.bg, marginRight: 4 }]}>
             <Text style={{ color: b.fg, fontSize: 11 }}>{b.label}</Text>
           </View>
+
+          {/* 🔥 이의제기 */}
+          {item.hasObjection && (
+            <View
+              style={{
+                backgroundColor: "#FEE2E2",
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                borderRadius: 6,
+              }}
+            >
+              <Text style={{ color: "#DC2626", fontSize: 11 }}>이의제기</Text>
+            </View>
+          )}
         </View>
 
         <Text style={{ color: "#6B7280", fontSize: 12 }}>
@@ -474,13 +486,13 @@ async function handleWorkerUpdate(changes: any) {
               </Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLbl}>근무중</Text>
+              <Text style={styles.statLbl}>출근</Text>
               <Text style={[styles.statVal, { color: "#16A34A" }]}>
                 {stats.active}
               </Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLbl}>대기중</Text>
+              <Text style={styles.statLbl}>퇴근</Text>
               <Text style={[styles.statVal, { color: "#374151" }]}>
                 {stats.waiting}
               </Text>
@@ -797,7 +809,7 @@ async function handleWorkerUpdate(changes: any) {
   }
 >
   <Text style={{ color: "#fff", fontWeight: "600" }}>
-    {detail.status === "WAITING" ? "근무중으로 변경" : "대기중으로 변경"}
+    {detail.status === "WAITING" ? "출근으로 변경" : "퇴근으로 변경"}
   </Text>
 </TouchableOpacity>
 

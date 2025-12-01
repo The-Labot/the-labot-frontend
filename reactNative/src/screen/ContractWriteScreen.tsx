@@ -9,7 +9,7 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
-
+import { uploadContractImage } from "../api/ocr";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
@@ -58,7 +58,7 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
 
   const currentImage = pages[pageIndex];
 
-  // Pen
+  // Pen (필기)
   const pen = Skia.Paint();
   pen.setColor(Skia.Color("black"));
   pen.setStyle(PaintStyle.Stroke);
@@ -81,14 +81,12 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
 
     if (!isDrawing) return;
 
-    // START
     if (state === State.BEGAN) {
       const newPath = Skia.Path.Make();
       newPath.moveTo(x, y);
       setCurrentPath(newPath);
     }
 
-    // END
     if (state === State.END) {
       if (currentPath) {
         const updated = [...paths];
@@ -108,7 +106,7 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
     }
   };
 
-  // Save
+  // 이미지 + 필기 합성 후 Base64 추출
   const savePageImage = (index: number) => {
     const img = pages[index];
     if (!img) return null;
@@ -124,27 +122,50 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
     paint.setStyle(PaintStyle.Stroke);
     paint.setStrokeWidth(4);
 
-    // background
     canvas.drawImageRect(img, src, dst, paint);
 
-    // draw paths
     paths[index].forEach((p) => canvas.drawPath(p, paint));
 
     return surface.makeImageSnapshot().encodeToBase64();
   };
 
-  const saveDrawing = () => {
-    const currentBase64 = savePageImage(pageIndex);
-    const ocrBase64 = savePageImage(0);
-  Alert.alert("저장 완료", "OCR 전송용 이미지가 준비되었습니다.");
-  console.log("현재페이지 Base64:", currentBase64?.substring(0, 50));
-  console.log("OCR 1페이지 Base64:", ocrBase64?.substring(0, 50));
-  };
+  // ⭐⭐⭐ OCR 업로드 버튼 기능 구현 ⭐⭐⭐
+  const saveDrawing = async () => {
+  try {
+    const base64 = savePageImage(pageIndex);
+
+    if (!base64) {
+      Alert.alert("에러", "이미지를 불러올 수 없습니다.");
+      return;
+    }
+
+    console.log("📤 OCR 업로드 시작");
+
+    const res = await uploadContractImage(base64);
+
+    console.log("📥 OCR 응답:", res);
+
+    // 🔥 res.data가 아니라 res 자체가 OCR 객체
+    if (!res) {
+      Alert.alert("OCR 실패", "서버에서 OCR 데이터를 받지 못했습니다.");
+      return;
+    }
+
+    Alert.alert("완료", "OCR 결과를 불러왔습니다!");
+
+    // 🔥 그대로 전달
+    navigation.navigate("WorkerManagement", { ocrData: res });
+
+  } catch (err) {
+    console.log("❌ OCR 업로드 중 오류:", err);
+    Alert.alert("오류", "OCR 처리 중 문제가 발생했습니다.");
+  }
+};
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
-        
+
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.back}>{"< 뒤로"}</Text>
@@ -154,7 +175,10 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
 
         <TouchableOpacity
           onPress={() => setIsDrawing(!isDrawing)}
-          style={[styles.drawToggleBtn, { backgroundColor: isDrawing ? "#16A34A" : "#2563EB" }]}
+          style={[
+            styles.drawToggleBtn,
+            { backgroundColor: isDrawing ? "#16A34A" : "#2563EB" },
+          ]}
         >
           <Text style={styles.drawToggleText}>
             {isDrawing ? "필기 종료" : "필기 하기"}
@@ -167,6 +191,7 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
           </TouchableOpacity>
         )}
 
+        {/* ⭐ 저장 = OCR 업로드 */}
         <TouchableOpacity onPress={saveDrawing} style={styles.saveBtn}>
           <Text style={styles.saveText}>저장</Text>
         </TouchableOpacity>
