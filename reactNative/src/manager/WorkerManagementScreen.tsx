@@ -18,6 +18,8 @@ import {
 import { registerWorker } from "../api/worker";
 import { fetchWorkers } from "../api/worker"; // ← 이거 추가
 import { fetchWorkerDetail, updateWorker, patchAttendance } from "../api/worker"; // ← 이거 추가
+import { useRoute } from "@react-navigation/native";
+
 /* ------------------------------------------
    🔥 근로자 등록 입력 상태 (전체 필드)
    ------------------------------------------ */
@@ -54,6 +56,36 @@ export default function WorkerManagementScreen() {
 
 
   const [contractTypeModal, setContractTypeModal] = useState(false);
+
+    const route = useRoute<any>();
+
+  useEffect(() => {
+    if (route.params?.ocrData) {
+      const o = route.params.ocrData;
+
+      setShowRegister(true);
+
+
+      setRegContractType(o.contractType ?? "");
+      setRegJobType(o.jobType ?? "");
+      setRegSalary(o.salary ?? "");
+      setRegPayReceive(o.payReceive ?? "");
+      setRegSiteName(o.siteName ?? "");
+      setRegBankName(o.bankName ?? "");
+      setRegAccountHolder(o.accountHolder ?? "");
+      setRegAccountNumber(o.accountNumber ?? "");
+      setRegPhone(o.phoneNumber ?? "");
+      setRegEmergencyNumber(o.emergencyNumber ?? "");
+      setRegContractStartDate(o.contractStartDate ?? "");
+      setRegContractEndDate(o.contractEndDate ?? "");
+      setRegWageStartDate(o.wageStartDate ?? "");
+      setRegWageEndDate(o.wageEndDate ?? "");
+
+      console.log("📌 OCR 자동 입력 완료");
+    }
+  }, [route.params]);
+
+
   /* ------------------------------------------
      타입 정의
      ------------------------------------------ */

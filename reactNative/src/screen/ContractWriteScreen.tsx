@@ -70,6 +70,13 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
     if (!isDrawing || !currentPath) return;
     const { x, y } = event.nativeEvent;
 
+    if (!currentPath) {
+    const newPath = Skia.Path.Make();
+    newPath.moveTo(x, y);
+    setCurrentPath(newPath);
+    return;
+  }
+    
     const p = currentPath.copy();
     p.lineTo(x, y);
     setCurrentPath(p);
