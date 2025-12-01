@@ -19,7 +19,7 @@ import ContractWriteScreen from './src/screen/ContractWriteScreen';
 import MapManagementScreen from './src/manager/MapManagementScreen';
 import WorkerMapScreen from './src/worker/WorkerMapScreen';
 import WorkerManagementScreen from "./src/manager/WorkerManagementScreen";
-
+import IdCardCameraScreen from './src/screen/IdCardCameraScreen';
 
 export type RootStackParamList = {
       Login: undefined;
@@ -42,6 +42,8 @@ export type RootStackParamList = {
       WorkerNoticeList: undefined;
       WorkerNoticeDetail: { noticeId: number };
      WorkerManagement: { ocrData?: any } | undefined;
+       IdCardCamera: undefined;   // ← 추가
+
 
 };
 
@@ -79,6 +81,7 @@ export default function App() {
         <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
         <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
 
+        <Stack.Screen name="IdCardCamera" component={IdCardCameraScreen} />
         <Stack.Screen name="WorkerManagement" component={WorkerManagementScreen} />
       </Stack.Navigator>
     </NavigationContainer>

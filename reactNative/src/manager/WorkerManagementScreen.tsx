@@ -83,6 +83,17 @@ export default function WorkerManagementScreen() {
 
       console.log("📌 OCR 자동 입력 완료");
     }
+    if (route.params?.idCardData) {
+    const o = route.params.idCardData;
+
+    setShowRegister(true);
+
+    setRegName(o.name ?? "");
+    setRegAddress(o.address ?? "");
+    setRegResidentId(o.residentIdNumber ?? "");
+
+    console.log("📌 신분증 OCR 자동 입력 완료");
+  }
   }, [route.params]);
 
 
@@ -573,7 +584,7 @@ const LeftItem = ({ item }: { item: Worker }) => {
         {/* 신분증 촬영 */}
         <TouchableOpacity
           style={styles.docBtn}
-          onPress={() => Alert.alert("신분증 촬영 / OCR 기능 예정")}
+          onPress={() => navigation.navigate("IdCardCamera")}
         >
           <Text style={{ color: "#111827", fontWeight: "600" }}>신분증 촬영</Text>
           <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
