@@ -1,3 +1,5 @@
+// ContractWriteScreen.tsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -7,6 +9,7 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
+
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
@@ -21,86 +24,127 @@ import {
   rect,
 } from "@shopify/react-native-skia";
 
-import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+  State,
+} from "react-native-gesture-handler";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ContractWrite">;
+type SkiaPath = ReturnType<typeof Skia.Path.Make>;
 
 export default function ContractWriteScreen({ route, navigation }: Props) {
   const { contractType } = route.params;
 
+  const { width, height } = Dimensions.get("window");
+  const canvasHeight = height * 0.75;
+
   const [pageIndex, setPageIndex] = useState(0);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const { width, height } = Dimensions.get("window");
+  const [paths, setPaths] = useState<SkiaPath[][]>([[], []]);
+  const [currentPath, setCurrentPath] = useState<SkiaPath | null>(null);
 
-  // Path (사용자 필기)
-  const [path, setPath] = useState(Skia.Path.Make());
-
-  // Skia 이미지 로딩
+  // Images
   const daily1 = useImage(require("../assets/contract_daily_page1.png"));
   const daily2 = useImage(require("../assets/contract_daily_page2.png"));
   const monthly1 = useImage(require("../assets/contract_monthly_page1.png"));
   const monthly2 = useImage(require("../assets/contract_monthly_page2.png"));
 
-  const pages = contractType === "일용직"
-    ? [daily1, daily2]
-    : [monthly1, monthly2];
+  const pages =
+    contractType === "일용직"
+      ? [daily1, daily2]
+      : [monthly1, monthly2];
 
   const currentImage = pages[pageIndex];
 
-  // 펜 설정
-  const paint = Skia.Paint();
-  paint.setColor(Skia.Color("black"));
-  paint.setStyle(PaintStyle.Stroke);
-  paint.setStrokeWidth(4);
-  paint.setAntiAlias(true);
+  // Pen
+  const pen = Skia.Paint();
+  pen.setColor(Skia.Color("black"));
+  pen.setStyle(PaintStyle.Stroke);
+  pen.setStrokeWidth(4);
+  pen.setAntiAlias(true);
 
-  // === 터치 처리 (GestureHandler 사용) ===
- const onGestureEvent = (event: any) => {
-  if (!isDrawing) return;
+  // ====== MOVE 이벤트 ======
+  const onGestureEvent = (event: any) => {
+    if (!isDrawing || !currentPath) return;
+    const { x, y } = event.nativeEvent;
 
-  const { x, y } = event.nativeEvent;
-  const p = path.copy();
-
-  // 처음 터치
-  if (path.isEmpty()) {
-    p.moveTo(x, y);
-  } else {
+    const p = currentPath.copy();
     p.lineTo(x, y);
-  }
+    setCurrentPath(p);
+  };
 
-  setPath(p);
-};
+  // ====== START / END 이벤트 ======
+  const onHandlerStateChange = (event: any) => {
+    const { x, y, state } = event.nativeEvent;
 
-  // === 저장 ===
-  const saveDrawing = () => {
-    if (!currentImage) return;
+    if (!isDrawing) return;
 
-    const surface = Skia.Surface.MakeOffscreen(width, height * 0.75);
+    // START
+    if (state === State.BEGAN) {
+      const newPath = Skia.Path.Make();
+      newPath.moveTo(x, y);
+      setCurrentPath(newPath);
+    }
+
+    // END
+    if (state === State.END) {
+      if (currentPath) {
+        const updated = [...paths];
+        updated[pageIndex] = [...updated[pageIndex], currentPath];
+        setPaths(updated);
+        setCurrentPath(null);
+      }
+    }
+  };
+
+  // Undo
+  const undo = () => {
+    const updated = [...paths];
+    if (updated[pageIndex].length > 0) {
+      updated[pageIndex].pop();
+      setPaths(updated);
+    }
+  };
+
+  // Save
+  const savePageImage = (index: number) => {
+    const img = pages[index];
+    if (!img) return null;
+
+    const surface = Skia.Surface.MakeOffscreen(width, canvasHeight);
     const canvas = surface.getCanvas();
 
-    // 배경 이미지
-    const src = rect(0, 0, currentImage.width(), currentImage.height());
-    const dst = rect(0, 0, width, height * 0.75);
+    const src = rect(0, 0, img.width(), img.height());
+    const dst = rect(0, 0, width, canvasHeight);
 
-    canvas.drawImageRect(currentImage, src, dst, paint);
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color("black"));
+    paint.setStyle(PaintStyle.Stroke);
+    paint.setStrokeWidth(4);
 
-    // 필기 Path
-    canvas.drawPath(path, paint);
+    // background
+    canvas.drawImageRect(img, src, dst, paint);
 
-    // base64
-    const snapshot = surface.makeImageSnapshot();
-    const base64 = snapshot.encodeToBase64();
+    // draw paths
+    paths[index].forEach((p) => canvas.drawPath(p, paint));
 
-    Alert.alert("저장 완료", "OCR 전송용 이미지가 준비되었습니다.");
-    console.log("OCR Base64 Preview:", base64.substring(0, 70));
+    return surface.makeImageSnapshot().encodeToBase64();
+  };
+
+  const saveDrawing = () => {
+    const currentBase64 = savePageImage(pageIndex);
+    const ocrBase64 = savePageImage(0);
+  Alert.alert("저장 완료", "OCR 전송용 이미지가 준비되었습니다.");
+  console.log("현재페이지 Base64:", currentBase64?.substring(0, 50));
+  console.log("OCR 1페이지 Base64:", ocrBase64?.substring(0, 50));
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         
-        {/* 상단 헤더 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.back}>{"< 뒤로"}</Text>
@@ -108,53 +152,54 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
           <Text style={styles.title}>{contractType} 근로계약서</Text>
         </View>
 
-        {/* 필기 버튼 */}
         <TouchableOpacity
           onPress={() => setIsDrawing(!isDrawing)}
-          style={[
-            styles.drawToggleBtn,
-            { backgroundColor: isDrawing ? "#16A34A" : "#2563EB" },
-          ]}
+          style={[styles.drawToggleBtn, { backgroundColor: isDrawing ? "#16A34A" : "#2563EB" }]}
         >
           <Text style={styles.drawToggleText}>
             {isDrawing ? "필기 종료" : "필기 하기"}
           </Text>
         </TouchableOpacity>
 
-        {/* 저장 버튼 */}
         {isDrawing && (
-          <TouchableOpacity onPress={saveDrawing} style={styles.saveBtn}>
-            <Text style={styles.saveText}>저장</Text>
+          <TouchableOpacity onPress={undo} style={styles.undoBtn}>
+            <Text style={styles.drawToggleText}>되돌리기</Text>
           </TouchableOpacity>
         )}
 
-        {/* Canvas + Gesture */}
-        <PanGestureHandler onGestureEvent={onGestureEvent}>
+        <TouchableOpacity onPress={saveDrawing} style={styles.saveBtn}>
+          <Text style={styles.saveText}>저장</Text>
+        </TouchableOpacity>
+
+        <PanGestureHandler
+          onGestureEvent={onGestureEvent}
+          onHandlerStateChange={onHandlerStateChange}
+        >
           <View style={styles.drawContainer}>
             <Canvas style={styles.canvas}>
-              {/* 배경: 계약서 이미지 */}
               {currentImage && (
                 <SkiaImage
                   image={currentImage}
                   x={0}
                   y={0}
                   width={width}
-                  height={height * 0.75}
+                  height={canvasHeight}
                 />
               )}
 
-              {/* 사용자 필기 Path */}
               <Group>
-                <Path path={path} paint={paint} />
+                {paths[pageIndex].map((p, idx) => (
+                  <Path key={idx} path={p} paint={pen} />
+                ))}
+                {currentPath && <Path path={currentPath} paint={pen} />}
               </Group>
             </Canvas>
           </View>
         </PanGestureHandler>
 
-        {/* 페이지 이동 */}
         <View style={styles.pageControl}>
           <TouchableOpacity
-            disabled={pageIndex === 0 || isDrawing}
+            disabled={pageIndex === 0}
             onPress={() => setPageIndex(0)}
             style={[styles.pageBtn, pageIndex === 0 && styles.disableBtn]}
           >
@@ -162,7 +207,7 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            disabled={pageIndex === 1 || isDrawing}
+            disabled={pageIndex === 1}
             onPress={() => setPageIndex(1)}
             style={[styles.pageBtn, pageIndex === 1 && styles.disableBtn]}
           >
@@ -176,8 +221,6 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
 }
 
 const { width, height } = Dimensions.get("window");
-
-// 스타일은 동일, 생략 가능
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
@@ -197,6 +240,14 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 10,
     marginHorizontal: 20,
+    borderRadius: 10,
+  },
+
+  undoBtn: {
+    padding: 12,
+    marginTop: 10,
+    marginHorizontal: 20,
+    backgroundColor: "#F59E0B",
     borderRadius: 10,
   },
 
@@ -227,7 +278,7 @@ const styles = StyleSheet.create({
   },
 
   canvas: {
-    width: width,
+    width,
     height: height * 0.75,
     backgroundColor: "white",
   },
