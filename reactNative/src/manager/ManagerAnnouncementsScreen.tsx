@@ -127,42 +127,50 @@ export default function ManagerAnnouncementsScreen() {
   // ================================
   // 🔥 공지 상세 조회
   // ================================
-  const fetchNoticeDetail = async (id: number) => {
-    try {
-      const token = getTempAccessToken();
-      const res = await fetch(`${BASE_URL}/manager/notices/${id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
+ const fetchNoticeDetail = async (id: number) => {
+  try {
+    const token = getTempAccessToken();
+    const res = await fetch(`${BASE_URL}/manager/notices/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+    });
 
-      const json = await res.json();
-      if (!res.ok) {
-        Alert.alert("오류", json.message || "상세 조회 실패");
-        return;
-      }
-
-      const d = json.data;
-
-      setSelected({
-        id: d.id,
-        title: d.title,
-        preview: "",
-        content: d.content,
-        date: d.createdAt.split("T")[0],
-        author: d.writer,
-        pinned: Boolean(d.pinned),
-        urgent: Boolean(d.urgent),
-        category: parseCategory(d.category),
-        attachments: d.attachments || [],
-      });
-    } catch (e) {
-      console.log("상세 조회 오류:", e);
-      Alert.alert("오류", "상세 조회 실패");
+    const json = await res.json();
+    if (!res.ok) {
+      Alert.alert("오류", json.message || "상세 조회 실패");
+      return;
     }
-  };
+
+    const d = json.data;
+    console.log("📌 상세조회 raw data:", d);
+    // ⭐ 여기! 이 자리에서 확인해야 한다.
+    console.log("📌 상세조회 attachments:", d.attachments);
+
+    setSelected({
+      id: d.id,
+      title: d.title,
+      preview: "",
+      content: d.content,
+      date: d.createdAt.split("T")[0],
+      author: d.writer,
+      pinned: Boolean(d.pinned),
+      urgent: Boolean(d.urgent),
+      category: parseCategory(d.category),
+      attachments: (d.files || []).map((f: any) =>
+        f.fileUrl.startsWith("http")
+          ? f.fileUrl
+          : `${BASE_URL}${f.fileUrl}`
+      ),
+    });
+
+  } catch (e) {
+    console.log("상세 조회 오류:", e);
+    Alert.alert("오류", "상세 조회 실패");
+  }
+};
 
   // ================================
   // 🔥 이미지 선택
@@ -204,7 +212,10 @@ export default function ManagerAnnouncementsScreen() {
 
       const res = await fetch(`${BASE_URL}/manager/notices`, {
         method: "POST",
-        headers: { Authorization: token },
+        headers: { Authorization: token 
+              ,"Content-Type": "multipart/form-data",
+
+        },
         body: form,
       });
 
@@ -215,6 +226,13 @@ export default function ManagerAnnouncementsScreen() {
       }
 
       const newId = json?.data?.noticeId ?? json?.data?.id;
+      // ⭐ ID 없이 등록된 경우 — 목록만 리프레시하고 안전 종료
+    if (!newId) {
+      console.log("❌ ID 없음 — 이미지 없음 / 서버 응답 축약 가능성", json);
+      fetchNotices();
+      setIsCreating(false);
+      return;
+    }
 
       const newItem: Announcement = {
         id: newId,
@@ -264,7 +282,7 @@ export default function ManagerAnnouncementsScreen() {
 
       const res = await fetch(`${BASE_URL}/manager/notices/${selected.id}`, {
         method: "PUT",
-        headers: { Authorization: token },
+        headers: { Authorization: token ,"Content-Type": "multipart/form-data",},
         body: form,
       });
 
@@ -417,7 +435,8 @@ export default function ManagerAnnouncementsScreen() {
         ----------------------------------- */}
         <FlatList
           data={announcements}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) =>   item?.id ? item.id.toString() : `tmp-${index}`
+}
           contentContainerStyle={{ paddingBottom: 50 }}
           renderItem={({ item }) => {
             const isActive = selected?.id === item.id;
