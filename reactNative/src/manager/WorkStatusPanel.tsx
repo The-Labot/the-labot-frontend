@@ -186,7 +186,7 @@ export function WorkStatusPanel() {
           const Icon = style.lucide;
 
           return (
-            <View key={activity.id} style={styles.activityCard}>
+            <View key={`${activity.type}-${activity.id}`} style={styles.activityCard}>
               <View
                 style={[
                   styles.activityIconWrapper,

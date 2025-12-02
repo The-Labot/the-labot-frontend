@@ -64,6 +64,9 @@ export default function SafetyReportScreen() {
       try {
         const detail = await fetchHazardDetail(selected.id);
 
+        console.log("📌 [상세조회] detail:", detail);
+        console.log("📌 [상세조회] files:", detail.files);
+
         setSelected(prev =>
           prev
             ? {

@@ -78,7 +78,7 @@ const submitHazard = async () => {
       name: photo.fileName || "hazard.jpg",
     };
 
-    formData.append("file", fileToUpload as any);
+    formData.append("files", fileToUpload as any);
 
     console.log("전송할 파일 정보:", fileToUpload);
 

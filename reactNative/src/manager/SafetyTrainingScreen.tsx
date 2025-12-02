@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
+  Image,
 } from 'react-native';
 
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -89,7 +90,8 @@ const SafetyTrainingScreen: React.FC = () => {
   // ==========================
   const onPressCreate = () => {
     const base: EducationLog = {
-      id: educationList.length + 1,
+        id: Date.now(),  // 임시로 유일한 값
+
       educationTitle: "",
       educationDate: new Date().toISOString().slice(0, 10),
       educationTime: "",
@@ -169,8 +171,8 @@ const SafetyTrainingScreen: React.FC = () => {
       editedLog.signatures?.forEach((s: any, idx) => {
         formData.append("signatures", {
           uri: s.uri,
-          name: s.name ?? `sign_${idx}.pdf`,
-          type: s.type ?? "application/pdf",
+           name: s.name ?? `sign_${idx}.jpg`,
+           type: s.type ?? "image/jpeg",   // 🔥 여기 수정
         } as any);
       });
 
@@ -370,33 +372,90 @@ const SafetyTrainingScreen: React.FC = () => {
 
       {/* 자료 */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>교육 자료</Text>
-        {log.materials?.length === 0 && (
-          <Text style={styles.cardBodyText}>자료 없음</Text>
-        )}
+  <Text style={styles.cardTitle}>교육 자료</Text>
 
-        {log.materials?.map((m: any) => (
-          <Text key={m.id} style={styles.cardBodyText}>
-            📄 {m.originalFileName}
-          </Text>
-        ))}
-      </View>
+  {log.materials?.length === 0 && (
+    <Text style={styles.cardBodyText}>자료 없음</Text>
+  )}
+
+  {log.materials?.map((m, idx) => (
+    <View key={`material-${m.uri}-${idx}`} style={{ marginTop: 8 }}>
+      <Text style={styles.cardBodyText}>📄 {m.originalFileName}</Text>
+
+      {m.url && (
+        <Image
+          source={{ uri: m.url }}
+          style={{
+            width: 140,
+            height: 140,
+            borderRadius: 10,
+            marginTop: 6,
+            backgroundColor: "#E5E7EB",
+          }}
+          resizeMode="cover"
+        />
+      )}
+    </View>
+  ))}
+</View>
+
+{/* 교육 사진 */}
+<View style={styles.card}>
+  <Text style={styles.cardTitle}>교육 사진</Text>
+
+  {log.photos?.length === 0 && (
+    <Text style={styles.cardBodyText}>사진 없음</Text>
+  )}
+
+  {log.photos?.map((p, idx) => (
+    <View key={`photo-${idx}`} style={{ marginTop: 8 }}>
+      <Text style={styles.cardBodyText}>🖼 {p.originalFileName}</Text>
+
+      {p.url && (
+        <Image
+          source={{ uri: p.url }}
+          style={{
+            width: 140,
+            height: 140,
+            borderRadius: 10,
+            marginTop: 6,
+            backgroundColor: "#E5E7EB",
+          }}
+          resizeMode="cover"
+        />
+      )}
+    </View>
+  ))}
+</View>
 
       {/* 사진 */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>교육 사진</Text>
-        {log.photos?.length === 0 && (
-          <Text style={styles.cardBodyText}>사진 없음</Text>
-        )}
-      </View>
+     <View style={styles.card}>
+  <Text style={styles.cardTitle}>서명</Text>
 
-      {/* 서명 */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>서명</Text>
-        {log.signatures?.length === 0 && (
-          <Text style={styles.cardBodyText}>서명 없음</Text>
-        )}
-      </View>
+  {log.signatures?.length === 0 && (
+    <Text style={styles.cardBodyText}>서명 없음</Text>
+  )}
+
+  {log.signatures?.map((s, idx) => (
+    <View key={`sign-${idx}`} style={{ marginTop: 8 }}>
+      <Text style={styles.cardBodyText}>✒️ {s.originalFileName}</Text>
+
+      {s.url && (
+        <Image
+          source={{ uri: s.url }}
+          style={{
+            width: 140,
+            height: 140,
+            borderRadius: 10,
+            marginTop: 6,
+            backgroundColor: "#E5E7EB",
+          }}
+          resizeMode="cover"
+        />
+      )}
+    </View>
+  ))}
+</View>
 
     </ScrollView>
   );
@@ -607,9 +666,11 @@ const SafetyTrainingScreen: React.FC = () => {
     <Text style={styles.fileBtnText}>+ 자료 사진 추가</Text>
   </TouchableOpacity>
 
-  {editedLog.materials?.map((f, idx) => (
-    <Text key={idx} style={styles.fileName}>📄 {f.name}</Text>
-  ))}
+  {editedLog.materials?.map((m, idx) => (
+  <Text key={`material-${idx}`} style={styles.cardBodyText}>
+    📄 {m.name ?? m.originalFileName}
+  </Text>
+))}
 </View>
 {/* ----------------------------- */}
 {/*  🖼️ 교육 사진 (갤러리) photos  */}
@@ -646,7 +707,7 @@ const SafetyTrainingScreen: React.FC = () => {
   </TouchableOpacity>
 
   {editedLog.photos?.map((f, idx) => (
-    <Text key={idx} style={styles.fileName}>🖼️ {f.name}</Text>
+    <Text key={`photo-${f.uri}-${idx}`} style={styles.fileName}>🖼️ {f.name}</Text>
   ))}
 </View>
 {/* 서명 (사진 업로드) */}
@@ -681,9 +742,11 @@ const SafetyTrainingScreen: React.FC = () => {
     <Text style={styles.fileBtnText}>+ 서명 이미지 추가</Text>
   </TouchableOpacity>
 
-  {editedLog.signatures?.map((f, idx) => (
-    <Text key={idx} style={styles.fileName}>✒️ {f.name}</Text>
-  ))}
+  {editedLog.signatures?.map((s, idx) => (
+  <View key={`sign-${s.uri}-${idx}`}>
+    <Text>{s.name ?? s.originalFileName}</Text>
+  </View>
+))}
 </View>
           
         </View>
@@ -725,7 +788,7 @@ const SafetyTrainingScreen: React.FC = () => {
 
         <FlatList
   data={educationList}
-  keyExtractor={item => String(item.id)}
+  keyExtractor={(item, index) => `edu-${item.id}-${index}`}
   renderItem={({ item }) => (
     <TouchableOpacity
       onPress={async () => {
