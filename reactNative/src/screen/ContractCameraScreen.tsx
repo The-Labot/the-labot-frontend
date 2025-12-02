@@ -1,4 +1,4 @@
-// src/screen/IdCardCameraScreen.tsx
+// src/screen/ContractCameraScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -9,10 +9,10 @@ import {
   ScrollView,
 } from "react-native";
 import { launchCamera } from "react-native-image-picker";
-import { uploadIdCardImage } from "../api/ocr";
+import { uploadContractImage } from "../api/ocr";
 import { useNavigation } from "@react-navigation/native";
 
-// Lucide Icons
+// Lucide Icons (RN)
 import {
   ArrowLeft,
   Camera,
@@ -22,7 +22,7 @@ import {
   Send,
 } from "lucide-react-native";
 
-export default function IdCardCameraScreen() {
+export default function ContractCameraScreen() {
   const navigation = useNavigation<any>();
 
   const [step, setStep] = useState<"guide" | "capture">("guide");
@@ -44,9 +44,10 @@ export default function IdCardCameraScreen() {
 
       const asset = result.assets?.[0];
       if (asset) {
-        console.log("📸 촬영된 신분증:", asset);
-        setPhoto(asset);
-      }
+  console.log("📸 촬영된 이미지:", asset);
+  setPhoto(asset);
+}
+      setPhoto(asset);
     } catch (err) {
       console.log("❌ 카메라 오류:", err);
     }
@@ -61,20 +62,20 @@ export default function IdCardCameraScreen() {
     try {
       setLoading(true);
 
-      const res = await uploadIdCardImage({
+      const res = await uploadContractImage({
         uri: photo.uri,
-        fileName: photo.fileName || "idcard.jpg",
+        fileName: photo.fileName || "contract.jpg",
         type: photo.type || "image/jpeg",
       });
 
       setLoading(false);
 
       navigation.navigate("WorkerManagement", {
-        idCardData: res,
+        ocrData: res,
       });
     } catch (err) {
       setLoading(false);
-      console.log("❌ 신분증 OCR 오류:", err);
+      console.log("❌ OCR 오류:", err);
       Alert.alert("에러", "OCR 처리 중 문제가 발생했습니다.");
     }
   };
@@ -112,7 +113,7 @@ export default function IdCardCameraScreen() {
           <Text
             style={{ marginTop: 16, color: "#111827", fontSize: 20, fontWeight: "700" }}
           >
-            신분증 촬영 가이드
+            계약서 촬영 가이드
           </Text>
 
           <Text style={{ color: "#6B7280", marginTop: 4 }}>
@@ -125,9 +126,9 @@ export default function IdCardCameraScreen() {
           {/* Guide Box */}
           <View
             style={{
-              backgroundColor: "#EFF6FF",
+              backgroundColor: "#ECFDF5",
               borderWidth: 1,
-              borderColor: "#DBEAFE",
+              borderColor: "#D1FAE5",
               borderRadius: 16,
               padding: 24,
               marginBottom: 24,
@@ -160,18 +161,18 @@ export default function IdCardCameraScreen() {
                 style={{
                   width: 80,
                   height: 80,
-                  backgroundColor: "#EFF6FF",
+                  backgroundColor: "#ECFDF5",
                   borderRadius: 999,
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: 12,
                 }}
               >
-                <Camera size={40} color="#2563EB" />
+                <Camera size={40} color="#10B981" />
               </View>
 
               <Text style={{ color: "#6B7280" }}>
-                신분증을 프레임 안에 맞춰주세요
+                문서 전체가 보이도록 촬영해주세요
               </Text>
             </View>
           </View>
@@ -207,10 +208,10 @@ export default function IdCardCameraScreen() {
 
               <View style={{ marginTop: 16 }}>
                 {[
-                  "신분증을 평평한 곳에 놓고 촬영해주세요",
-                  "조명이 밝은 곳에서 촬영해주세요",
-                  "신분증의 네 모서리가 모두 보이도록 촬영해주세요",
-                  "초점이 맞고 글씨가 선명하게 보이도록 촬영해주세요",
+                  "계약서를 평평하게 펼쳐서 촬영해주세요",
+                  "문서 전체가 화면에 들어오도록 촬영해주세요",
+                  "텍스트가 선명하게 읽힐 수 있도록 촬영해주세요",
+                  "여러 페이지는 순서대로 촬영해주세요",
                 ].map((t, i) => (
                   <View key={i} style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
                     <CheckCircle2 size={18} color="#059669" />
@@ -249,10 +250,10 @@ export default function IdCardCameraScreen() {
 
               <View style={{ marginTop: 16 }}>
                 {[
-                  "반사광이 생기지 않도록 주의해주세요",
-                  "그림자가 지지 않도록 주의해주세요",
-                  "흔들림 없이 촬영해주세요",
-                  "훼손되거나 구겨진 부분이 없도록 주의해주세요",
+                  "접힌 부분이 없도록 주의해주세요",
+                  "다른 문서와 겹치지 않도록 주의해주세요",
+                  "손가락이나 다른 물체가 가리지 않도록 주의해주세요",
+                  "너무 가깝거나 멀리서 촬영하지 마세요",
                 ].map((t, i) => (
                   <View key={i} style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
                     <AlertCircle size={18} color="#DC2626" />
@@ -268,7 +269,7 @@ export default function IdCardCameraScreen() {
             <TouchableOpacity
               onPress={() => setStep("capture")}
               style={{
-                backgroundColor: "#2563EB",
+                backgroundColor: "#10B981",
                 paddingVertical: 14,
                 paddingHorizontal: 48,
                 borderRadius: 12,
@@ -313,7 +314,7 @@ export default function IdCardCameraScreen() {
         <Text
           style={{ marginTop: 16, color: "#111827", fontSize: 20, fontWeight: "700" }}
         >
-          신분증 촬영
+          계약서 촬영
         </Text>
 
         <Text style={{ color: "#6B7280", marginTop: 4 }}>
@@ -345,7 +346,7 @@ export default function IdCardCameraScreen() {
               onPress={sendToOCR}
               style={{
                 marginTop: 32,
-                backgroundColor: "#2563EB",
+                backgroundColor: "#10B981",
                 paddingVertical: 14,
                 borderRadius: 12,
                 flexDirection: "row",
@@ -421,7 +422,7 @@ export default function IdCardCameraScreen() {
                   onPress={sendToOCR}
                   style={{
                     flex: 1,
-                    backgroundColor: "#2563EB",
+                    backgroundColor: "#10B981",
                     paddingVertical: 14,
                     borderRadius: 12,
                     flexDirection: "row",
@@ -437,11 +438,11 @@ export default function IdCardCameraScreen() {
             ) : (
               <View
                 style={{
-                  backgroundColor: "#EFF6FF",
+                  backgroundColor: "#ECFDF5",
                   padding: 20,
                   borderRadius: 16,
                   borderWidth: 1,
-                  borderColor: "#DBEAFE",
+                  borderColor: "#D1FAE5",
                   alignItems: "center",
                   marginTop: 12,
                 }}
@@ -452,7 +453,7 @@ export default function IdCardCameraScreen() {
                     height: 32,
                     borderWidth: 4,
                     borderColor: "#D1D5DB",
-                    borderTopColor: "#2563EB",
+                    borderTopColor: "#10B981",
                     borderRadius: 999,
                     marginBottom: 12,
                     alignSelf: "center",

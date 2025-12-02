@@ -575,9 +575,9 @@ const LeftItem = ({ item }: { item: Worker }) => {
         {/* 계약서 생성 */}
         <TouchableOpacity
           style={styles.docBtn}
-          onPress={() => setContractTypeModal(true)}
+          onPress={() => navigation.navigate("ContractCamera")}
         >
-          <Text style={{ color: "#111827", fontWeight: "600" }}>계약서 생성</Text>
+          <Text style={{ color: "#111827", fontWeight: "600" }}>계약서 촬영</Text>
           <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
         </TouchableOpacity>
 
@@ -1090,50 +1090,7 @@ const LeftItem = ({ item }: { item: Worker }) => {
     </View>
   </View>
 </Modal>
-<Modal
-  visible={contractTypeModal}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setContractTypeModal(false)}
->
-  <View style={styles.modalBackdrop}>
-    <View style={styles.modalCard}>
-      <Text style={styles.modalTitle}>계약서 유형 선택</Text>
 
-      <View style={{ height: 20 }} />
-
-      {/* 버튼 1 — 일용직 */}
-      <TouchableOpacity
-        style={styles.modalSelectBtn}
-        onPress={() => {
-          setContractTypeModal(false);
-          navigation.navigate("ContractWrite", { contractType: "일용직" });
-        }}
-      >
-        <Text style={styles.modalSelectText}>일용직 근로계약서</Text>
-      </TouchableOpacity>
-
-      {/* 버튼 2 — 월정제 */}
-      <TouchableOpacity
-        style={styles.modalSelectBtn}
-        onPress={() => {
-          setContractTypeModal(false);
-          navigation.navigate("ContractWrite", { contractType: "월정제" });
-        }}
-      >
-        <Text style={styles.modalSelectText}>월정제 근로계약서</Text>
-      </TouchableOpacity>
-
-      {/* 취소 */}
-      <TouchableOpacity
-        style={[styles.outlineBtn, { marginTop: 16 }]}
-        onPress={() => setContractTypeModal(false)}
-      >
-        <Text>취소</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
     </View>
   );
 }

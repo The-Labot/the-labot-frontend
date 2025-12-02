@@ -877,13 +877,14 @@ const styles = StyleSheet.create({
   leftSub: { fontSize: 12, color: '#6B7280' },
 
   primaryBtn: {
-    marginTop: 8,
-    borderRadius: 10,
-    backgroundColor: '#2563EB',
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  borderRadius: 10,
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  backgroundColor: '#2563EB',
+  alignItems: "center",
+  justifyContent: "center",
+  height: 36,           // ← 버튼 높이 통일
+},
   primaryBtnText: { color: '#FFFFFF', fontWeight: '600' },
 
   summaryRow: {
@@ -951,13 +952,15 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 13, color: '#4B5563' },
 
   outlineBtn: {
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-  },
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#D1D5DB',
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  alignSelf: 'flex-start',
+  height: 36,           // ← 저장 버튼과 동일하게 설정
+  justifyContent: "center",
+},
   outlineBtnText: { fontSize: 13, color: '#374151' },
 
   cardTitle: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 8 },

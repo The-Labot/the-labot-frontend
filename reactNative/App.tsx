@@ -3,52 +3,65 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// App.tsx
+// 📌 Screens
 import LoginScreen from './src/LoginScreen';
 import HomeScreen from './src/worker/HomeScreen';
-import WorkerMyPageScreen from './src/worker/MyPageScreen';   // 이름 바꿔주자
+import WorkerMyPageScreen from './src/worker/MyPageScreen';
 import ManagerHomeScreen from './src/manager/ManagerHomeScreen';
+import ManagerMyPageScreen from './src/manager/MyPageScreen';
+
 import HazardReportScreen from './src/worker/HazardReportScreen';
 import AttendanceScreen from './src/worker/AttendanceScreen';
 import AttendanceHistoryScreen from './src/worker/AttendanceHistoryScreen';
-import ManagerCertificatesScreen from './src/manager/ManagerCertificatesScreen';
-import ManagerMyPageScreen from './src/manager/MyPageScreen'; // ✅ 이건 관리자용
+
 import WorkerNoticeList from './src/worker/WorkerNoticeList';
 import WorkerNoticeDetail from './src/worker/WorkerNoticeDetail';
-import ContractWriteScreen from './src/screen/ContractWriteScreen';
+
+import ManagerCertificatesScreen from './src/manager/ManagerCertificatesScreen';
+import WorkerManagementScreen from "./src/manager/WorkerManagementScreen";
 import MapManagementScreen from './src/manager/MapManagementScreen';
 import WorkerMapScreen from './src/worker/WorkerMapScreen';
-import WorkerManagementScreen from "./src/manager/WorkerManagementScreen";
+
 import IdCardCameraScreen from './src/screen/IdCardCameraScreen';
+import ContractCameraScreen from './src/screen/ContractCameraScreen';   // ⭐ 추가
 
+// ----------------------------------------------------
+// ⭐ 네비게이션 타입 정의 (RootStackParamList)
+// ----------------------------------------------------
 export type RootStackParamList = {
-      Login: undefined;
-      WorkerHome: undefined;        // 근로자 홈
-      WorkerMyPage: undefined;      // 근로자 마이페이지
-      ManagerHome: undefined;       // 관리자 홈
-      ManagerMyPage: undefined;     // 관리자 마이페이지
-      HazardReport: undefined;
-      Attendance: undefined;
-      AttendanceHistory: undefined;
-      ContractWrite: { contractType: string };
-      MapManagement: undefined;
-      Map: undefined;
+  Login: undefined;
 
-    ManagerCertificates: {       // ✅ 추가
+  // 근로자
+  WorkerHome: undefined;
+  WorkerMyPage: undefined;
+  HazardReport: undefined;
+  Attendance: undefined;
+  AttendanceHistory: undefined;
+  Map: undefined;
+
+  // 관리자
+  ManagerHome: undefined;
+  ManagerMyPage: undefined;
+  ManagerCertificates: {
     worker: { id: number; name: string; role: string; site: string };
-
   };
-  // 📌 공지사항 화면
-      WorkerNoticeList: undefined;
-      WorkerNoticeDetail: { noticeId: number };
-     WorkerManagement: { ocrData?: any } | undefined;
-       IdCardCamera: undefined;   // ← 추가
+  MapManagement: undefined;
+  WorkerManagement: { ocrData?: any; idCardData?: any } | undefined;
 
+  // OCR
+  IdCardCamera: undefined;
+  ContractCamera: undefined;   // ⭐ 반드시 필요!
 
+  // 공지사항
+  WorkerNoticeList: undefined;
+  WorkerNoticeDetail: { noticeId: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+// ----------------------------------------------------
+// ⭐ App Component
+// ----------------------------------------------------
 export default function App() {
   return (
     <NavigationContainer>
@@ -56,33 +69,42 @@ export default function App() {
         initialRouteName="Login"
         screenOptions={{ headerShown: false }}
       >
+        
+        {/* 공통 */}
         <Stack.Screen name="Login" component={LoginScreen} />
+
+        {/* 근로자 */}
         <Stack.Screen name="WorkerHome" component={HomeScreen} />
-
-        {/* ✅ 근로자 / 관리자 마이페이지를 각각 매핑 */}
         <Stack.Screen name="WorkerMyPage" component={WorkerMyPageScreen} />
-        <Stack.Screen name="ManagerHome" component={ManagerHomeScreen} />
-        <Stack.Screen name="ManagerMyPage" component={ManagerMyPageScreen} />
-
         <Stack.Screen name="HazardReport" component={HazardReportScreen} />
         <Stack.Screen name="Attendance" component={AttendanceScreen} />
         <Stack.Screen
           name="AttendanceHistory"
           component={AttendanceHistoryScreen}
-          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="Map" component={WorkerMapScreen} />
+
+        {/* 관리자 */}
+        <Stack.Screen name="ManagerHome" component={ManagerHomeScreen} />
+        <Stack.Screen name="ManagerMyPage" component={ManagerMyPageScreen} />
+        <Stack.Screen
+          name="ManagerCertificates"
+          component={ManagerCertificatesScreen}
+        />
+        <Stack.Screen name="WorkerManagement" component={WorkerManagementScreen} />
+        <Stack.Screen name="MapManagement" component={MapManagementScreen} />
+
+        {/* 공지사항 */}
+        <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
+        <Stack.Screen
+          name="WorkerNoticeDetail"
+          component={WorkerNoticeDetail}
         />
 
-        <Stack.Screen name="MapManagement" component={MapManagementScreen} />
-        <Stack.Screen name="Map" component={WorkerMapScreen} />
-        
-        <Stack.Screen name="ManagerCertificates" component={ManagerCertificatesScreen} />
-        
-        <Stack.Screen name="ContractWrite" component={ContractWriteScreen} />
-        <Stack.Screen name="WorkerNoticeList" component={WorkerNoticeList} />
-        <Stack.Screen name="WorkerNoticeDetail" component={WorkerNoticeDetail} />
-
+        {/* OCR */}
         <Stack.Screen name="IdCardCamera" component={IdCardCameraScreen} />
-        <Stack.Screen name="WorkerManagement" component={WorkerManagementScreen} />
+        <Stack.Screen name="ContractCamera" component={ContractCameraScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
