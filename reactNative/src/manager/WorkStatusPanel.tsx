@@ -7,13 +7,23 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { fetchDashboard, DashboardActivity, DashboardSummary } from "../api/dashboard";
+import {
+  AlertTriangle,
+  FileText,
+  Users,
+} from "lucide-react-native";
+
+import {
+  fetchDashboard,
+  DashboardActivity,
+  DashboardSummary,
+} from "../api/dashboard";
 
 export function WorkStatusPanel() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 900;
-  const horizontalPadding = isTablet ? 12 : 24;
-  const verticalPadding = isTablet ? 16 : 24;
+
+  const horizontalPadding = isTablet ? 32 : 20;
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [activities, setActivities] = useState<DashboardActivity[]>([]);
@@ -21,34 +31,59 @@ export function WorkStatusPanel() {
   useEffect(() => {
     fetchDashboard()
       .then((res) => {
-              console.log("📌 Dashboard API 응답:", res);  // ← 여기 추가!
-
         setSummary(res.summary);
         setActivities(res.activities);
       })
-      .catch((err) => console.log("Dashboard fetch error:", err));
+      .catch((err) => console.log(err));
   }, []);
 
-  // 로딩 중 임시 처리
   if (!summary) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loadingWrapper}>
         <Text>불러오는 중...</Text>
       </View>
     );
   }
 
-  // 🔥 활동 아이콘/색상 자동 매핑
+  const getIconComponent = (type: string) => {
+    switch (type) {
+      case "HAZARD":
+        return AlertTriangle;
+      case "REPORT":
+        return FileText;
+      case "ATTENDANCE":
+        return Users;
+      default:
+        return FileText;
+    }
+  };
+
   const getActivityStyle = (type: string) => {
     switch (type) {
       case "HAZARD":
-        return { emoji: "⚠️", bg: "#FEE2E2", color: "#DC2626" };
+        return {
+          bg: "#FEE2E2",
+          color: "#DC2626",
+          lucide: AlertTriangle,
+        };
       case "REPORT":
-        return { emoji: "📄", bg: "#DBEAFE", color: "#2563EB" };
+        return {
+          bg: "#DBEAFE",
+          color: "#2563EB",
+          lucide: FileText,
+        };
       case "ATTENDANCE":
-        return { emoji: "👷‍♂️", bg: "#D1FAE5", color: "#16A34A" };
+        return {
+          bg: "#D1FAE5",
+          color: "#16A34A",
+          lucide: Users,
+        };
       default:
-        return { emoji: "ℹ️", bg: "#E5E7EB", color: "#6B7280" };
+        return {
+          bg: "#E5E7EB",
+          color: "#6B7280",
+          lucide: FileText,
+        };
     }
   };
 
@@ -57,117 +92,115 @@ export function WorkStatusPanel() {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        {
-          paddingHorizontal: horizontalPadding,
-          paddingVertical: verticalPadding,
-        },
+        { paddingHorizontal: horizontalPadding },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* 상단 헤더 */}
+      {/* Header */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>작업 현황</Text>
-          <Text style={styles.subtitle}>Work Status Overview</Text>
+          <Text style={styles.headerTitle}>작업 현황</Text>
+          <Text style={styles.headerSubtitle}>Work Status Overview</Text>
         </View>
+
         <View style={styles.liveBadge}>
           <Text style={styles.liveBadgeText}>실시간 • Live</Text>
         </View>
       </View>
 
-      {/* 상단 3개 카드 */}
-      <View style={styles.statsRow}>
-        {/* 오늘 안전 신고 */}
-        <View style={[styles.statCard, styles.safetyCard]}>
-          <View style={styles.statCardHeader}>
-            <View style={[styles.statIconCircle, { backgroundColor: "#FFFFFF" }]}>
-              <Text style={[styles.statIconEmoji, { color: "#DC2626" }]}>⚠️</Text>
+      {/* 카드 3열 */}
+      <View style={styles.cardRow}>
+        {/* 안전 신고 */}
+        <View style={[styles.card, styles.cardRed]}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconWrapper}>
+              <AlertTriangle size={22} color="#DC2626" />
             </View>
             <View>
-              <Text style={styles.statTitle}>오늘 안전 신고</Text>
-              <Text style={styles.statSubtitle}>Today's Safety Reports</Text>
+              <Text style={styles.cardTitle}>오늘 안전 신고</Text>
+              <Text style={styles.cardSubtitle}>Today's Safety Reports</Text>
             </View>
           </View>
-          <View style={styles.statBottomRow}>
-            <Text style={[styles.statNumber, { color: "#DC2626" }]}>
+
+          <View style={styles.cardBottom}>
+            <Text style={[styles.cardNumber, { color: "#DC2626" }]}>
               {summary.todayHazardCount}건
             </Text>
             <View style={[styles.badge, { backgroundColor: "#DC2626" }]}>
-              <Text style={[styles.badgeText, { color: "#FFFFFF" }]}>긴급</Text>
+              <Text style={styles.badgeText}>긴급</Text>
             </View>
           </View>
         </View>
 
-        {/* 진행 중인 작업 */}
-        <View style={[styles.statCard, styles.ongoingCard]}>
-          <View style={styles.statCardHeader}>
-            <View style={[styles.statIconCircle, { backgroundColor: "#FFFFFF" }]}>
-              <Text style={[styles.statIconEmoji, { color: "#2563EB" }]}>📄</Text>
+        {/* 진행 중 작업 */}
+        <View style={[styles.card, styles.cardBlue]}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconWrapper}>
+              <FileText size={22} color="#2563EB" />
             </View>
             <View>
-              <Text style={styles.statTitle}>진행 중인 작업</Text>
-              <Text style={styles.statSubtitle}>Ongoing Works</Text>
+              <Text style={styles.cardTitle}>진행 중인 작업</Text>
+              <Text style={styles.cardSubtitle}>Ongoing Works</Text>
             </View>
           </View>
-          <View style={styles.statBottomRow}>
-            <Text style={[styles.statNumber, { color: "#2563EB" }]}>
+
+          <View style={styles.cardBottom}>
+            <Text style={[styles.cardNumber, { color: "#2563EB" }]}>
               {summary.ongoingWorkCount}건
             </Text>
             <View style={[styles.badge, { backgroundColor: "#2563EB" }]}>
-              <Text style={[styles.badgeText, { color: "#FFFFFF" }]}>진행중</Text>
+              <Text style={styles.badgeText}>진행중</Text>
             </View>
           </View>
         </View>
 
         {/* 현장 근로자 */}
-        <View style={[styles.statCard, styles.workersCard]}>
-          <View style={styles.statCardHeader}>
-            <View style={[styles.statIconCircle, { backgroundColor: "#FFFFFF" }]}>
-              <Text style={[styles.statIconEmoji, { color: "#16A34A" }]}>👥</Text>
+        <View style={[styles.card, styles.cardGreen]}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconWrapper}>
+              <Users size={22} color="#16A34A" />
             </View>
             <View>
-              <Text style={styles.statTitle}>현장 근로자</Text>
-              <Text style={styles.statSubtitle}>Site Workers Count</Text>
+              <Text style={styles.cardTitle}>현장 근로자</Text>
+              <Text style={styles.cardSubtitle}>Site Workers Count</Text>
             </View>
           </View>
-          <View style={styles.statBottomRow}>
-            <Text style={[styles.statNumber, { color: "#16A34A" }]}>
+
+          <View style={styles.cardBottom}>
+            <Text style={[styles.cardNumber, { color: "#16A34A" }]}>
               {summary.workerCount}명
             </Text>
             <View style={[styles.badge, { backgroundColor: "#16A34A" }]}>
-              <Text style={[styles.badgeText, { color: "#FFFFFF" }]}>근무자</Text>
+              <Text style={styles.badgeText}>출근중</Text>
             </View>
           </View>
         </View>
       </View>
 
       {/* 최근 활동 */}
-      <View style={styles.recentSection}>
+      <View style={styles.section}>
         <Text style={styles.recentTitle}>최근 활동</Text>
 
-        {activities.map((activity, index) => {
+        {activities.map((activity) => {
           const style = getActivityStyle(activity.type);
+          const Icon = style.lucide;
+
           return (
-                <View key={`${activity.id}-${index}`} style={styles.activityCard}>
+            <View key={activity.id} style={styles.activityCard}>
               <View
                 style={[
-                  styles.activityIconCircle,
+                  styles.activityIconWrapper,
                   { backgroundColor: style.bg },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.activityIconEmoji,
-                    { color: style.color },
-                  ]}
-                >
-                  {style.emoji}
-                </Text>
+                <Icon size={24} color={style.color} />
               </View>
 
               <View style={styles.activityTextWrapper}>
                 <Text style={styles.activityTitle}>{activity.title}</Text>
-                <Text style={styles.activitySubtitle}>{activity.description}</Text>
+                <Text style={styles.activitySubtitle}>
+                  {activity.description}
+                </Text>
               </View>
 
               <Text style={styles.activityTime}>{activity.timeAgo}</Text>
@@ -178,105 +211,191 @@ export function WorkStatusPanel() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
-  /* 그대로 (UI 변동 없음) */
-  container: { flex: 1, backgroundColor: "#F3F4F6" },
-  content: { flexGrow: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB", // tailwind gray-50
+  },
+
+  content: {
+    paddingTop: 32,
+    paddingBottom: 80,
+  },
+
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* ----------------------------------
+   * HEADER
+   * ---------------------------------- */
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 32,
   },
-  title: { fontSize: 20, color: "#111827", fontWeight: "600" },
-  subtitle: { marginTop: 4, fontSize: 13, color: "#6B7280" },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827", // gray-900
+  },
+  headerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#6B7280", // gray-500
+  },
   liveBadge: {
+    backgroundColor: "#D1FAE5", // green-100
+    borderColor: "#A7F3D0", // green-200
+    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: "#DCFCE7",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
   },
-  liveBadgeText: { fontSize: 12, color: "#15803D", fontWeight: "500" },
-  statsRow: { flexDirection: "row", gap: 16, marginBottom: 24 },
-  statCard: {
+  liveBadgeText: {
+    fontSize: 13,
+    color: "#15803D", // green-700
+    fontWeight: "600",
+  },
+
+  /* ----------------------------------
+   * STATS 3-CARD ROW
+   * ---------------------------------- */
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 24,
+    marginBottom: 32,
+  },
+
+  card: {
     flex: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 24,
+    backgroundColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOpacity: 0.05,
-    shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  safetyCard: { backgroundColor: "#FEF2F2" },
-  ongoingCard: { backgroundColor: "#EFF6FF" },
-  workersCard: { backgroundColor: "#ECFDF3" },
-  statCardHeader: {
+
+  /* gradient 유사 색상 적용 */
+  cardRed: { backgroundColor: "#FEF2F2" },
+  cardBlue: { backgroundColor: "#EFF6FF" },
+  cardGreen: { backgroundColor: "#ECFDF3" },
+
+  cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
     gap: 12,
+    marginBottom: 20,
   },
-  statIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
-  statIconEmoji: { fontSize: 22 },
-  statTitle: { fontSize: 13, color: "#111827", marginBottom: 2 },
-  statSubtitle: { fontSize: 11, color: "#6B7280" },
-  statBottomRow: {
+
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  cardSubtitle: {
+    marginTop: 2,
+    fontSize: 11,
+    color: "#6B7280",
+  },
+
+  cardBottom: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
   },
-  statNumber: { fontSize: 40, fontWeight: "700" },
+
+  cardNumber: {
+    fontSize: 48,
+    fontWeight: "700",
+    lineHeight: 48,
+  },
+
   badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
     marginBottom: 4,
   },
-  badgeText: { fontSize: 11, fontWeight: "500" },
-  recentSection: { marginTop: 8 },
-  recentTitle: {
-    fontSize: 16,
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 13,
     fontWeight: "600",
+  },
+
+  /* ----------------------------------
+   * RECENT ACTIVITIES
+   * ---------------------------------- */
+  section: {
+    marginTop: 8,
+  },
+  recentTitle: {
+    fontSize: 18,
+    fontWeight: "700",
     color: "#111827",
     marginBottom: 12,
   },
+
   activityCard: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    marginBottom: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginBottom: 12,
+
     shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  activityIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+
+  activityIconWrapper: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
-  activityIconEmoji: { fontSize: 22 },
-  activityTextWrapper: { flex: 1 },
-  activityTitle: { fontSize: 14, color: "#111827", marginBottom: 2 },
-  activitySubtitle: { fontSize: 12, color: "#6B7280" },
-  activityTime: { fontSize: 12, color: "#9CA3AF", marginLeft: 8 },
-});
 
-export default WorkStatusPanel;
+  activityTextWrapper: {
+    flex: 1,
+  },
+
+  activityTitle: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+
+  activitySubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+
+  activityTime: {
+    fontSize: 13,
+    color: "#9CA3AF",
+    marginLeft: 12,
+  },
+});

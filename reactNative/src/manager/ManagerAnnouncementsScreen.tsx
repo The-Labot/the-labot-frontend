@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+// src/manager/ManagerAnnouncementsScreen.tsx
+
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,13 +12,25 @@ import {
   Alert,
   StyleSheet,
   Image,
-} from 'react-native';
-import { getTempAccessToken } from '../api/auth';
-import { BASE_URL } from '../api/config';
-import { launchImageLibrary } from 'react-native-image-picker';
+} from "react-native";
+
+import { getTempAccessToken } from "../api/auth";
+import { BASE_URL } from "../api/config";
+import { launchImageLibrary } from "react-native-image-picker";
+
+import {
+  Megaphone,
+  Pin,
+  Calendar,
+  User as UserIcon,
+  FileText as FileTextIcon,
+  Paperclip,
+  AlertCircle,
+  X
+} from "lucide-react-native";
 
 // 🔥 카테고리 타입
-type Category = 'safety' | 'site' | 'general';
+type Category = "safety" | "site" | "general";
 
 // 🔥 공지 타입
 interface Announcement {
@@ -40,67 +54,69 @@ export default function ManagerAnnouncementsScreen() {
   const [isEditing, setIsEditing] = useState(false);
 
   // 작성/수정 폼
-  const [draftTitle, setDraftTitle] = useState('');
-  const [draftAuthor, setDraftAuthor] = useState('');
-  const [draftCategory, setDraftCategory] = useState<Category>('general');
-  const [draftContent, setDraftContent] = useState('');
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftAuthor, setDraftAuthor] = useState("");
+  const [draftCategory, setDraftCategory] = useState<Category>("general");
+  const [draftContent, setDraftContent] = useState("");
   const [draftPinned, setDraftPinned] = useState(false);
   const [draftUrgent, setDraftUrgent] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
 
   // ================================
-  // 📌 목록 조회
+  // 🔥 카테고리 변환 (API 규격 유지)
   // ================================
-  // 카테고리 변환 함수
-    const parseCategory = (raw: string): Category => {
-      const c = (raw || '').trim().toUpperCase();
+  const parseCategory = (raw: string): Category => {
+    const c = (raw || "").trim().toUpperCase();
 
-      if (c === 'SAFETY') return 'safety';
-      if (c === 'SITE') return 'site';
-      if (c === 'GENERAL') return 'general';
+    if (c === "SAFETY") return "safety";
+    if (c === "SITE") return "site";
+    if (c === "GENERAL") return "general";
 
-      if (c === '안전') return 'safety';
-      if (c === '현장') return 'site';
-      if (c === '일반') return 'general';
+    if (c === "안전") return "safety";
+    if (c === "현장") return "site";
+    if (c === "일반") return "general";
 
-      return 'general';
-    };
+    return "general";
+  };
+
+  // ================================
+  // 🔥 공지 목록 조회
+  // ================================
   const fetchNotices = async () => {
     try {
       const token = getTempAccessToken();
       const res = await fetch(`${BASE_URL}/manager/notices`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: token,
         },
       });
 
       const json = await res.json();
       if (!res.ok) {
-        Alert.alert('오류', json.message || '공지 목록 조회 실패');
+        Alert.alert("오류", json.message || "공지 목록 조회 실패");
         return;
       }
 
       const mapped = json.data.map((item: any) => {
-        console.log("📌 서버에서 내려온 category = ", item.category); // ← 추가
-        const rawCategory = (item.category || '').trim();
         return {
           id: item.id,
           title: item.title,
           preview: item.title.slice(0, 25),
-          content: '',
-          date: item.createdAt.split('T')[0],
+          content: "",
+          date: item.createdAt.split("T")[0],
           author: item.writer,
           pinned: Boolean(item.pinned),
           urgent: Boolean(item.urgent),
           category: parseCategory(item.category),
-    }});
+        };
+      });
 
       setAnnouncements(mapped);
     } catch (e) {
-      console.log('공지 목록 오류:', e);
-      Alert.alert('오류', '공지 목록을 불러오지 못했습니다.');
+      console.log("공지 목록 오류:", e);
+      Alert.alert("오류", "공지 목록을 불러오지 못했습니다.");
     }
   };
 
@@ -109,34 +125,33 @@ export default function ManagerAnnouncementsScreen() {
   }, []);
 
   // ================================
-  // 📌 상세 조회
+  // 🔥 공지 상세 조회
   // ================================
   const fetchNoticeDetail = async (id: number) => {
     try {
       const token = getTempAccessToken();
       const res = await fetch(`${BASE_URL}/manager/notices/${id}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: token,
         },
       });
 
       const json = await res.json();
       if (!res.ok) {
-        Alert.alert('오류', json.message || '상세 조회 실패');
+        Alert.alert("오류", json.message || "상세 조회 실패");
         return;
       }
 
       const d = json.data;
-      const rawCategory = (d.category || '').trim();
 
       setSelected({
         id: d.id,
         title: d.title,
-        preview: '',
+        preview: "",
         content: d.content,
-        date: d.createdAt.split('T')[0],
+        date: d.createdAt.split("T")[0],
         author: d.writer,
         pinned: Boolean(d.pinned),
         urgent: Boolean(d.urgent),
@@ -144,16 +159,16 @@ export default function ManagerAnnouncementsScreen() {
         attachments: d.attachments || [],
       });
     } catch (e) {
-      console.log('상세 조회 오류:', e);
-      Alert.alert('오류', '상세 조회에 실패했습니다.');
+      console.log("상세 조회 오류:", e);
+      Alert.alert("오류", "상세 조회 실패");
     }
   };
 
   // ================================
-  // 📌 이미지 선택
+  // 🔥 이미지 선택
   // ================================
   const handlePickImage = () => {
-    launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, res => {
+    launchImageLibrary({ mediaType: "photo", quality: 0.8 }, (res) => {
       if (!res.didCancel && res.assets?.length) {
         setSelectedImage(res.assets[0]);
       }
@@ -161,11 +176,11 @@ export default function ManagerAnnouncementsScreen() {
   };
 
   // ================================
-  // 📌 등록
+  // 🔥 공지 생성
   // ================================
   const handleSubmit = async () => {
     if (!draftTitle.trim() || !draftContent.trim()) {
-      Alert.alert('입력 오류', '제목과 내용을 모두 입력해주세요.');
+      Alert.alert("입력 오류", "제목과 내용을 모두 입력해주세요.");
       return;
     }
 
@@ -173,147 +188,135 @@ export default function ManagerAnnouncementsScreen() {
       const token = getTempAccessToken();
       const form = new FormData();
 
-      form.append('title', draftTitle);
-      form.append('content', draftContent);
-      form.append('category', draftCategory.toUpperCase());
-      form.append('urgent', String(draftUrgent));
-      form.append('pinned', String(draftPinned));
+      form.append("title", draftTitle);
+      form.append("content", draftContent);
+      form.append("category", draftCategory.toUpperCase());
+      form.append("urgent", String(draftUrgent));
+      form.append("pinned", String(draftPinned));
 
       if (selectedImage) {
-        form.append('files', {
+        form.append("files", {
           uri: selectedImage.uri,
-          type: selectedImage.type || 'image/jpeg',
-          name: selectedImage.fileName || 'image.jpg',
+          type: selectedImage.type || "image/jpeg",
+          name: selectedImage.fileName || "image.jpg",
         } as any);
       }
 
       const res = await fetch(`${BASE_URL}/manager/notices`, {
-        method: 'POST',
+        method: "POST",
         headers: { Authorization: token },
         body: form,
       });
 
       const json = await res.json();
       if (!res.ok) {
-        Alert.alert('등록 실패', json.message || '오류 발생');
+        Alert.alert("등록 실패", json.message || "오류 발생");
         return;
       }
 
       const newId = json?.data?.noticeId ?? json?.data?.id;
-
-      if (!newId) {
-        await fetchNotices();
-        setIsCreating(false);
-        return;
-      }
 
       const newItem: Announcement = {
         id: newId,
         title: draftTitle,
         preview: draftContent.slice(0, 50),
         content: draftContent,
-        author: draftAuthor || '관리자',
-        date: new Date().toISOString().split('T')[0],
+        author: draftAuthor || "관리자",
+        date: new Date().toISOString().split("T")[0],
         pinned: draftPinned,
         urgent: draftUrgent,
         category: draftCategory,
       };
 
-      setAnnouncements(prev => [newItem, ...prev]);
+      setAnnouncements((prev) => [newItem, ...prev]);
       setSelected(newItem);
       setIsCreating(false);
 
-      Alert.alert('성공', '공지사항이 등록되었습니다.');
     } catch (e) {
-      console.log('등록 오류:', e);
-      Alert.alert('오류', '네트워크 오류가 발생했습니다.');
+      console.log("등록 오류:", e);
+      Alert.alert("오류", "네트워크 오류가 발생했습니다.");
     }
   };
-    // ================================
-  // 📌 수정 API
+
+  // ================================
+  // 🔥 공지 수정
   // ================================
   const handleEditSubmit = async () => {
-  if (!selected) return;
+    if (!selected) return;
 
-  try {
-    const token = getTempAccessToken();
-    const form = new FormData();
-
-    form.append("title", draftTitle);
-    form.append("content", draftContent);
-    form.append("category", draftCategory.toUpperCase());
-    form.append("urgent", String(draftUrgent));
-    form.append("pinned", String(draftPinned));
-
-    if (selectedImage) {
-      form.append("files", {
-        uri: selectedImage.uri,
-        type: selectedImage.type || "image/jpeg",
-        name: selectedImage.fileName || "update.jpg",
-      } as any);
-    }
-
-    const res = await fetch(`${BASE_URL}/manager/notices/${selected.id}`, {
-      method: "PUT",
-      headers: { Authorization: token },
-      body: form,
-    });
-
-    // 🔥 JSON 없는 응답도 처리할 수 있도록 수정된 부분
-    let json = null;
     try {
-      json = await res.json();
-    } catch (err) {
-      console.log("⚠ JSON 없음(문제 없음) =>", err);
+      const token = getTempAccessToken();
+      const form = new FormData();
+
+      form.append("title", draftTitle);
+      form.append("content", draftContent);
+      form.append("category", draftCategory.toUpperCase());
+      form.append("urgent", String(draftUrgent));
+      form.append("pinned", String(draftPinned));
+
+      if (selectedImage) {
+        form.append("files", {
+          uri: selectedImage.uri,
+          type: selectedImage.type || "image/jpeg",
+          name: selectedImage.fileName || "update.jpg",
+        } as any);
+      }
+
+      const res = await fetch(`${BASE_URL}/manager/notices/${selected.id}`, {
+        method: "PUT",
+        headers: { Authorization: token },
+        body: form,
+      });
+
+      let json = null;
+      try {
+        json = await res.json();
+      } catch {}
+
+      if (!res.ok) {
+        Alert.alert("수정 실패", json?.message || "오류 발생");
+        return;
+      }
+
+      Alert.alert("성공", "공지사항이 수정되었습니다.");
+      setIsEditing(false);
+      setIsCreating(false);
+      setSelected(null);
+      fetchNotices();
+      fetchNoticeDetail(selected.id);
+    } catch (e) {
+      console.log("수정 오류:", e);
+      Alert.alert("오류", "네트워크 오류가 발생했습니다.");
     }
-
-    if (!res.ok) {
-      Alert.alert("수정 실패", json?.message || "오류 발생");
-      return;
-    }
-
-    Alert.alert("성공", "공지사항이 수정되었습니다.");
-
-    setIsEditing(false);
-    setIsCreating(false);
-    setSelected(null);
-    fetchNotices();
-    fetchNoticeDetail(selected.id);
-  } catch (e) {
-    console.log("수정 오류:", e);
-    Alert.alert("오류", "네트워크 오류가 발생했습니다.");
-  }
-};
-
+  };
 
   // ================================
-  // 📌 삭제 API
+  // 🔥 공지 삭제
   // ================================
   const handleDelete = async (id: number) => {
-    Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert("삭제 확인", "정말 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
       {
-        text: '삭제',
-        style: 'destructive',
+        text: "삭제",
+        style: "destructive",
         onPress: async () => {
           try {
             const token = getTempAccessToken();
             const res = await fetch(`${BASE_URL}/manager/notices/${id}`, {
-              method: 'DELETE',
+              method: "DELETE",
               headers: { Authorization: token },
             });
 
             const json = await res.json();
             if (!res.ok) {
-              Alert.alert('삭제 실패', json.message || '오류 발생');
+              Alert.alert("삭제 실패", json.message || "오류 발생");
               return;
             }
 
-            Alert.alert('삭제 완료', '공지사항이 삭제되었습니다.');
             fetchNotices();
             setSelected(null);
           } catch (e) {
-            console.log('삭제 오류:', e);
+            console.log("삭제 오류:", e);
           }
         },
       },
@@ -321,741 +324,839 @@ export default function ManagerAnnouncementsScreen() {
   };
 
   // ================================
-  // 📌 UI 렌더링
+  // 🔥 Part 1 끝 — Part 2에서 UI 전체 구성 제공!
   // ================================
+    // ================================
+  // 🔥 UI - 카테고리 뱃지
+  // ================================
+  const renderCategoryBadge = (category: Category) => {
+    const map: any = {
+      safety: { label: "안전", color: "#EF4444", bg: "#FEE2E2" },
+      site: { label: "현장", color: "#2563EB", bg: "#DBEAFE" },
+      general: { label: "일반", color: "#6B7280", bg: "#F3F4F6" },
+    };
+
+    const info = map[category];
+    return (
+      <View
+        style={{
+          paddingHorizontal: 8,
+          paddingVertical: 3,
+          borderRadius: 6,
+          backgroundColor: info.bg,
+        }}
+      >
+        <Text style={{ color: info.color, fontSize: 11 }}>{info.label}</Text>
+      </View>
+    );
+  };
+
+  // =========================================
+  // 🔥 Part 2 UI 시작 — 전체 화면 레이아웃
+  // =========================================
   return (
-    <View style={styles.root}>
+    <View style={styles.container}>
+      {/* -----------------------------------
+          🔵 왼쪽 패널
+        ----------------------------------- */}
+      <View style={styles.leftPanel}>
+        
+        {/* 공지 상단 */}
+        <View style={styles.headerBox}>
+          <Text style={styles.headerTitle}>공지사항</Text>
+          <Text style={styles.headerSub}>Announcements</Text>
 
-      {/* LEFT */}
-     <View style={styles.left}>
-  <View style={styles.leftHeader}>
-    <Text style={styles.title}>공지사항</Text>
-    <Text style={styles.subtitle}>Announcements</Text>
-
-    {/* 공지작성 버튼 */}
-    <TouchableOpacity
-      onPress={() => {
-        setIsCreating(true);
-        setIsEditing(false);
-        setSelected(null);
-        setDraftTitle('');
-        setDraftAuthor('');
-        setDraftContent('');
-        setDraftPinned(false);
-        setDraftUrgent(false);
-        setSelectedImage(null);
-      }}
-      style={styles.createButton}
-    >
-      <Text style={styles.createButtonText}>공지 작성</Text>
-    </TouchableOpacity>
-
-    {/* 카테고리 통계 */}
-    <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-      <View style={[styles.countBox, { backgroundColor: '#FEE2E2' }]}>
-        <Text style={styles.countNum}>
-          {announcements.filter(a => a.category === 'safety').length}
-        </Text>
-        <Text style={styles.countLabel}>안전</Text>
-      </View>
-
-      <View style={[styles.countBox, { backgroundColor: '#DBEAFE' }]}>
-        <Text style={styles.countNum}>
-          {announcements.filter(a => a.category === 'site').length}
-        </Text>
-        <Text style={styles.countLabel}>현장</Text>
-      </View>
-
-      <View style={[styles.countBox, { backgroundColor: '#E5E7EB' }]}>
-        <Text style={styles.countNum}>
-          {announcements.filter(a => a.category === 'general').length}
-        </Text>
-        <Text style={styles.countLabel}>일반</Text>
-      </View>
-    </View>
-  </View>
-
-      {/* 리스트 */}
-      <FlatList
-        data={announcements}
-        keyExtractor={it => String(it.id)}
-        renderItem={({ item }) => (
+          {/* 공지 작성 버튼 */}
           <TouchableOpacity
+            style={styles.writeBtn}
             onPress={() => {
-              setIsCreating(false);
+              setIsCreating(true);
               setIsEditing(false);
-              fetchNoticeDetail(item.id);
+              setSelected(null);
+              setDraftTitle("");
+              setDraftContent("");
+              setDraftCategory("general");
+              setDraftPinned(false);
+              setDraftUrgent(false);
             }}
-            style={styles.listItem}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              {item.pinned && (
-                <View style={[styles.stateDot, { backgroundColor: '#16A34A' }]} />
-              )}
-              {item.urgent && (
-                <View style={[styles.stateDot, { backgroundColor: '#DC2626' }]} />
-              )}
-              <Text style={styles.listTitle}>{item.title}</Text>
-            </View>
-
-            <Text style={styles.listPreview}>{item.preview}</Text>
-
-            <View style={styles.listBottomRow}>
-              <Text style={styles.listMeta}>{item.date}</Text>
-            </View>
+            <Megaphone color="white" size={20} />
+            <Text style={styles.writeBtnText}>공지 작성</Text>
           </TouchableOpacity>
-        )}
-      />
-    </View>
 
-      {/* RIGHT */}
-      <View style={styles.right}>
-
-        {/* 작성 모드 */}
-        {isCreating ? (
-          <ScrollView style={styles.card}>
-            <Text style={styles.detailTitle}>공지사항 작성</Text>
-
-            {/* 제목 */}
-            <Text style={styles.infoLabel}>제목</Text>
-            <TextInput
-              style={styles.input}
-              value={draftTitle}
-              onChangeText={setDraftTitle}
-              placeholder="공지 제목 입력"
-            />
-
-            {/* 작성자 */}
-            <Text style={styles.infoLabel}>작성자</Text>
-            <TextInput
-              style={styles.input}
-              value={draftAuthor}
-              onChangeText={setDraftAuthor}
-              placeholder="작성자 이름"
-            />
-
-            {/* 카테고리 */}
-            <Text style={styles.infoLabel}>카테고리</Text>
-            <View style={styles.categoryRow}>
-              <TouchableOpacity
-                onPress={() => setDraftCategory('safety')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'safety' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'safety' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  안전
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setDraftCategory('site')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'site' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'site' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  현장
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setDraftCategory('general')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'general' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'general' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  일반
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* 내용 */}
-            <Text style={styles.infoLabel}>내용</Text>
-            <View style={styles.contentBlock}>
-              <TextInput
-                style={styles.textArea}
-                value={draftContent}
-                onChangeText={setDraftContent}
-                multiline
-                placeholder="공지 내용을 입력하세요"
-              />
-            </View>
-
-            {/* 이미지 */}
-            <Text style={[styles.infoLabel, { marginTop: 16 }]}>이미지 첨부</Text>
-            <TouchableOpacity style={styles.imageUploadBox} onPress={handlePickImage}>
-              <Text style={{ color: '#6B7280', fontSize: 13 }}>이미지를 선택하세요</Text>
-            </TouchableOpacity>
-
-            {selectedImage && (
-              <View style={styles.previewContainer}>
-                <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
-                <TouchableOpacity
-                  onPress={() => setSelectedImage(null)}
-                  style={styles.removeImageBtn}
-                >
-                  <Text style={{ color: '#fff', fontSize: 12 }}>삭제</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* 스위치 */}
-            <View style={styles.switchRow}>
-              <Text>상단 고정</Text>
-              <Switch value={draftPinned} onValueChange={setDraftPinned} />
-            </View>
-
-            <View style={styles.switchRow}>
-              <Text>긴급 공지</Text>
-              <Switch value={draftUrgent} onValueChange={setDraftUrgent} />
-            </View>
-
-            {/* 버튼 */}
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit}>
-                <Text style={styles.primaryBtnText}>등록</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.outlineBtn, { marginLeft: 8 }]}
-                onPress={() => setIsCreating(false)}
-              >
-                <Text style={styles.outlineBtnText}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        ) : isEditing ? (
-          /* =============================
-             📌 수정 모드 UI
-             ============================= */
-          <ScrollView style={styles.card}>
-            <Text style={styles.detailTitle}>공지사항 수정</Text>
-
-            {/* 제목 */}
-            <Text style={styles.infoLabel}>제목</Text>
-            <TextInput
-              style={styles.input}
-              value={draftTitle}
-              onChangeText={setDraftTitle}
-            />
-
-            {/* 작성자 */}
-            <Text style={styles.infoLabel}>작성자</Text>
-            <TextInput
-              style={styles.input}
-              value={draftAuthor}
-              onChangeText={setDraftAuthor}
-            />
-
-            {/* 카테고리 */}
-            <Text style={styles.infoLabel}>카테고리</Text>
-            <View style={styles.categoryRow}>
-              <TouchableOpacity
-                onPress={() => setDraftCategory('safety')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'safety' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'safety' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  안전
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setDraftCategory('site')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'site' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'site' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  현장
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setDraftCategory('general')}
-                style={[
-                  styles.categoryChip,
-                  draftCategory === 'general' && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    draftCategory === 'general' && styles.categoryChipTextActive,
-                  ]}
-                >
-                  일반
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* 내용 */}
-            <Text style={styles.infoLabel}>내용</Text>
-            <View style={styles.contentBlock}>
-              <TextInput
-                style={styles.textArea}
-                value={draftContent}
-                onChangeText={setDraftContent}
-                multiline
-              />
-            </View>
-
-            {/* 이미지 */}
-            <Text style={[styles.infoLabel, { marginTop: 16 }]}>새 이미지 첨부</Text>
-            <TouchableOpacity style={styles.imageUploadBox} onPress={handlePickImage}>
-              <Text style={{ color: '#6B7280', fontSize: 13 }}>이미지를 선택하세요</Text>
-            </TouchableOpacity>
-
-            {selectedImage && (
-              <View style={styles.previewContainer}>
-                <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
-                <TouchableOpacity
-                  onPress={() => setSelectedImage(null)}
-                  style={styles.removeImageBtn}
-                >
-                  <Text style={{ color: '#fff', fontSize: 12 }}>삭제</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <View style={styles.switchRow}>
-              <Text>상단 고정</Text>
-              <Switch value={draftPinned} onValueChange={setDraftPinned} />
-            </View>
-
-            <View style={styles.switchRow}>
-              <Text>긴급 공지</Text>
-              <Switch value={draftUrgent} onValueChange={setDraftUrgent} />
-            </View>
-
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleEditSubmit}>
-                <Text style={styles.primaryBtnText}>수정 완료</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.outlineBtn, { marginLeft: 8 }]}
-                onPress={() => setIsEditing(false)}
-              >
-                <Text style={styles.outlineBtnText}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        ) : selected ? (
-          /* =============================
-             📌 상세 보기
-             ============================= */
-          <ScrollView style={styles.detailCard}>
-            <View
-              style={{
-                backgroundColor: selected.urgent
-                  ? '#FEE2E2'
-                  : selected.pinned
-                  ? '#FEF9C3'
-                  : '#FFFFFF',
-                padding: 16,
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: '#E5E7EB',
-                marginBottom: 16,
-              }}
-            >
-              <Text style={styles.detailTitle}>{selected.title}</Text>
-              <Text style={styles.detailMeta}>
-                {selected.author} · {selected.date}
+          {/* 요약 통계 */}
+          <View style={styles.summaryRow}>
+            <View style={[styles.summaryBox, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
+              <Pin size={16} color="#2563EB" style={{ marginBottom: 4 }} />
+              <Text style={{ color: "#2563EB", fontSize: 20 }}>
+                {announcements.filter((a) => a.pinned).length}
               </Text>
-
-              <View style={styles.tagRow}>
-                {selected.pinned && (
-                  <View style={[styles.tag, { backgroundColor: '#FDE68A' }]}>
-                    <Text style={styles.tagText}>상단 고정</Text>
-                  </View>
-                )}
-                {selected.urgent && (
-                  <View style={[styles.tag, { backgroundColor: '#FCA5A5' }]}>
-                    <Text style={styles.tagText}>긴급</Text>
-                  </View>
-                )}
-              </View>
+              <Text style={{ color: "#1E40AF", fontSize: 11 }}>고정</Text>
             </View>
 
-            {/* 내용 */}
-            <View
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderWidth: 1,
-                borderColor: '#E5E7EB',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 20,
-              }}
-            >
-              <Text style={styles.sectionLabel}>내용</Text>
-              <Text style={styles.sectionText}>{selected.content}</Text>
+            <View style={[styles.summaryBox, { backgroundColor: "#FEE2E2", borderColor: "#FCA5A5" }]}>
+              <AlertCircle size={16} color="#DC2626" style={{ marginBottom: 4 }} />
+              <Text style={{ color: "#DC2626", fontSize: 20 }}>
+                {announcements.filter((a) => a.urgent).length}
+              </Text>
+              <Text style={{ color: "#B91C1C", fontSize: 11 }}>긴급</Text>
             </View>
 
-            {/* 첨부 이미지 */}
-            {selected.attachments?.length > 0 ? (
-              <View
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#E5E7EB',
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 20,
+            <View style={[styles.summaryBox, { backgroundColor: "#F3F4F6", borderColor: "#D1D5DB" }]}>
+              <Megaphone size={16} color="#4B5563" style={{ marginBottom: 4 }} />
+              <Text style={{ color: "#4B5563", fontSize: 20 }}>
+                {announcements.length}
+              </Text>
+              <Text style={{ color: "#374151", fontSize: 11 }}>전체</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* -----------------------------------
+            🔵 공지 목록
+        ----------------------------------- */}
+        <FlatList
+          data={announcements}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 50 }}
+          renderItem={({ item }) => {
+            const isActive = selected?.id === item.id;
+
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelected(item);
+                  fetchNoticeDetail(item.id);
+                  setIsCreating(false);
+                  setIsEditing(false);
                 }}
+                style={[
+                  styles.listItem,
+                  isActive && styles.listItemActive,
+                  item.pinned && { backgroundColor: "#F0F7FF" },
+                ]}
               >
-                <Text style={styles.sectionLabel}>첨부 이미지</Text>
-                {selected.attachments.map((img, idx) => (
-                  <Image
-                    key={idx}
-                    source={{ uri: img }}
-                    style={{
-                      width: '100%',
-                      height: 220,
-                      borderRadius: 10,
-                      marginBottom: 12,
-                    }}
-                    resizeMode="cover"
-                  />
+                <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                  {/* PIN 아이콘 */}
+                  {item.pinned && (
+                    <Pin size={14} color="#2563EB" style={{ marginTop: 3, marginRight: 6 }} />
+                  )}
+
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.badgeRow}>
+                      {renderCategoryBadge(item.category)}
+
+                      {item.pinned && (
+                        <View style={styles.pinBadge}>
+                          <Pin size={10} color="white" />
+                          <Text style={styles.pinBadgeText}>고정</Text>
+                        </View>
+                      )}
+
+                      {item.urgent && (
+                        <View style={styles.urgentBadge}>
+                          <AlertCircle size={10} color="white" />
+                          <Text style={styles.urgentBadgeText}>긴급</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <Text style={styles.listTitle}>{item.title}</Text>
+                    <Text style={styles.listPreview} numberOfLines={2}>
+                      {item.preview}
+                    </Text>
+
+                    <View style={styles.listMetaRow}>
+                      <View style={styles.metaItem}>
+                        <Calendar size={12} color="#6B7280" />
+                        <Text style={styles.metaText}>{item.date}</Text>
+                      </View>
+
+                      <Text style={styles.metaText}>{item.author}</Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
+
+      {/* ============================
+           오른쪽 패널은 Part 3에서 제공!
+         ============================ */}
+         <View style={styles.rightPanel}>
+        
+        {/* 🔵 공지 작성 화면 */}
+        {isCreating && (
+          <ScrollView contentContainerStyle={styles.rightScroll}>
+            <View style={styles.detailCard}>
+              <Text style={styles.detailTitle}>공지사항 작성</Text>
+
+              {/* 제목 */}
+              <Text style={styles.inputLabel}>제목</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="공지 제목을 입력하세요"
+                value={draftTitle}
+                onChangeText={setDraftTitle}
+              />
+
+              {/* 작성자 */}
+              <Text style={styles.inputLabel}>작성자</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="작성자 이름"
+                value={draftAuthor}
+                onChangeText={setDraftAuthor}
+              />
+
+              {/* 카테고리 */}
+              <Text style={styles.inputLabel}>카테고리</Text>
+
+              <View style={styles.categoryRow}>
+                {["safety", "site", "general"].map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[
+                      styles.categoryChip,
+                      draftCategory === c && styles.categoryChipActive,
+                    ]}
+                    onPress={() => setDraftCategory(c as any)}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        draftCategory === c && styles.categoryChipTextActive,
+                      ]}
+                    >
+                      {c === "safety" ? "안전" : c === "site" ? "현장" : "일반"}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
               </View>
-            ) : (
-              <View
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#E5E7EB',
-                  borderRadius: 12,
-                  padding: 16,
-                }}
-              >
-                <Text style={styles.sectionLabel}>첨부 이미지</Text>
-                <Text style={{ color: '#9CA3AF' }}>등록된 이미지가 없습니다.</Text>
+
+              {/* 내용 */}
+              <Text style={styles.inputLabel}>내용</Text>
+              <View style={styles.textAreaBox}>
+                <TextInput
+                  style={styles.textArea}
+                  multiline
+                  value={draftContent}
+                  onChangeText={setDraftContent}
+                  placeholder="공지 내용을 입력하세요"
+                />
               </View>
-            )}
 
-            {/* 수정/삭제 버튼 */}
-            <View style={{ flexDirection: 'row', marginTop: 20 }}>
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                onPress={() => {
-                  if (!selected) return;
-                  // 수정 모드 진입 시 draft 초기화
-                  setDraftTitle(selected.title);
-                  setDraftAuthor(selected.author);
-                  setDraftContent(selected.content);
-                  setDraftPinned(selected.pinned);
-                  setDraftUrgent(selected.urgent);
-                  setDraftCategory(selected.category);
-                  setSelectedImage(null);
-
-                  setIsEditing(true);
-                }}
-              >
-                <Text style={styles.primaryBtnText}>수정하기</Text>
+              {/* 이미지 첨부 */}
+              <Text style={styles.inputLabel}>이미지 첨부</Text>
+              <TouchableOpacity style={styles.uploadBox} onPress={handlePickImage}>
+                <Paperclip size={22} color="#9CA3AF" />
+                <Text style={{ color: "#6B7280", marginTop: 6, fontSize: 13 }}>
+                  이미지를 선택하세요
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.outlineBtn, { marginLeft: 8 }]}
-                onPress={() => handleDelete(selected.id)}
-              >
-                <Text style={styles.outlineBtnText}>삭제하기</Text>
-              </TouchableOpacity>
+              {selectedImage && (
+                <View style={styles.uploadPreview}>
+                  <Image
+                    source={{ uri: selectedImage.uri }}
+                    style={styles.previewImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImgBtn}
+                    onPress={() => setSelectedImage(null)}
+                  >
+                    <X size={14} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* 스위치 */}
+              <View style={styles.switchRow}>
+                <Text>상단 고정</Text>
+                <Switch value={draftPinned} onValueChange={setDraftPinned} />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text>긴급 공지</Text>
+                <Switch value={draftUrgent} onValueChange={setDraftUrgent} />
+              </View>
+
+              {/* 버튼 */}
+              <View style={styles.btnRow}>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleSubmit}>
+                  <Text style={styles.saveBtnText}>등록</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setIsCreating(false)}
+                >
+                  <Text style={styles.cancelBtnText}>취소</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
-        ) : (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>왼쪽에서 공지를 선택하거나 작성하세요.</Text>
+        )}
+
+        {/* 🔵 수정 모드 */}
+        {isEditing && selected && (
+          <ScrollView contentContainerStyle={styles.rightScroll}>
+            <View style={styles.detailCard}>
+              <Text style={styles.detailTitle}>공지사항 수정</Text>
+
+              {/* 제목 */}
+              <Text style={styles.inputLabel}>제목</Text>
+              <TextInput
+                style={styles.input}
+                value={draftTitle}
+                onChangeText={setDraftTitle}
+              />
+
+              {/* 작성자 */}
+              <Text style={styles.inputLabel}>작성자</Text>
+              <TextInput
+                style={styles.input}
+                value={draftAuthor}
+                onChangeText={setDraftAuthor}
+              />
+
+              {/* 카테고리 */}
+              <Text style={styles.inputLabel}>카테고리</Text>
+              <View style={styles.categoryRow}>
+                {["safety", "site", "general"].map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[
+                      styles.categoryChip,
+                      draftCategory === c && styles.categoryChipActive,
+                    ]}
+                    onPress={() => setDraftCategory(c as any)}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        draftCategory === c && styles.categoryChipTextActive,
+                      ]}
+                    >
+                      {c === "safety" ? "안전" : c === "site" ? "현장" : "일반"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* 내용 */}
+              <Text style={styles.inputLabel}>내용</Text>
+              <View style={styles.textAreaBox}>
+                <TextInput
+                  style={styles.textArea}
+                  multiline
+                  value={draftContent}
+                  onChangeText={setDraftContent}
+                />
+              </View>
+
+              {/* 이미지 첨부 */}
+              <Text style={styles.inputLabel}>새 이미지 첨부</Text>
+              <TouchableOpacity style={styles.uploadBox} onPress={handlePickImage}>
+                <Paperclip size={22} color="#9CA3AF" />
+                <Text style={{ color: "#6B7280", marginTop: 6 }}>이미지를 선택하세요</Text>
+              </TouchableOpacity>
+
+              {selectedImage && (
+                <View style={styles.uploadPreview}>
+                  <Image
+                    source={{ uri: selectedImage.uri }}
+                    style={styles.previewImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImgBtn}
+                    onPress={() => setSelectedImage(null)}
+                  >
+                    <X size={14} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={styles.switchRow}>
+                <Text>상단 고정</Text>
+                <Switch value={draftPinned} onValueChange={setDraftPinned} />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text>긴급 공지</Text>
+                <Switch value={draftUrgent} onValueChange={setDraftUrgent} />
+              </View>
+
+              <View style={styles.btnRow}>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleEditSubmit}>
+                  <Text style={styles.saveBtnText}>수정 완료</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setIsEditing(false)}
+                >
+                  <Text style={styles.cancelBtnText}>취소</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        )}
+
+        {/* 🔵 상세 보기 */}
+        {!selected && !isCreating && !isEditing && (
+          <View style={styles.emptyBox}>
+            <Megaphone color="#D1D5DB" size={68} />
+            <Text style={styles.emptyTitle}>공지사항을 선택하세요</Text>
+            <Text style={styles.emptySub}>왼쪽에서 공지를 선택하면 상세내용이 표시됩니다</Text>
           </View>
         )}
+
+        {selected && !isEditing && !isCreating && (
+          <ScrollView contentContainerStyle={styles.rightScroll}>
+            <View style={styles.detailCard}>
+              <View
+                style={[
+                  styles.detailHeader,
+                  selected.urgent
+                    ? { backgroundColor: "#FEE2E2" }
+                    : selected.pinned
+                    ? { backgroundColor: "#FEF9C3" }
+                    : {},
+                ]}
+              >
+                <Text style={styles.detailTitle}>{selected.title}</Text>
+                <Text style={styles.detailMeta}>
+                  {selected.author} · {selected.date}
+                </Text>
+
+                <View style={styles.tagRow}>
+                  {selected.pinned && (
+                    <View style={[styles.tag, { backgroundColor: "#FACC15" }]}>
+                      <Pin size={12} color="#1F2937" />
+                      <Text style={styles.tagText}>고정</Text>
+                    </View>
+                  )}
+                  {selected.urgent && (
+                    <View style={[styles.tag, { backgroundColor: "#FCA5A5" }]}>
+                      <AlertCircle size={12} color="#1F2937" />
+                      <Text style={styles.tagText}>긴급</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* 내용 */}
+              <View style={styles.contentCard}>
+                <Text style={styles.sectionHeader}>내용</Text>
+                <Text style={styles.sectionText}>{selected.content}</Text>
+              </View>
+
+              {/* 첨부파일 */}
+              {(selected.attachments?.length ?? 0) > 0 && (
+                <View style={styles.contentCard}>
+                  <Text style={styles.sectionHeader}>첨부 이미지</Text>
+                  {selected.attachments!.map((img, idx) => (
+                    <Image
+                      key={idx}
+                      source={{ uri: img }}
+                      style={styles.attachmentImage}
+                    />
+                  ))}
+                </View>
+              )}
+
+              {/* 버튼 */}
+              <View style={styles.btnRow}>
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={() => {
+                    setIsEditing(true);
+
+                    setDraftTitle(selected.title);
+                    setDraftAuthor(selected.author);
+                    setDraftContent(selected.content);
+                    setDraftPinned(selected.pinned);
+                    setDraftUrgent(selected.urgent);
+                    setDraftCategory(selected.category);
+                  }}
+                >
+                  <Text style={styles.saveBtnText}>수정</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => handleDelete(selected.id)}
+                >
+                  <Text style={[styles.cancelBtnText, { color: "#DC2626" }]}>
+                    삭제
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        )}
+
       </View>
     </View>
   );
 }
-/* ======================================================
-   📌 STYLES (기존 그대로)
-====================================================== */
+
+
+
+// =========================================
+// 🔥 스타일
+// =========================================
 const styles = StyleSheet.create({
-  root: {
+  container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
   },
-  left: {
-    width: 420,
+
+  /* 왼쪽 패널 */
+  leftPanel: {
+    width: 380,
     borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderRightColor: "#E5E7EB",
+    backgroundColor: "white",
   },
-  leftHeader: {
-    padding: 16,
+
+  headerBox: {
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+  headerTitle: {
+    fontSize: 20,
+    color: "#111827",
+    fontWeight: "600",
   },
-  subtitle: {
+  headerSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
+    marginBottom: 16,
   },
-  createButton: {
-    marginTop: 12,
-    backgroundColor: '#2563EB',
+
+  writeBtn: {
+    flexDirection: "row",
+    backgroundColor: "#2563EB",
+    paddingVertical: 12,
     borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
   },
-  createButtonText: {
-    color: '#FFFFFF',
+  writeBtnText: {
+    color: "white",
+    marginLeft: 8,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "500",
   },
-  countBox: {
-    flex: 1,
-    paddingVertical: 14,
+
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  summaryBox: {
+    width: "30%",
+    alignItems: "center",
+    paddingVertical: 10,
     borderRadius: 10,
-    alignItems: 'center',
+    borderWidth: 1,
   },
-  countNum: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  countLabel: {
-    fontSize: 12,
-    color: '#374151',
-    marginTop: 2,
-  },
+
+  /* 공지 리스트 */
   listItem: {
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "transparent",
   },
-  stateDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  listItemActive: {
+    backgroundColor: "#EFF6FF",
+    borderLeftColor: "#2563EB",
   },
+
+  badgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 6,
+  },
+
+  pinBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  pinBadgeText: {
+    color: "white",
+    fontSize: 10,
+    marginLeft: 3,
+  },
+
+  urgentBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#DC2626",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  urgentBadgeText: {
+    color: "white",
+    fontSize: 10,
+    marginLeft: 3,
+  },
+
   listTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 14,
+    color: "#111827",
+    marginBottom: 4,
+    fontWeight: "500",
   },
   listPreview: {
-    marginTop: 4,
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
+    marginBottom: 6,
   },
-  listBottomRow: {
-    marginTop: 6,
+
+  listMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  listMeta: {
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: "#6B7280",
   },
-  right: {
+  rightPanel: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+  rightScroll: {
     padding: 20,
-    margin: 16,
+    paddingBottom: 100,
   },
+
   detailCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "white",
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 12,
     padding: 20,
-    margin: 16,
   },
+
+  detailHeader: {
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    marginBottom: 20,
+  },
+
   detailTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
   },
   detailMeta: {
     marginTop: 6,
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
+
   tagRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
     marginTop: 10,
   },
   tag: {
-    paddingHorizontal: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 6,
   },
   tagText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
+    marginLeft: 4,
+    color: "#1F2937",
   },
-  sectionLabel: {
-    fontWeight: '700',
-    fontSize: 13,
-    marginBottom: 6,
-    color: '#111827',
+
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#111827",
   },
   sectionText: {
     fontSize: 13,
-    color: '#374151',
+    color: "#374151",
     lineHeight: 20,
   },
-  infoLabel: {
+
+  contentCard: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 20,
+  },
+
+  attachmentImage: {
+    width: "100%",
+    height: 220,
+    borderRadius: 10,
     marginTop: 10,
+  },
+
+  /* 입력 UI */
+  inputLabel: {
+    marginTop: 12,
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
     borderRadius: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: '#F9FAFB',
     fontSize: 14,
   },
-  contentBlock: {
-    minHeight: 150,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    backgroundColor: '#F9FAFB',
-    padding: 8,
-  },
-  textArea: {
-    minHeight: 140,
-    fontSize: 14,
-    padding: 10,
-    textAlignVertical: 'top',
-  },
+
   categoryRow: {
-    flexDirection: 'row',
-    gap: 6,
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
   },
   categoryChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: 99,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#D1D5DB",
+    backgroundColor: "white",
   },
   categoryChipActive: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: "#2563EB",
+    borderColor: "#2563EB",
   },
   categoryChipText: {
     fontSize: 12,
-    color: '#374151',
+    color: "#374151",
   },
   categoryChipTextActive: {
-    color: 'white',
+    color: "white",
   },
-  switchRow: {
-    marginTop: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  imageUploadBox: {
-    marginTop: 6,
-    height: 120,
+
+  textAreaBox: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
     borderRadius: 10,
-    borderStyle: 'dashed',
-    backgroundColor: '#F9FAFB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    minHeight: 150,
+    padding: 10,
   },
-  previewContainer: {
+  textArea: {
+    flex: 1,
+    textAlignVertical: "top",
+    fontSize: 14,
+  },
+
+  uploadBox: {
+    marginTop: 6,
+    borderWidth: 2,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    borderStyle: "dashed",
+    paddingVertical: 30,
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+  },
+  uploadPreview: {
     marginTop: 10,
     width: 150,
     height: 150,
   },
   previewImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 10,
   },
-  removeImageBtn: {
-    position: 'absolute',
+  removeImgBtn: {
+    position: "absolute",
     bottom: 8,
     right: 8,
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: "#DC2626",
+    padding: 6,
+    borderRadius: 18,
   },
-  primaryBtn: {
+
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+
+  btnRow: {
+    flexDirection: "row",
+    marginTop: 22,
+    gap: 8,
+  },
+
+  saveBtn: {
     flex: 1,
-    backgroundColor: '#2563EB',
-    paddingVertical: 10,
+    backgroundColor: "#2563EB",
+    paddingVertical: 12,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  primaryBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+  saveBtnText: {
+    color: "white",
+    fontWeight: "600",
   },
-  outlineBtn: {
+
+  cancelBtn: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    paddingVertical: 10,
+    borderColor: "#D1D5DB",
+    paddingVertical: 12,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  outlineBtnText: {
-    color: '#374151',
-    fontWeight: '600',
+  cancelBtnText: {
+    color: "#374151",
+    fontWeight: "600",
+  },
+
+  emptyBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    color: "#6B7280",
+    marginTop: 10,
+  },
+  emptySub: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#9CA3AF",
   },
 });

@@ -180,17 +180,7 @@ export default function ContractWriteScreen({ route, navigation }: Props) {
           <Text style={styles.title}>{contractType} 근로계약서</Text>
         </View>
 
-        <TouchableOpacity
-          onPress={() => setIsDrawing(!isDrawing)}
-          style={[
-            styles.drawToggleBtn,
-            { backgroundColor: isDrawing ? "#16A34A" : "#2563EB" },
-          ]}
-        >
-          <Text style={styles.drawToggleText}>
-            {isDrawing ? "필기 종료" : "필기 하기"}
-          </Text>
-        </TouchableOpacity>
+        
 
         {isDrawing && (
           <TouchableOpacity onPress={undo} style={styles.undoBtn}>
