@@ -130,3 +130,9 @@
 .divider {
   color: #d1d5db;
 }
+
+.login-top-logo {
+  width: 250px;        /* 로고 크기 조정 가능 */
+  margin: 0 auto 20px; /* 아래 여백 20px */
+  display: block;      /* 중앙 정렬 */
+}

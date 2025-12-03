@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -85,6 +86,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -92,7 +94,17 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // ★ 중요: project.env.get()을 써야 .env 파일 내용을 읽어옵니다.
+            if (project.env.get("MYAPP_UPLOAD_STORE_FILE")) {
+                storeFile file(project.env.get("MYAPP_UPLOAD_STORE_FILE"))
+                storePassword project.env.get("MYAPP_UPLOAD_STORE_PASSWORD")
+                keyAlias project.env.get("MYAPP_UPLOAD_KEY_ALIAS")
+                keyPassword project.env.get("MYAPP_UPLOAD_KEY_PASSWORD")
+            }
+        }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -100,7 +112,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

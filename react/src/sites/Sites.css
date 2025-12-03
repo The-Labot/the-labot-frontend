@@ -1,4 +1,4 @@
-/* 기본 레이아웃 설정 */
+/*기본 레이아웃 설정*/
 .dashboard-container {
   width: 100%;
   min-height: 100vh;
@@ -11,7 +11,6 @@
   width: 100%;
   background: #ffffff;
   box-shadow: 0px 1px 2px rgba(0,0,0,0.05);
-  font-family: 'Inter', sans-serif;
 }
 
 .nav-inner {
@@ -50,13 +49,8 @@
   color: white;
 }
 
-.clickable {
-  cursor: pointer;
-}
-
 .nav-title {
-  margin-left: 30px;
-  font-size: 27px;
+  font-size: 18px;
   font-weight: 600;
   color: #111827;
 }
@@ -173,6 +167,12 @@
 }
 
 .blue-icon {
+  color: #3b82f6;
+  width: 28px;
+  height: 28px;
+}
+
+.blue-icon2 {
   color: #ffffff;
   width: 28px;
   height: 28px;

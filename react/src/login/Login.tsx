@@ -4,6 +4,7 @@ import { useState } from "react";
 import { login } from "../api/authApi";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png"
 
 interface LoginProps {
   onSignUpClick: () => void;
@@ -54,6 +55,7 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
   return (
     <div className="login-wrapper">
       <div className="login-card">
+        <img src={logo} alt="The-Labot Logo" className="login-top-logo" />
         <div className="login-header">
           <div className="login-icon">
             <Building2 size={34} color="#fff" />
@@ -104,4 +106,6 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
       </div>
     </div>
   );
+
+  
 }

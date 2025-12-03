@@ -101,7 +101,7 @@ export default function Dashboard({
           <div className="nav-left">
             <div className="nav-logo-box clickable" 
                 onClick={onDashBoard}>
-              <img src={iconMain} alt="메인 아이콘" width="120px" /> 
+              <img src={iconMain} alt="메인 아이콘" width="200px" /> 
             </div>
             <h1 className="nav-title">현장 종합 대시보드</h1>
           </div>
