@@ -1,42 +1,49 @@
-import { useState } from "react";
+// src/pages/Site/SiteEditPage.tsx
+
+import { useEffect, useState } from "react";
 import { ArrowLeft, Save } from "lucide-react";
-import "./SiteCreatePage.css";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
+import "../site_create/SiteCreatePage.css";
 import { getCoordinatesByAddress } from "../api/kakaoApi";
 
-/* ---------------------------------------
-   SocialIns 전체 타입 (백엔드 명세 기준)
------------------------------------------ */
+/* ---------------------------
+   타입 정의(등록과 동일)
+---------------------------- */
 interface SocialInsDTO {
   pensionDailyBizSymbol: string;
-  pensionDailyJoinDate: string;
   pensionRegularBizSymbol: string;
+  pensionDailyJoinDate: string;
   pensionRegularJoinDate: string;
+
+  healthDailyBizSymbol: string;
+  healthRegularBizSymbol: string;
+  healthDailyJoinDate: string;
+  healthRegularJoinDate: string;
+
+  employDailyMgmtNum: string;
+  employRegularMgmtNum: string;
+  employDailyJoinDate: string;
+  employRegularJoinDate: string;
+
+  accidentDailyMgmtNum: string;
+  accidentRegularMgmtNum: string;
+  accidentDailyJoinDate: string;
+  accidentRegularJoinDate: string;
+
   pensionFee: number | null;
   pensionPaid: number | null;
 
-  healthDailyBizSymbol: string;
-  healthDailyJoinDate: string;
-  healthRegularBizSymbol: string;
-  healthRegularJoinDate: string;
   healthFee: number | null;
   healthPaid: number | null;
 
-  employDailyMgmtNum: string;
-  employDailyJoinDate: string;
-  employRegularMgmtNum: string;
-  employRegularJoinDate: string;
   employFee: number | null;
   employPaid: number | null;
 
-  accidentDailyMgmtNum: string;
-  accidentDailyJoinDate: string;
-  accidentRegularMgmtNum: string;
-  accidentRegularJoinDate: string;
   accidentFee: number | null;
   accidentPaid: number | null;
 
-  severanceTarget: boolean;
+  SeveranceTarget: boolean;
   severanceType: "MANDATORY" | "OPTIONAL" | "NONE";
   severanceDeductionNum: string;
   severanceJoinDate: string;
@@ -44,15 +51,13 @@ interface SocialInsDTO {
   totalSeverancePaidAmount: number | null;
 }
 
-/* ---------------------------------------
-   SiteFormState (Create/Edit 동일 구조)
------------------------------------------ */
 interface SiteFormState {
   projectName: string;
-  contractType: "PRIME" | "SUB" | "";
-  siteManagerName: string;
+  contractType: string;
 
+  siteManagerName: string;
   contractAmount: string;
+
   clientName: string;
   primeContractorName: string;
 
@@ -69,132 +74,201 @@ interface SiteFormState {
   laborCostAccountHolder: string;
   informPhoneNumber: string;
 
-  insuranceResponsibility:
-    | "NONE"
-    | "ALL"
-    | "EMPLOYMENT_ONLY"
-    | "ACCIDENT_ONLY"
-    | "";
+  insuranceResponsibility: string;
 
   employmentInsuranceSiteNum: string;
   primeContractorMgmtNum: string;
-
   isKisconReportTarget: boolean;
 
   socialIns: SocialInsDTO;
 }
 
-export default function SiteCreatePage() {
-  const [form, setForm] = useState<SiteFormState>({
-    projectName: "",
-    contractType: "",
-    siteManagerName: "",
+/* ---------------------------
+        컴포넌트 시작
+---------------------------- */
+export default function SiteEditPage() {
+  const { siteId } = useParams();
+  const navigate = useNavigate();
 
-    contractAmount: "",
-    clientName: "",
-    primeContractorName: "",
+  const [form, setForm] = useState<SiteFormState | null>(null);
+  const [retireEnabled, setRetireEnabled] = useState(false);
 
-    address: "",
-    latitude: "",
-    longitude: "",
+  /* =====================================================
+      1) 상세 조회 → form 구조에 맞게 데이터 매핑
+  ====================================================== */
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await api.get(`/admin/sites/${siteId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-    contractDate: "",
-    startDate: "",
-    endDate: "",
+        const d = res.data.data;
 
-    laborCostBankName: "",
-    laborCostAccountNumber: "",
-    laborCostAccountHolder: "",
-    informPhoneNumber: "",
+        setForm({
+          projectName: d.projectName,
+          contractType: d.contractType,
 
-    insuranceResponsibility: "NONE",
-    employmentInsuranceSiteNum: "",
-    primeContractorMgmtNum: "",
+          siteManagerName: d.siteManagerName,
+          contractAmount: d.contractAmount?.toString() ?? "",
 
-    isKisconReportTarget: false,
+          clientName: d.clientName,
+          primeContractorName: d.primeContractorName,
 
-    socialIns: {
-      pensionDailyBizSymbol: "",
-      pensionDailyJoinDate: "",
-      pensionRegularBizSymbol: "",
-      pensionRegularJoinDate: "",
-      pensionFee: null,
-      pensionPaid: null,
+          address: d.address,
+          latitude: d.latitude?.toString() ?? "",
+          longitude: d.longitude?.toString() ?? "",
 
-      healthDailyBizSymbol: "",
-      healthDailyJoinDate: "",
-      healthRegularBizSymbol: "",
-      healthRegularJoinDate: "",
-      healthFee: null,
-      healthPaid: null,
+          contractDate: d.contractDate,
+          startDate: d.startDate,
+          endDate: d.endDate,
 
-      employDailyMgmtNum: "",
-      employDailyJoinDate: "",
-      employRegularMgmtNum: "",
-      employRegularJoinDate: "",
-      employFee: null,
-      employPaid: null,
+          // 계좌 정보 변환 매핑
+          laborCostBankName: d.laborCostAccount.bankName,
+          laborCostAccountNumber: d.laborCostAccount.accountNumber,
+          laborCostAccountHolder: d.laborCostAccount.accountHolder,
+          informPhoneNumber: d.laborCostAccount.informPhoneNumber,
 
-      accidentDailyMgmtNum: "",
-      accidentDailyJoinDate: "",
-      accidentRegularMgmtNum: "",
-      accidentRegularJoinDate: "",
-      accidentFee: null,
-      accidentPaid: null,
+          insuranceResponsibility: d.insuranceResponsibility,
 
-      severanceTarget: false,
-      severanceType: "NONE",
-      severanceDeductionNum: "",
-      severanceJoinDate: "",
-      dailyDeductionAmount: null,
-      totalSeverancePaidAmount: null,
-    },
-  });
+          employmentInsuranceSiteNum: d.employmentInsuranceSiteNum,
+          primeContractorMgmtNum: d.primeContractorMgmtNum,
+          isKisconReportTarget: d.kisconReportTarget,
 
-  const handleBack = () => window.history.back();
+          // 4대 보험 전체 매핑
+          socialIns: {
+            pensionDailyBizSymbol: d.socialIns.pensionDailyBizSymbol,
+            pensionRegularBizSymbol: d.socialIns.pensionRegularBizSymbol,
+            pensionDailyJoinDate: d.socialIns.pensionDailyJoinDate,
+            pensionRegularJoinDate: d.socialIns.pensionRegularJoinDate,
 
-  /* ---------------------------------------
-     공통 입력 변경 핸들러
-  ----------------------------------------- */
+            healthDailyBizSymbol: d.socialIns.healthDailyBizSymbol,
+            healthRegularBizSymbol: d.socialIns.healthRegularBizSymbol,
+            healthDailyJoinDate: d.socialIns.healthDailyJoinDate,
+            healthRegularJoinDate: d.socialIns.healthRegularJoinDate,
+
+            employDailyMgmtNum: d.socialIns.employDailyMgmtNum,
+            employRegularMgmtNum: d.socialIns.employRegularMgmtNum,
+            employDailyJoinDate: d.socialIns.employDailyJoinDate,
+            employRegularJoinDate: d.socialIns.employRegularJoinDate,
+
+            accidentDailyMgmtNum: d.socialIns.accidentDailyMgmtNum,
+            accidentRegularMgmtNum: d.socialIns.accidentRegularMgmtNum,
+            accidentDailyJoinDate: d.socialIns.accidentDailyJoinDate,
+            accidentRegularJoinDate: d.socialIns.accidentRegularJoinDate,
+
+            pensionFee: d.socialIns.pensionFee,
+            pensionPaid: d.socialIns.pensionPaid,
+
+            healthFee: d.socialIns.healthFee,
+            healthPaid: d.socialIns.healthPaid,
+
+            employFee: d.socialIns.employFee,
+            employPaid: d.socialIns.employPaid,
+
+            accidentFee: d.socialIns.accidentFee,
+            accidentPaid: d.socialIns.accidentPaid,
+
+            SeveranceTarget: d.socialIns.severanceTarget,
+            severanceType: d.socialIns.severanceType,
+            severanceDeductionNum: d.socialIns.severanceDeductionNum,
+            severanceJoinDate: d.socialIns.severanceJoinDate,
+            dailyDeductionAmount: d.socialIns.dailyDeductionAmount,
+            totalSeverancePaidAmount: d.socialIns.totalSeverancePaidAmount,
+          },
+        });
+
+        setRetireEnabled(d.socialIns.severanceTarget);
+      } catch (e) {
+        alert("현장 정보를 불러오지 못했습니다.");
+      }
+    };
+
+    load();
+  }, [siteId]);
+
+  if (!form) return <div>Loading...</div>;
+
+  /* =====================================================
+     2) 입력 핸들러
+  ====================================================== */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
     if (name in form.socialIns) {
-      setForm((prev) => ({
-        ...prev,
-        socialIns: { ...prev.socialIns, [name]: value },
-      }));
+      setForm({
+        ...form,
+        socialIns: { ...form.socialIns, [name]: value },
+      });
       return;
     }
 
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm({ ...form, [name]: value });
   };
 
-  /* ---------------------------------------
-     Boolean 변경 핸들러
-  ----------------------------------------- */
-  const handleBooleanChange = (
-    name: keyof SiteFormState | keyof SocialInsDTO,
-    value: boolean
-  ) => {
+  const handleBooleanChange = (name: string, value: boolean) => {
     if (name in form.socialIns) {
-      setForm((prev) => ({
-        ...prev,
-        socialIns: {
-          ...prev.socialIns,
-          [name]: value,
-        },
-      }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm({
+        ...form,
+        socialIns: { ...form.socialIns, [name]: value },
+      });
+      return;
     }
+    setForm({ ...form, [name]: value });
   };
 
-  /* ---------------------------------------
-     보험 입력 가능 여부 (정답 로직)
------------------------------------------ */
+  /* =====================================================
+     3) 좌표 조회
+  ====================================================== */
+  const handleSearchAddress = async () => {
+    if (!form.address.trim()) {
+      alert("주소를 입력해주세요.");
+      return;
+    }
+
+    const coord = await getCoordinatesByAddress(form.address);
+    if (!coord) return alert("주소를 찾을 수 없습니다.");
+
+    setForm({ ...form, latitude: coord.latitude, longitude: coord.longitude });
+    alert("좌표가 자동 입력되었습니다.");
+  };
+
+  /* =====================================================
+     4) 퇴직공제 토글
+  ====================================================== */
+  const handleToggleRetire = () => {
+    setRetireEnabled(!retireEnabled);
+    handleBooleanChange("SeveranceTarget", !retireEnabled);
+  };
+
+  /* =====================================================
+     5) PUT 제출
+  ====================================================== */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("accessToken");
+
+    const payload = {
+      ...form,
+      contractAmount: Number(form.contractAmount),
+      latitude: Number(form.latitude),
+      longitude: Number(form.longitude),
+    };
+
+    await api.put(`/admin/sites/${siteId}`, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    alert("현장 정보가 수정되었습니다.");
+    navigate(`/site/${siteId}`);
+  };
+
+  /* =====================================================
+     6) Disable 조건
+  ====================================================== */
   const employDisabled =
     form.insuranceResponsibility === "EMPLOYMENT_ONLY" ||
     form.insuranceResponsibility === "ALL";
@@ -203,138 +277,56 @@ export default function SiteCreatePage() {
     form.insuranceResponsibility === "ACCIDENT_ONLY" ||
     form.insuranceResponsibility === "ALL";
 
-  /* ---------------------------------------
-     좌표 조회
-  ----------------------------------------- */
-  const handleSearchAddress = async () => {
-    if (!form.address.trim()) {
-      alert("주소를 입력해주세요.");
-      return;
-    }
+  const retireDisabled = !retireEnabled;
 
-    try {
-      const coord = await getCoordinatesByAddress(form.address);
-      if (!coord) {
-        alert("주소를 찾을 수 없습니다.");
-        return;
-      }
+  /* =====================================================
+     7) UI — Create와 완전히 동일
+  ====================================================== */
 
-      setForm((prev) => ({
-        ...prev,
-        latitude: coord.latitude,
-        longitude: coord.longitude,
-      }));
-
-      alert("좌표가 자동 입력되었습니다.");
-    } catch (err) {
-      console.error(err);
-      alert("좌표 조회 중 오류 발생");
-    }
-  };
-
-  /* ---------------------------------------
-     퇴직공제 Toggle (함수명 FIX)
-  ----------------------------------------- */
-  const [retireEnabled, setRetireEnabled] = useState(false);
-
-  const toggleRetire = () => {
-    const next = !retireEnabled;
-    setRetireEnabled(next);
-
-    handleBooleanChange("severanceTarget", next);
-
-    if (!next) {
-      handleChange({
-        target: { name: "severanceType", value: "NONE" },
-      } as any);
-    } else {
-      handleChange({
-        target: { name: "severanceType", value: "MANDATORY" },
-      } as any);
-    }
-  };
-
-  /* ---------------------------------------
-     제출 (POST)
-  ----------------------------------------- */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const token = localStorage.getItem("accessToken");
-
-    const payload = {
-      ...form,
-      contractAmount: form.contractAmount ? Number(form.contractAmount) : null,
-      latitude: form.latitude ? Number(form.latitude) : null,
-      longitude: form.longitude ? Number(form.longitude) : null,
-    };
-
-    try {
-      await api.post("/admin/sites", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      alert("현장 등록이 완료되었습니다.");
-      handleBack();
-    } catch (err: any) {
-      alert(
-        "등록 실패: " +
-          (err.response?.data?.message || err.message || "알 수 없는 오류")
-      );
-    }
-  };
-
-  /* ---------------------------------------
-     반환 UI
-  ----------------------------------------- */
   return (
     <div className="site-create-page">
       {/* 헤더 */}
       <div className="site-create-header">
-        <button type="button" className="ghost-button" onClick={handleBack}>
+        <button className="ghost-button" onClick={() => navigate(-1)}>
           <ArrowLeft size={16} />
           <span>뒤로가기</span>
         </button>
 
-        <h1 className="site-create-title">현장 등록</h1>
+        <h1 className="site-create-title">현장 정보 수정</h1>
 
         <div className="site-create-actions">
-          <button type="submit" className="primary-button" form="site-create-form">
+          <button type="submit" className="primary-button" form="site-edit-form">
             <Save size={16} />
-            <span>저장</span>
+            저장
           </button>
         </div>
       </div>
 
-      <form id="site-create-form" className="site-create-form" onSubmit={handleSubmit}>
-        {/* ================= */}
+      {/* Form Start */}
+      <form id="site-edit-form" className="site-create-form" onSubmit={handleSubmit}>
+        
+        {/* ----------------------------- */}
         {/* ① 기본 정보 */}
-        {/* ================= */}
+        {/* ----------------------------- */}
         <section className="form-card">
           <h2 className="form-card-title">현장 기본 정보</h2>
 
           <div className="form-grid">
-            {/* 공사명 */}
             <div className="form-field">
-              <label>공사명 *</label>
+              <label>공사명</label>
               <input
                 name="projectName"
                 value={form.projectName}
                 onChange={handleChange}
-                required
               />
             </div>
 
-            {/* 도급종류 */}
             <div className="form-field">
-              <label>도급 종류 *</label>
+              <label>도급종류</label>
               <select
                 name="contractType"
                 value={form.contractType}
                 onChange={handleChange}
-                required
               >
                 <option value="">선택</option>
                 <option value="PRIME">원청(PRIME)</option>
@@ -342,7 +334,6 @@ export default function SiteCreatePage() {
               </select>
             </div>
 
-            {/* 현장대리인 */}
             <div className="form-field">
               <label>현장대리인</label>
               <input
@@ -352,70 +343,50 @@ export default function SiteCreatePage() {
               />
             </div>
 
-            {/* 인정 승인 */}
             <div className="form-field">
-              <label>인정승인 *</label>
+              <label>인정승인</label>
               <select
                 name="insuranceResponsibility"
                 value={form.insuranceResponsibility}
                 onChange={handleChange}
-                required
               >
-                <option value="">선택</option>
                 <option value="NONE">없음</option>
+                <option value="ALL">고용+산재</option>
                 <option value="EMPLOYMENT_ONLY">고용만</option>
                 <option value="ACCIDENT_ONLY">산재만</option>
-                <option value="ALL">고용+산재</option>
               </select>
             </div>
 
             {/* 주소 */}
             <div className="form-field form-field-full">
-              <label>주소 *</label>
-
-              <div style={{ display: "flex", gap: "8px" }}>
+              <label>주소</label>
+              <div style={{ display: "flex", gap: 8 }}>
                 <input
                   name="address"
                   value={form.address}
                   onChange={handleChange}
-                  placeholder="도로명 주소"
-                  required
                 />
-
                 <button type="button" className="outline-button" onClick={handleSearchAddress}>
                   좌표조회
                 </button>
               </div>
             </div>
 
-            {/* 위도 */}
             <div className="form-field">
-              <label>위도 *</label>
-              <input
-                name="latitude"
-                value={form.latitude}
-                onChange={handleChange}
-                required
-              />
+              <label>위도</label>
+              <input name="latitude" value={form.latitude} onChange={handleChange} />
             </div>
 
-            {/* 경도 */}
             <div className="form-field">
-              <label>경도 *</label>
-              <input
-                name="longitude"
-                value={form.longitude}
-                onChange={handleChange}
-                required
-              />
+              <label>경도</label>
+              <input name="longitude" value={form.longitude} onChange={handleChange} />
             </div>
           </div>
         </section>
 
-        {/* ------------------ */}
-        {/* 계약/계좌 정보 */}
-        {/* ------------------ */}
-
+        {/* ----------------------------- */}
+        {/* ② 계약 / 계좌 정보 */}
+        {/* ----------------------------- */}
         <section className="form-card">
           <h2 className="form-card-title">계약 / 계좌 정보</h2>
 
@@ -423,18 +394,15 @@ export default function SiteCreatePage() {
             <h3 className="subsection-title">계약 정보</h3>
 
             <div className="form-grid">
-              {/* 도급금액 */}
               <div className="form-field">
                 <label>도급금액</label>
                 <input
                   name="contractAmount"
                   value={form.contractAmount}
                   onChange={handleChange}
-                  placeholder="예) 500000000"
                 />
               </div>
 
-              {/* 도급처 */}
               <div className="form-field">
                 <label>도급처</label>
                 <input
@@ -444,40 +412,33 @@ export default function SiteCreatePage() {
                 />
               </div>
 
-              {/* 계약일 */}
               <div className="form-field">
                 <label>계약일</label>
                 <input
-                  type="date"
                   name="contractDate"
                   value={form.contractDate}
                   onChange={handleChange}
                 />
               </div>
 
-              {/* 착공일 */}
               <div className="form-field">
                 <label>착공일</label>
                 <input
-                  type="date"
                   name="startDate"
                   value={form.startDate}
                   onChange={handleChange}
                 />
               </div>
 
-              {/* 준공일 */}
               <div className="form-field">
                 <label>준공일</label>
                 <input
-                  type="date"
                   name="endDate"
                   value={form.endDate}
                   onChange={handleChange}
                 />
               </div>
 
-              {/* 원도급사 */}
               <div className="form-field form-field-full">
                 <label>원도급사</label>
                 <input
@@ -533,20 +494,20 @@ export default function SiteCreatePage() {
           </div>
         </section>
 
-        {/* ================= */}
+        {/* ----------------------------- */}
         {/* ③ 4대 보험 */}
-        {/* ================= */}
+        {/* ----------------------------- */}
 
         <section className="form-card">
           <h2 className="form-card-title">4대 보험</h2>
 
-          {/* 상단 옵션 */}
+          {/* 상단 */}
           <div className="insurance-options-row">
             <div className="form-field">
-              <label>고용보험 사업장 번호</label>
+              <label>고용번호</label>
               <input
                 name="employmentInsuranceSiteNum"
-                value={form.employmentInsuranceSiteNum}
+                value={form.employmentInsuranceSiteNum || ""}
                 onChange={handleChange}
               />
             </div>
@@ -555,7 +516,7 @@ export default function SiteCreatePage() {
               <label>원수급번호</label>
               <input
                 name="primeContractorMgmtNum"
-                value={form.primeContractorMgmtNum}
+                value={form.primeContractorMgmtNum || ""}
                 onChange={handleChange}
               />
             </div>
@@ -568,7 +529,7 @@ export default function SiteCreatePage() {
                   handleBooleanChange("isKisconReportTarget", e.target.checked)
                 }
               />
-              <span>키스콘 대상</span>
+              <span>건설공사대장 전자통보 대상</span>
             </label>
 
             {/* 퇴직공제 */}
@@ -576,12 +537,16 @@ export default function SiteCreatePage() {
               <button
                 type="button"
                 className={"retire-toggle-btn" + (retireEnabled ? " active" : "")}
-                onClick={toggleRetire}
+                onClick={handleToggleRetire}
               >
                 퇴직공제 가입여부
               </button>
 
-              <div className={"radio-group-inline" + (retireEnabled ? "" : " disabled")}>
+              <div
+                className={
+                  "radio-group-inline" + (retireEnabled ? "" : " disabled")
+                }
+              >
                 <label>
                   <input
                     type="radio"
@@ -589,10 +554,7 @@ export default function SiteCreatePage() {
                     checked={form.socialIns.severanceType === "MANDATORY"}
                     onChange={(e) =>
                       handleChange({
-                        target: {
-                          name: "severanceType",
-                          value: e.target.value,
-                        },
+                        target: { name: "severanceType", value: e.target.value },
                       } as any)
                     }
                     disabled={!retireEnabled}
@@ -607,10 +569,7 @@ export default function SiteCreatePage() {
                     checked={form.socialIns.severanceType === "OPTIONAL"}
                     onChange={(e) =>
                       handleChange({
-                        target: {
-                          name: "severanceType",
-                          value: e.target.value,
-                        },
+                        target: { name: "severanceType", value: e.target.value },
                       } as any)
                     }
                     disabled={!retireEnabled}
@@ -621,8 +580,7 @@ export default function SiteCreatePage() {
             </div>
           </div>
 
-
-          {/* 보험 테이블 */}
+          {/* 테이블 */}
           <div className="insurance-table-wrapper">
             <table className="insurance-table">
               <thead>
@@ -638,43 +596,43 @@ export default function SiteCreatePage() {
               <tbody>
                 {/* 국민연금 */}
                 <tr>
-                  <td><div className="insurance-row-label">국민연금</div></td>
+                  <td><div className="insurance-row-label">국민연금기초</div></td>
 
-                  {/* 번호 */}
                   <td>
                     <div className="dual-input-row">
                       <span>일용</span>
                       <input
                         name="pensionDailyBizSymbol"
-                        value={form.socialIns.pensionDailyBizSymbol}
+                        value={form.socialIns.pensionDailyBizSymbol || ""}
                         onChange={handleChange}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="pensionRegularBizSymbol"
-                        value={form.socialIns.pensionRegularBizSymbol}
+                        value={form.socialIns.pensionRegularBizSymbol || ""}
                         onChange={handleChange}
                       />
                     </div>
                   </td>
 
-                  {/* 가입일 */}
                   <td>
                     <div className="dual-input-row">
                       <span>일용</span>
                       <input
                         name="pensionDailyJoinDate"
-                        value={form.socialIns.pensionDailyJoinDate}
+                        value={form.socialIns.pensionDailyJoinDate || ""}
                         onChange={handleChange}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="pensionRegularJoinDate"
-                        value={form.socialIns.pensionRegularJoinDate}
+                        value={form.socialIns.pensionRegularJoinDate || ""}
                         onChange={handleChange}
                       />
                     </div>
@@ -682,7 +640,6 @@ export default function SiteCreatePage() {
 
                   <td>
                     <input
-                      type="number"
                       name="pensionFee"
                       value={form.socialIns.pensionFee ?? ""}
                       onChange={handleChange}
@@ -691,7 +648,6 @@ export default function SiteCreatePage() {
 
                   <td>
                     <input
-                      type="number"
                       name="pensionPaid"
                       value={form.socialIns.pensionPaid ?? ""}
                       onChange={handleChange}
@@ -701,22 +657,23 @@ export default function SiteCreatePage() {
 
                 {/* 건강보험 */}
                 <tr>
-                  <td><div className="insurance-row-label">건강보험</div></td>
+                  <td><div className="insurance-row-label">건강보험기초</div></td>
 
                   <td>
                     <div className="dual-input-row">
                       <span>일용</span>
                       <input
                         name="healthDailyBizSymbol"
-                        value={form.socialIns.healthDailyBizSymbol}
+                        value={form.socialIns.healthDailyBizSymbol || ""}
                         onChange={handleChange}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="healthRegularBizSymbol"
-                        value={form.socialIns.healthRegularBizSymbol}
+                        value={form.socialIns.healthRegularBizSymbol || ""}
                         onChange={handleChange}
                       />
                     </div>
@@ -727,15 +684,16 @@ export default function SiteCreatePage() {
                       <span>일용</span>
                       <input
                         name="healthDailyJoinDate"
-                        value={form.socialIns.healthDailyJoinDate}
+                        value={form.socialIns.healthDailyJoinDate || ""}
                         onChange={handleChange}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="healthRegularJoinDate"
-                        value={form.socialIns.healthRegularJoinDate}
+                        value={form.socialIns.healthRegularJoinDate || ""}
                         onChange={handleChange}
                       />
                     </div>
@@ -743,7 +701,6 @@ export default function SiteCreatePage() {
 
                   <td>
                     <input
-                      type="number"
                       name="healthFee"
                       value={form.socialIns.healthFee ?? ""}
                       onChange={handleChange}
@@ -752,7 +709,6 @@ export default function SiteCreatePage() {
 
                   <td>
                     <input
-                      type="number"
                       name="healthPaid"
                       value={form.socialIns.healthPaid ?? ""}
                       onChange={handleChange}
@@ -769,18 +725,19 @@ export default function SiteCreatePage() {
                       <span>일용</span>
                       <input
                         name="employDailyMgmtNum"
-                        value={form.socialIns.employDailyMgmtNum}
-                        disabled={employDisabled}
+                        value={form.socialIns.employDailyMgmtNum || ""}
                         onChange={handleChange}
+                        disabled={employDisabled}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="employRegularMgmtNum"
-                        value={form.socialIns.employRegularMgmtNum}
-                        disabled={employDisabled}
+                        value={form.socialIns.employRegularMgmtNum || ""}
                         onChange={handleChange}
+                        disabled={employDisabled}
                       />
                     </div>
                   </td>
@@ -790,39 +747,38 @@ export default function SiteCreatePage() {
                       <span>일용</span>
                       <input
                         name="employDailyJoinDate"
-                        value={form.socialIns.employDailyJoinDate}
-                        disabled={employDisabled}
+                        value={form.socialIns.employDailyJoinDate || ""}
                         onChange={handleChange}
+                        disabled={employDisabled}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="employRegularJoinDate"
-                        value={form.socialIns.employRegularJoinDate}
-                        disabled={employDisabled}
+                        value={form.socialIns.employRegularJoinDate || ""}
                         onChange={handleChange}
+                        disabled={employDisabled}
                       />
                     </div>
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="employFee"
                       value={form.socialIns.employFee ?? ""}
-                      disabled={employDisabled}
                       onChange={handleChange}
+                      disabled={employDisabled}
                     />
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="employPaid"
                       value={form.socialIns.employPaid ?? ""}
-                      disabled={employDisabled}
                       onChange={handleChange}
+                      disabled={employDisabled}
                     />
                   </td>
                 </tr>
@@ -836,18 +792,19 @@ export default function SiteCreatePage() {
                       <span>일용</span>
                       <input
                         name="accidentDailyMgmtNum"
-                        value={form.socialIns.accidentDailyMgmtNum}
-                        disabled={accidentDisabled}
+                        value={form.socialIns.accidentDailyMgmtNum || ""}
                         onChange={handleChange}
+                        disabled={accidentDisabled}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="accidentRegularMgmtNum"
-                        value={form.socialIns.accidentRegularMgmtNum}
-                        disabled={accidentDisabled}
+                        value={form.socialIns.accidentRegularMgmtNum || ""}
                         onChange={handleChange}
+                        disabled={accidentDisabled}
                       />
                     </div>
                   </td>
@@ -857,39 +814,38 @@ export default function SiteCreatePage() {
                       <span>일용</span>
                       <input
                         name="accidentDailyJoinDate"
-                        value={form.socialIns.accidentDailyJoinDate}
-                        disabled={accidentDisabled}
+                        value={form.socialIns.accidentDailyJoinDate || ""}
                         onChange={handleChange}
+                        disabled={accidentDisabled}
                       />
                     </div>
+
                     <div className="dual-input-row">
                       <span>상용</span>
                       <input
                         name="accidentRegularJoinDate"
-                        value={form.socialIns.accidentRegularJoinDate}
-                        disabled={accidentDisabled}
+                        value={form.socialIns.accidentRegularJoinDate || ""}
                         onChange={handleChange}
+                        disabled={accidentDisabled}
                       />
                     </div>
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="accidentFee"
                       value={form.socialIns.accidentFee ?? ""}
-                      disabled={accidentDisabled}
                       onChange={handleChange}
+                      disabled={accidentDisabled}
                     />
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="accidentPaid"
                       value={form.socialIns.accidentPaid ?? ""}
-                      disabled={accidentDisabled}
                       onChange={handleChange}
+                      disabled={accidentDisabled}
                     />
                   </td>
                 </tr>
@@ -901,38 +857,36 @@ export default function SiteCreatePage() {
                   <td>
                     <input
                       name="severanceDeductionNum"
-                      value={form.socialIns.severanceDeductionNum}
-                      disabled={!retireEnabled}
+                      value={form.socialIns.severanceDeductionNum || ""}
                       onChange={handleChange}
+                      disabled={retireDisabled}
                     />
                   </td>
 
                   <td>
                     <input
                       name="severanceJoinDate"
-                      value={form.socialIns.severanceJoinDate}
-                      disabled={!retireEnabled}
+                      value={form.socialIns.severanceJoinDate || ""}
                       onChange={handleChange}
+                      disabled={retireDisabled}
                     />
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="dailyDeductionAmount"
                       value={form.socialIns.dailyDeductionAmount ?? ""}
-                      disabled={!retireEnabled}
                       onChange={handleChange}
+                      disabled={retireDisabled}
                     />
                   </td>
 
                   <td>
                     <input
-                      type="number"
                       name="totalSeverancePaidAmount"
                       value={form.socialIns.totalSeverancePaidAmount ?? ""}
-                      disabled={!retireEnabled}
                       onChange={handleChange}
+                      disabled={retireDisabled}
                     />
                   </td>
                 </tr>
@@ -940,6 +894,7 @@ export default function SiteCreatePage() {
             </table>
           </div>
         </section>
+
       </form>
     </div>
   );

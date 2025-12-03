@@ -3,6 +3,7 @@ import { Building2 } from "lucide-react";
 import { useState } from "react";
 import { login } from "../api/authApi";
 import "./Login.css";
+import { useNavigate } from "react-router-dom";
 
 interface LoginProps {
   onSignUpClick: () => void;
@@ -10,6 +11,7 @@ interface LoginProps {
 }
 
 export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     phoneNumber: "",
     password: "",
@@ -91,7 +93,9 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
         </form>
 
         <div className="login-footer">
-          <button className="footer-link muted">비밀번호 찾기</button>
+          <button className="footer-link muted" 
+                  onClick={() => navigate(`/forgot-password`)}
+          >비밀번호 찾기</button>
           <span className="divider">|</span>
           <button className="footer-link primary" onClick={onSignUpClick}>
             회원가입

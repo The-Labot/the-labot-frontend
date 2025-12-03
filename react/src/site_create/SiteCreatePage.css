@@ -143,6 +143,11 @@
   gap: 6px;
 }
 
+.form-field select {
+  height: 43px; /* input과 select 통일 */
+  line-height: 38px;
+}
+
 .form-field-full {
   grid-column: 1 / -1;
 }
@@ -349,3 +354,7 @@
     align-items: flex-start;
   }
 }
+
+.disabled-cell {
+  opacity: 0.45;
+  }

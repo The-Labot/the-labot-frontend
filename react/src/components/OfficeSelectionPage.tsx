@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import OfficeSelection from "../../components/OfficeSelection";
+import OfficeSelection from "./OfficeSelection";
 
 export default function OfficeSelectionPage() {
   const navigate = useNavigate();
