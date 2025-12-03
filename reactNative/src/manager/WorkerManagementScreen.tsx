@@ -14,12 +14,13 @@ import {
   ScrollView,
   Modal,
   Alert,
+  Image,
 } from "react-native";
 import { registerWorker } from "../api/worker";
 import { fetchWorkers } from "../api/worker"; // ← 이거 추가
-import { fetchWorkerDetail, updateWorker, patchAttendance } from "../api/worker"; // ← 이거 추가
+import { fetchWorkerDetail, updateWorker, patchAttendance, fetchWorkerFile } from "../api/worker"; // ← 이거 추가
 import { useRoute } from "@react-navigation/native";
-
+import { useFocusEffect } from "@react-navigation/native";
 /* ------------------------------------------
    🔥 근로자 등록 입력 상태 (전체 필드)
    ------------------------------------------ */
@@ -54,48 +55,62 @@ export default function WorkerManagementScreen() {
   const [regWageStartDate, setRegWageStartDate] = useState("");
   const [regWageEndDate, setRegWageEndDate] = useState("");
 
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
   const [contractTypeModal, setContractTypeModal] = useState(false);
 
+  const [editMode, setEditMode] = useState(false);
+const [editPosition, setEditPosition] = useState("");
+const [editSiteName, setEditSiteName] = useState("");
+
+const [contractPreviewUrl, setContractPreviewUrl] = useState("");
+const [contractPreviewOpen, setContractPreviewOpen] = useState(false);
+
     const route = useRoute<any>();
-
   useEffect(() => {
-    if (route.params?.ocrData) {
-      const o = route.params.ocrData;
+  const p = route.params;
 
-      setShowRegister(true);
-
-
-      setRegContractType(o.contractType ?? "");
-      setRegJobType(o.jobType ?? "");
-      setRegSalary(o.salary ?? "");
-      setRegPayReceive(o.payReceive ?? "");
-      setRegSiteName(o.siteName ?? "");
-      setRegBankName(o.bankName ?? "");
-      setRegAccountHolder(o.accountHolder ?? "");
-      setRegAccountNumber(o.accountNumber ?? "");
-      setRegPhone(o.phoneNumber ?? "");
-      setRegEmergencyNumber(o.emergencyNumber ?? "");
-      setRegContractStartDate(o.contractStartDate ?? "");
-      setRegContractEndDate(o.contractEndDate ?? "");
-      setRegWageStartDate(o.wageStartDate ?? "");
-      setRegWageEndDate(o.wageEndDate ?? "");
-
-      console.log("📌 OCR 자동 입력 완료");
-    }
-    if (route.params?.idCardData) {
-    const o = route.params.idCardData;
-
+  // 1) OCR → 등록 화면으로 오는 경우
+  if (p?.ocrData) {
+    const o = p.ocrData;
     setShowRegister(true);
 
+    setRegContractType(o.contractType ?? "");
+    setRegJobType(o.jobType ?? "");
+    setRegSalary(o.salary ?? "");
+    setRegPayReceive(o.payReceive ?? "");
+    setRegSiteName(o.siteName ?? "");
+    setRegBankName(o.bankName ?? "");
+    setRegAccountHolder(o.accountHolder ?? "");
+    setRegAccountNumber(o.accountNumber ?? "");
+    setRegPhone(o.phoneNumber ?? "");
+    setRegEmergencyNumber(o.emergencyNumber ?? "");
+    setRegContractStartDate(o.contractStartDate ?? "");
+    setRegContractEndDate(o.contractEndDate ?? "");
+    setRegWageStartDate(o.wageStartDate ?? "");
+    setRegWageEndDate(o.wageEndDate ?? "");
+
+    return; // ❗ 초기화 금지
+  }
+
+  // 2) 계약서 촬영 후 복귀
+  if (p?.contractImage) {
+    setContractImage(p.contractImage);
+    setShowRegister(true);
+    return; // ❗ 초기화 금지
+  }
+
+  // 3) 신분증 OCR 후 복귀
+  if (p?.idCardData) {
+    const o = p.idCardData;
+    setShowRegister(true);
     setRegName(o.name ?? "");
     setRegAddress(o.address ?? "");
     setRegResidentId(o.residentIdNumber ?? "");
-
-    console.log("📌 신분증 OCR 자동 입력 완료");
+    return;
   }
-  }, [route.params]);
 
+}, [route.params]);
 
   /* ------------------------------------------
      타입 정의
@@ -157,6 +172,7 @@ interface WorkerDetail {
   }[];
 
   contractFile?: {
+    id: number;     // ← 실제 응답에는 id가 있음!
     fileUrl: string;
     originalFileName: string;
   };
@@ -196,6 +212,7 @@ interface WorkerDetail {
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   const currentAttendanceIdRef = useRef<number | null>(null);
+  const [contractImage, setContractImage] = useState<any>(null);
 
   const [stats, setStats] = useState({
   total: 0,
@@ -207,6 +224,35 @@ interface WorkerDetail {
     useEffect(() => {
   loadWorkers();
 }, []);
+
+useEffect(() => {
+  if (detail) {
+    setEditPosition(detail.position ?? "");
+    setEditSiteName(detail.siteName ?? "");
+  }
+}, [detail]);
+useFocusEffect(
+  React.useCallback(() => {
+    const p = route.params;
+
+    // 📌 1) OCR로부터 복귀 → 초기화 금지
+    if (p?.ocrData || p?.contractImage || p?.idCardData) {
+      return;
+    }
+
+    // 📌 2) 다른 화면에서 복귀 → 전체 초기화
+    setShowRegister(false);
+    setSelectedWorker(null);
+    setDetail(null);
+    setContractImage(null);
+    setEditMode(false);
+
+    // 📌 params 초기화 (다음 포커스때 정상 판단하도록)
+        navigation.setParams({}); // ← 이게 정확한 해결책
+
+
+  }, [])
+);
 
 function openObjection(rec: any) {
   setObjDate(rec.date);
@@ -322,6 +368,26 @@ async function handleWorkerUpdate(changes: any) {
     Alert.alert("에러", "수정에 실패했습니다.");
   }
 }
+async function openContractFile() {
+  try {
+    if (!detail?.contractFile) {
+      Alert.alert("계약서 없음", "등록된 계약서 파일이 없습니다.");
+      return;
+    }
+
+    const fileId = detail.contractFile.id; // 🔥 fileId 존재 여부 확인 필요
+    console.log("📤 Fetching file:", fileId);
+
+    const res = await fetchWorkerFile(fileId);
+
+    setContractPreviewUrl(res.fileUrl);
+    setContractPreviewOpen(true);
+
+  } catch (err) {
+    console.log("❌ 계약서 조회 실패:", err);
+    Alert.alert("에러", "계약서를 불러오지 못했습니다.");
+  }
+}
 
     /* ------------------------------------------
      🔍 필터링된 근로자 목록
@@ -383,11 +449,20 @@ async function handleWorkerUpdate(changes: any) {
       };
 
       console.log("📤 근로자 등록 요청:", payload);
-
-      const res = await registerWorker(payload);
+      console.log("🖼 첨부된 계약서 이미지:", contractImage?.uri);
+      const res = await registerWorker(payload, contractImage);
       console.log("📥 근로자 등록 응답:", res);
 
       Alert.alert("등록 완료", "근로자가 성공적으로 등록되었습니다.");
+
+       // 🔥 좌측 목록 즉시 갱신
+    await loadWorkers();
+
+    // 🔥 등록 화면 닫기
+    setShowRegister(false);
+
+    // 🔥 상세 선택 초기화 (등록 화면이 계속 남는 문제 해결)
+    setSelectedWorker(null);
 
       // 입력값 초기화
       setRegName("");
@@ -605,6 +680,43 @@ const LeftItem = ({ item }: { item: Worker }) => {
         </View>
       </View>
 
+      {/* --- 계약서 이미지 미리보기 --- */}
+        {contractImage && (
+          <View
+            style={{
+              backgroundColor: "#F9FAFB",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              borderRadius: 12,
+              padding: 16,
+              marginTop: 12,
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}>
+              첨부된 계약서 이미지
+            </Text>
+
+            <View style={{ height: 12 }} />
+
+            <View
+              style={{
+                height: 180,
+                borderRadius: 12,
+                overflow: "hidden",
+                backgroundColor: "#E5E7EB",
+              }}
+            >
+              <TouchableOpacity onPress={() => setImageViewerOpen(true)}>
+                <Image
+                  source={{ uri: contractImage.uri }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+)}
+
       {/* ---------------- 계약 정보 ---------------- */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>계약 정보</Text>
@@ -616,7 +728,7 @@ const LeftItem = ({ item }: { item: Worker }) => {
         <View style={{ marginBottom: 12 }}>
           <Text style={styles.inputLabel}>계약 시작일</Text>
           <TextInput
-            placeholder="연도. 월. 일."
+            placeholder="2025-01-01"
             value={regContractStartDate}
             onChangeText={setRegContractStartDate}
             style={styles.input}
@@ -627,7 +739,7 @@ const LeftItem = ({ item }: { item: Worker }) => {
         <View style={{ marginBottom: 12 }}>
           <Text style={styles.inputLabel}>계약 종료일</Text>
           <TextInput
-            placeholder="연도. 월. 일."
+            placeholder="2025-12-31"
             value={regContractEndDate}
             onChangeText={setRegContractEndDate}
             style={styles.input}
@@ -892,22 +1004,66 @@ const LeftItem = ({ item }: { item: Worker }) => {
 </View>
 
        {/* B. 개인정보 */}
+      {/* B. 개인정보 */}
 <View style={styles.card}>
+
+  {/* 🔵 수정 / 저장 버튼 */}
+  <TouchableOpacity
+    style={{
+      position: "absolute",
+      top: 16,
+      right: 16,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      backgroundColor: "#2563EB",
+      borderRadius: 8,
+    }}
+    onPress={() => {
+      if (editMode) {
+        handleWorkerUpdate({
+          position: editPosition,
+          siteName: editSiteName,
+        });
+      }
+      setEditMode(!editMode);
+    }}
+  >
+    <Text style={{ color: "#fff", fontWeight: "600" }}>
+      {editMode ? "저장" : "수정"}
+    </Text>
+  </TouchableOpacity>
+
   <Text style={styles.sectionTitle}>개인정보</Text>
   <View style={{ height: 12 }} />
 
-    {/* 수정 가능 필드 (직종, 현장명) */}
-  <EditableField
-  label="직종"
-  value={detail.position}
-  onSave={(v) => handleWorkerUpdate({ position: v })}
-/>
+  {/* ---- 직종 ---- */}
+  <View style={{ marginBottom: 12 }}>
+    <Text style={styles.inputLabel}>직종</Text>
+    <TextInput
+      editable={editMode}
+      value={editPosition}
+      onChangeText={setEditPosition}
+      style={[
+        styles.input,
+        { backgroundColor: editMode ? "#fff" : "#F3F4F6" },
+      ]}
+    />
+  </View>
 
-  <EditableField
-  label="현장명"
-  value={detail.siteName}
-  onSave={(v) => handleWorkerUpdate({ siteName: v })}
-/>
+  {/* ---- 현장명 ---- */}
+  <View style={{ marginBottom: 12 }}>
+    <Text style={styles.inputLabel}>현장명</Text>
+    <TextInput
+      editable={editMode}
+      value={editSiteName}
+      onChangeText={setEditSiteName}
+      style={[
+        styles.input,
+        { backgroundColor: editMode ? "#fff" : "#F3F4F6" },
+      ]}
+    />
+  </View>
+
   <InfoItem label="주소" value={detail.address} />
   <InfoItem label="생년월일" value={detail.birthDate} />
   <InfoItem label="성별" value={detail.gender} />
@@ -924,22 +1080,7 @@ const LeftItem = ({ item }: { item: Worker }) => {
         <DocButton
           title="근로 계약서 보기"
           subtitle={detail.contractFile?.originalFileName ?? "계약서 없음"}
-          onPress={() => Alert.alert("계약서파일 오픈 예정")}
-        />
-
-        <DocButton
-          title="급여 명세서 보기"
-          subtitle={detail.payStubFiles?.[0]?.originalFileName ?? "명세서 없음"}
-          tone="yellow"
-          onPress={() => Alert.alert("급여명세서 오픈 예정")}
-        />
-
-        <DocButton
-          title="자격증 보기"
-          subtitle={detail.licenseFiles?.[0]?.originalFileName ?? "자격증 없음"}
-          tone="green"
-          onPress={() => Alert.alert("자격증 오픈 예정")}
-        />
+          onPress={openContractFile}/>
       </View>
 
             {/* D. 출퇴근 기록 */}
@@ -1006,7 +1147,45 @@ const LeftItem = ({ item }: { item: Worker }) => {
   )}
 </View>
 
-      {/* -------- 이의제기 모달 -------- */}
+{/* 🔵 계약서 이미지 전체보기 */}
+<Modal
+  visible={imageViewerOpen}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setImageViewerOpen(false)}
+>
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    {/* 뒤로가기 버튼 */}
+    <TouchableOpacity
+      onPress={() => setImageViewerOpen(false)}
+      style={{
+        position: "absolute",
+        top: 40,
+        right: 40,
+        padding: 10,
+      }}
+    >
+      <Text style={{ fontSize: 30, color: "white" }}>✕</Text>
+    </TouchableOpacity>
+
+    {/* 확대된 이미지 */}
+    <Image
+      source={{ uri: contractImage?.uri }}
+      style={{
+        width: "90%",
+        height: "80%",
+      }}
+      resizeMode="contain"
+    />
+  </View>
+</Modal>
       {/* -------- 이의제기 모달 -------- */}
 <Modal
   visible={objectionOpen}
@@ -1090,7 +1269,41 @@ const LeftItem = ({ item }: { item: Worker }) => {
     </View>
   </View>
 </Modal>
+    <Modal
+      visible={contractPreviewOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setContractPreviewOpen(false)}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.9)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {/* 닫기 버튼 */}
+        <TouchableOpacity
+          onPress={() => setContractPreviewOpen(false)}
+          style={{
+            position: "absolute",
+            top: 40,
+            right: 40,
+            padding: 10,
+          }}
+        >
+          <Text style={{ fontSize: 32, color: "white" }}>✕</Text>
+        </TouchableOpacity>
 
+        {/* 이미지 */}
+        <Image
+          source={{ uri: contractPreviewUrl }}
+          style={{ width: "90%", height: "80%" }}
+          resizeMode="contain"
+        />
+      </View>
+    </Modal>
     </View>
   );
 }

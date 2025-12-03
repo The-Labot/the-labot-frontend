@@ -85,6 +85,10 @@ const SafetyTrainingScreen: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+    // 🔥 이미지 전체보기 모달
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
   // ==========================
   // 교육 등록 버튼
   // ==========================
@@ -382,18 +386,25 @@ const SafetyTrainingScreen: React.FC = () => {
     <View key={`material-${m.uri}-${idx}`} style={{ marginTop: 8 }}>
       <Text style={styles.cardBodyText}>📄 {m.originalFileName}</Text>
 
-      {m.url && (
-        <Image
-          source={{ uri: m.url }}
-          style={{
-            width: 140,
-            height: 140,
-            borderRadius: 10,
-            marginTop: 6,
-            backgroundColor: "#E5E7EB",
+            {m.url && (
+        <TouchableOpacity
+          onPress={() => {
+            setImagePreviewUrl(m.url!);
+            setImagePreviewVisible(true);
           }}
-          resizeMode="cover"
-        />
+        >
+          <Image
+            source={{ uri: m.url }}
+            style={{
+              width: 140,
+              height: 140,
+              borderRadius: 10,
+              marginTop: 6,
+              backgroundColor: "#E5E7EB",
+            }}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       )}
     </View>
   ))}
@@ -411,19 +422,26 @@ const SafetyTrainingScreen: React.FC = () => {
     <View key={`photo-${idx}`} style={{ marginTop: 8 }}>
       <Text style={styles.cardBodyText}>🖼 {p.originalFileName}</Text>
 
-      {p.url && (
-        <Image
-          source={{ uri: p.url }}
-          style={{
-            width: 140,
-            height: 140,
-            borderRadius: 10,
-            marginTop: 6,
-            backgroundColor: "#E5E7EB",
-          }}
-          resizeMode="cover"
-        />
-      )}
+              {p.url && (
+          <TouchableOpacity
+            onPress={() => {
+              setImagePreviewUrl(p.url!);
+              setImagePreviewVisible(true);
+            }}
+          >
+            <Image
+              source={{ uri: p.url }}
+              style={{
+                width: 140,
+                height: 140,
+                borderRadius: 10,
+                marginTop: 6,
+                backgroundColor: "#E5E7EB",
+              }}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+        )}
     </View>
   ))}
 </View>
@@ -440,18 +458,25 @@ const SafetyTrainingScreen: React.FC = () => {
     <View key={`sign-${idx}`} style={{ marginTop: 8 }}>
       <Text style={styles.cardBodyText}>✒️ {s.originalFileName}</Text>
 
-      {s.url && (
-        <Image
-          source={{ uri: s.url }}
-          style={{
-            width: 140,
-            height: 140,
-            borderRadius: 10,
-            marginTop: 6,
-            backgroundColor: "#E5E7EB",
+            {s.url && (
+        <TouchableOpacity
+          onPress={() => {
+            setImagePreviewUrl(s.url!);
+            setImagePreviewVisible(true);
           }}
-          resizeMode="cover"
-        />
+        >
+          <Image
+            source={{ uri: s.url }}
+            style={{
+              width: 140,
+              height: 140,
+              borderRadius: 10,
+              marginTop: 6,
+              backgroundColor: "#E5E7EB",
+            }}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       )}
     </View>
   ))}
@@ -849,6 +874,45 @@ const SafetyTrainingScreen: React.FC = () => {
           ? renderForm("edit")
           : renderViewMode()}
       </View>
+      {imagePreviewVisible && (
+  <View
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    {/* 닫기 버튼 */}
+    <TouchableOpacity
+      style={{
+        position: "absolute",
+        top: 40,
+        right: 30,
+        padding: 10,
+      }}
+      onPress={() => setImagePreviewVisible(false)}
+    >
+      <Text style={{ fontSize: 34, color: "#fff" }}>✕</Text>
+    </TouchableOpacity>
+
+    {/* 확대 이미지 */}
+    <Image
+      source={{ uri: imagePreviewUrl! }}
+      style={{
+        width: "90%",
+        height: "75%",
+        borderRadius: 16,
+      }}
+      resizeMode="contain"
+    />
+  </View>
+)}
     </View>
   );
 };
@@ -915,7 +979,48 @@ const styles = StyleSheet.create({
   },
   listTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
   listSmall: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+bottomBar: {
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  gap: 12,
+  paddingHorizontal: 24,
+  paddingVertical: 16,
+  borderTopWidth: 1,
+  borderTopColor: "#E5E7EB",
+  backgroundColor: "#FFFFFF",
+},
 
+saveBtn: {
+  backgroundColor: "#2563EB",
+  paddingHorizontal: 24,
+  paddingVertical: 10,
+  borderRadius: 10,
+  minWidth: 90,
+  alignItems: "center",
+},
+
+saveBtnText: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  fontWeight: "600",
+},
+
+cancelBtn: {
+  backgroundColor: "#FFFFFF",
+  borderWidth: 1,
+  borderColor: "#D1D5DB",
+  paddingHorizontal: 24,
+  paddingVertical: 10,
+  borderRadius: 10,
+  minWidth: 90,
+  alignItems: "center",
+},
+
+cancelBtnText: {
+  color: "#374151",
+  fontSize: 14,
+  fontWeight: "500",
+},
   /* 오른쪽 패널 */
   rightPanel: {
     flex: 1,

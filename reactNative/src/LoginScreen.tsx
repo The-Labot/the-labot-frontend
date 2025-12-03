@@ -1,7 +1,6 @@
 // src/LoginScreen.tsx
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
@@ -15,11 +14,15 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { loginManager } from './api/auth';
+
 
 // ★ 새로운 로고 이미지 가져오기 (경로를 실제 프로젝트에 맞게 수정해주세요)
 // 예: assets 폴더에 image_0.png 파일을 logo.png로 저장했다고 가정
 import logoImage from './assets/logo.png'; 
+
+import { loginManager} from './api/auth';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 type UserType = 'manager' | 'worker';
@@ -58,7 +61,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

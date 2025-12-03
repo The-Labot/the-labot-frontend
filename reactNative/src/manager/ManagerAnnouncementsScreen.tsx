@@ -53,6 +53,10 @@ export default function ManagerAnnouncementsScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+   // 🔥 이미지 전체보기 모달
+const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
+const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
   // 작성/수정 폼
   const [draftTitle, setDraftTitle] = useState("");
   const [draftAuthor, setDraftAuthor] = useState("");
@@ -435,8 +439,7 @@ export default function ManagerAnnouncementsScreen() {
         ----------------------------------- */}
         <FlatList
           data={announcements}
-          keyExtractor={(item, index) =>   item?.id ? item.id.toString() : `tmp-${index}`
-}
+          keyExtractor={(item, index) =>   item?.id ? item.id.toString() : `tmp-${index}`}
           contentContainerStyle={{ paddingBottom: 50 }}
           renderItem={({ item }) => {
             const isActive = selected?.id === item.id;
@@ -506,8 +509,8 @@ export default function ManagerAnnouncementsScreen() {
          ============================ */}
          <View style={styles.rightPanel}>
         
-        {/* 🔵 공지 작성 화면 */}
-        {isCreating && (
+         {/* 🔵 공지 작성 화면 */}
+         {isCreating && (
           <ScrollView contentContainerStyle={styles.rightScroll}>
             <View style={styles.detailCard}>
               <Text style={styles.detailTitle}>공지사항 작성</Text>
@@ -719,6 +722,8 @@ export default function ManagerAnnouncementsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+              
+
           </ScrollView>
         )}
 
@@ -776,11 +781,19 @@ export default function ManagerAnnouncementsScreen() {
                 <View style={styles.contentCard}>
                   <Text style={styles.sectionHeader}>첨부 이미지</Text>
                   {selected.attachments!.map((img, idx) => (
-                    <Image
+                    <TouchableOpacity
                       key={idx}
-                      source={{ uri: img }}
-                      style={styles.attachmentImage}
-                    />
+                      onPress={() => {
+                        setImagePreviewUrl(img);
+                        setImagePreviewVisible(true);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: img }}
+                        style={styles.attachmentImage}
+                      />
+                    </TouchableOpacity>
                   ))}
                 </View>
               )}
@@ -815,12 +828,52 @@ export default function ManagerAnnouncementsScreen() {
             </View>
           </ScrollView>
         )}
-
       </View>
-    </View>
-  );
-}
+      {imagePreviewVisible && (
+  <View
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.85)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    {/* 닫기 버튼 */}
+    <TouchableOpacity
+      style={{
+        position: "absolute",
+        top: 40,
+        right: 30,
+        padding: 10,
+      }}
+      onPress={() => setImagePreviewVisible(false)}
+    >
+      <Text style={{ fontSize: 32, color: "#fff" }}>✕</Text>
+    </TouchableOpacity>
 
+    {/* 확대 이미지 */}
+    <Image
+      source={{ uri: imagePreviewUrl! }}
+      style={{
+        width: "90%",
+        height: "70%",
+        borderRadius: 12,
+      }}
+      resizeMode="contain"
+    />
+  </View>
+)}
+    
+    </View>
+
+  );
+  
+}
 
 
 // =========================================

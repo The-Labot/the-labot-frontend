@@ -45,7 +45,7 @@ const WorkerMapScreen: React.FC<Props> = ({ navigation }) => {
 
       if (json.siteMapUrl?.length > 0) {
         const last = json.siteMapUrl[json.siteMapUrl.length - 1];
-        const fullUrl = `${BASE_URL}${last.fileUrl}`;
+        const fullUrl = last.fileUrl;  
 
         console.log("📌 [근로자 지도조회] 최종 이미지 URL:", fullUrl);
 

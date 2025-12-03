@@ -16,6 +16,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 import { BASE_URL } from "../api/config";
 import { getTempAccessToken } from "../api/auth";
+import ScreenWrapper from '../ScreenWrapper';
 
 interface AttendanceRecord {
   attendanceId: number;
@@ -146,7 +147,8 @@ export default function AttendanceHistoryScreen({ navigation }: Props) {
   const totalHours = currentData.reduce((sum, item) => sum + item.hours, 0);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <ScrollView style={styles.container}>
 
         {/* ===== Header ===== */}
@@ -352,7 +354,8 @@ export default function AttendanceHistoryScreen({ navigation }: Props) {
         </View>
       )}
 
-    </SafeAreaView>
+    </ScreenWrapper>
+
   );
 }
 /* --------------- 너가 준 스타일 그대로 --------------- */
