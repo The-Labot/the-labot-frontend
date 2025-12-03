@@ -41,8 +41,7 @@ const fetchSiteMap = async () => {
     console.log("📌 [지도조회] 파싱된 JSON:", json);
     if (json.siteMapUrl && json.siteMapUrl.length > 0) {
       const lastFile = json.siteMapUrl[json.siteMapUrl.length - 1];
-      const fullUrl = `${BASE_URL}${lastFile.fileUrl}`;
-      setSiteMapUrl(fullUrl);
+      setSiteMapUrl(lastFile.fileUrl); //url 자체가 s3경로 자체이기 때문에 그대로 사용
     } else {
       setSiteMapUrl(null);
     }
