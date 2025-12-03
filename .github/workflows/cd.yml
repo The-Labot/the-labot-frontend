@@ -31,6 +31,8 @@ jobs:
         run: |
           #경로상에 임시로 파일 만들고 이미지 만들꺼임요 + api 요청 명시
           echo "VITE_API_BASE_URL=/api" > ./react/.env.production
+          #>> 화살표 두개해야 이어쓰기 (하나는 덮어쓰기)
+          echo "VITE_KAKAO_REST_API_KEY=${{ secrets.VITE_KAKAO_REST_API_KEY }}" >> ./react/.env.production
       
       #빌드할 소스 위치, 이미지 생성 파일(Dockerfile), 빌드 끝나면 업로드, 이미지에 이름 달기
       - name: build and push docker image
