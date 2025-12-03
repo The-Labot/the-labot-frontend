@@ -10,48 +10,52 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert, // ★ 추가
+  Alert,
+  Image, // ★ Image 컴포넌트 추가
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { loginManager} from './api/auth';
+import { loginManager } from './api/auth';
+
+// ★ 새로운 로고 이미지 가져오기 (경로를 실제 프로젝트에 맞게 수정해주세요)
+// 예: assets 폴더에 image_0.png 파일을 logo.png로 저장했다고 가정
+import logoImage from './assets/logo.png'; 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 type UserType = 'manager' | 'worker';
-
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedUserType, setSelectedUserType] = useState<UserType>('worker');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // ★ 로딩 상태
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-  if (!phone || !password) {
-    Alert.alert('알림', '전화번호와 비밀번호를 입력해주세요.');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const data = await loginManager(phone, password);
-    console.log('로그인 성공 응답:', data);
-
-    const role = data.role;
-
-    if (role === 'ROLE_MANAGER') {
-      navigation.replace('ManagerHome');   // 현장 관리자 홈
-    } else if (role === 'ROLE_WORKER') {
-      navigation.replace('WorkerHome');    // 현장 근로자 홈
-    } else {
-      Alert.alert('로그인 오류', '알 수 없는 사용자 유형입니다.');
+    if (!phone || !password) {
+      Alert.alert('알림', '전화번호와 비밀번호를 입력해주세요.');
+      return;
     }
-  } catch (e) {
-    Alert.alert('로그인 실패', (e as Error).message);
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+    try {
+      const data = await loginManager(phone, password);
+      console.log('로그인 성공 응답:', data);
+
+      const role = data.role;
+
+      if (role === 'ROLE_MANAGER') {
+        navigation.replace('ManagerHome');
+      } else if (role === 'ROLE_WORKER') {
+        navigation.replace('WorkerHome');
+      } else {
+        Alert.alert('로그인 오류', '알 수 없는 사용자 유형입니다.');
+      }
+    } catch (e) {
+      Alert.alert('로그인 실패', (e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -65,11 +69,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         >
           {/* 헤더 / 로고 */}
           <View style={styles.header}>
-            <View style={styles.logoBox}>
-              <Text style={styles.logoIcon}>⛑️</Text>
-            </View>
-            <Text style={styles.title}>Labor Construction Management</Text>
-            <Text style={styles.subtitle}>노무= 현장 관리 시스템</Text>
+            {/* ★ 기존의 logoBox와 이모지 텍스트를 제거하고 이미지로 교체 */}
+            <Image
+              source={logoImage}
+              style={styles.logoImage}
+              resizeMode="contain" // 이미지 비율 유지하며 영역에 맞춤
+            />
+            {/* 기존 텍스트 타이틀은 이미지에 포함되어 있으므로 주석 처리하거나 제거 */}
+            {/* <Text style={styles.title}>The-Labot</Text> */}
+            <Text style={styles.subtitle}>노무관리 도움 봇</Text>
           </View>
 
           {/* 사용자 유형 선택 */}
@@ -206,7 +214,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-// 아래 styles 는 그대로
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
   scrollContent: {
@@ -218,6 +225,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
+  // ★ 기존 logoBox, logoIcon 스타일 제거
+  /*
   logoBox: {
     width: 80,
     height: 80,
@@ -233,6 +242,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logoIcon: { fontSize: 40, color: '#FFFFFF' },
+  */
+  // ★ 새로운 로고 이미지 스타일 추가
+  logoImage: {
+    width: '100%', // 화면 너비의 80% 차지 (원하는 크기로 조절 가능)
+    height: 120,   // 적절한 높이 설정 (원본 이미지 비율에 맞춰 조절 필요)
+    marginBottom: 0, // 부제목과의 간격
+  },
   title: {
     fontSize: 18,
     fontWeight: '600',

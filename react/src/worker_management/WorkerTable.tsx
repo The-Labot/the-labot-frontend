@@ -56,7 +56,7 @@ export default function WorkerManagementPage() {
             <div className="nav-logo-box clickable" 
                   onClick={() => navigate(`/dashboard`)}
             >
-              <img src={iconMain} alt="메인 아이콘" width="120px" />
+              <img src={iconMain} alt="메인 아이콘" width="200px" />
             </div>
 
             <h1 className="nav-title">근로자 관리</h1>

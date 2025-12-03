@@ -31,11 +31,16 @@
 .nav-logo-box {
   width: 40px;
   height: 40px;
-  background: #3b82f6;
+  
   border-radius: 999px;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  img {
+    margin-top: -8px;     /* 위로 이동 */
+    margin-right: 30px;   /* 오른쪽으로 이동 */
+  }
 }
 
 .nav-logo-icon {

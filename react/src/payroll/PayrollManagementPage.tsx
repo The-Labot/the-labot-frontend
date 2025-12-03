@@ -134,7 +134,7 @@ export default function PayrollManagementPage() {
               className="nav-logo-box clickable"
               onClick={() => navigate(`/dashboard`)}
             >
-              <img src={iconMain} alt="메인 아이콘" width="120px" />
+              <img src={iconMain} alt="메인 아이콘" width="200px" />
             </div>
 
             <h1 className="nav-title">임금관리</h1>
