@@ -14,6 +14,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { BASE_URL } from '../api/config';
 import { getTempAccessToken } from '../api/auth';
+import ScreenWrapper from '../ScreenWrapper';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerHome'>;
 
@@ -123,7 +124,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.container}>
@@ -210,7 +212,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </ScrollView>
       </View>
-    </SafeAreaView>
+  </ScreenWrapper>
+
   );
 };
 

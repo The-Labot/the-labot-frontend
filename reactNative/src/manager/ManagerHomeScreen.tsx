@@ -1,6 +1,6 @@
 // src/manager/ManagerHomeScreen.tsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -19,7 +19,7 @@ import SafetyReportScreen from "./ManagerHazardsScreen.tsx";
 import ManagerAnnouncementsScreen from "./ManagerAnnouncementsScreen";
 import SafetyTrainingScreen from "./SafetyTrainingScreen";
 import DailyReportScreen from "./DailyReportScreen";
-
+import { useRoute } from "@react-navigation/native";
 import {
   BarChart3,
   Users,
@@ -63,6 +63,13 @@ const ManagerHomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const { width } = useWindowDimensions();
   const isTablet = width >= 900;
+  const route = useRoute<any>();
+
+useEffect(() => {
+  if (route.params?.activeTab) {
+    setActiveTab(route.params.activeTab);
+  }
+}, [route.params]);
 
   /** 퀵 링크 */
   const renderQuickLinks = () => (

@@ -42,6 +42,7 @@ const fetchSiteMap = async () => {
     if (json.siteMapUrl && json.siteMapUrl.length > 0) {
       const lastFile = json.siteMapUrl[json.siteMapUrl.length - 1];
       setSiteMapUrl(lastFile.fileUrl); //url 자체가 s3경로 자체이기 때문에 그대로 사용
+
     } else {
       setSiteMapUrl(null);
     }
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
 
   mapContainer: {
     width: '100%',
-    height: 450,
+    height: 600,
     borderRadius: 16,
     backgroundColor: '#E5E7EB',
     overflow: 'hidden',

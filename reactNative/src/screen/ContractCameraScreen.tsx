@@ -44,10 +44,9 @@ export default function ContractCameraScreen() {
 
       const asset = result.assets?.[0];
       if (asset) {
-  console.log("📸 촬영된 이미지:", asset);
-  setPhoto(asset);
-}
-      setPhoto(asset);
+        console.log("📸 촬영된 이미지:", asset);
+        setPhoto(asset);
+      }
     } catch (err) {
       console.log("❌ 카메라 오류:", err);
     }
@@ -70,15 +69,38 @@ export default function ContractCameraScreen() {
 
       setLoading(false);
 
+      // 📌 OCR 성공 → OCR 데이터 + 사진 전달
       navigation.navigate("WorkerManagement", {
         ocrData: res,
+        contractImage: photo,
       });
     } catch (err) {
       setLoading(false);
       console.log("❌ OCR 오류:", err);
-      Alert.alert("에러", "OCR 처리 중 문제가 발생했습니다.");
+
+      Alert.alert(
+        "OCR 실패",
+        "텍스트 인식은 실패했지만 사진은 정상적으로 저장됩니다."
+      );
+
+      // 📌 OCR 실패 → 사진만 전달
+    navigation.navigate("ManagerHome", {
+    activeTab: "worker-management",
+    contractImage: photo,
+  });
     }
   };
+
+  // ------------------------
+  // 🔵 OCR 안 하고 사진만 사용
+  // ------------------------
+  const usePhotoOnly = () => {
+  if (!photo) return;
+  navigation.navigate("ManagerHome", {
+    activeTab: "worker-management",
+    contractImage: photo,
+  });
+};
 
   // ------------------------
   // 🔙 뒤로가기
@@ -111,7 +133,12 @@ export default function ContractCameraScreen() {
           </TouchableOpacity>
 
           <Text
-            style={{ marginTop: 16, color: "#111827", fontSize: 20, fontWeight: "700" }}
+            style={{
+              marginTop: 16,
+              color: "#111827",
+              fontSize: 20,
+              fontWeight: "700",
+            }}
           >
             계약서 촬영 가이드
           </Text>
@@ -177,7 +204,7 @@ export default function ContractCameraScreen() {
             </View>
           </View>
 
-          {/* Do / Dont */}
+          {/* Do / Don't */}
           <View style={{ flexDirection: "row", gap: 16 }}>
             {/* Do */}
             <View
@@ -191,26 +218,14 @@ export default function ContractCameraScreen() {
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: "#D1FAE5",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <CheckCircle2 color="#059669" size={24} />
-                </View>
+                <CheckCircle2 color="#059669" size={24} />
                 <Text style={{ fontSize: 16, fontWeight: "600" }}>이렇게 촬영해주세요</Text>
               </View>
-
               <View style={{ marginTop: 16 }}>
                 {[
                   "계약서를 평평하게 펼쳐서 촬영해주세요",
                   "문서 전체가 화면에 들어오도록 촬영해주세요",
-                  "텍스트가 선명하게 읽힐 수 있도록 촬영해주세요",
+                  "텍스트가 선명하게 읽히도록 촬영해주세요",
                   "여러 페이지는 순서대로 촬영해주세요",
                 ].map((t, i) => (
                   <View key={i} style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
@@ -221,7 +236,7 @@ export default function ContractCameraScreen() {
               </View>
             </View>
 
-            {/* Dont */}
+            {/* Don't */}
             <View
               style={{
                 flex: 1,
@@ -233,26 +248,15 @@ export default function ContractCameraScreen() {
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    backgroundColor: "#FEE2E2",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AlertCircle color="#DC2626" size={24} />
-                </View>
+                <AlertCircle color="#DC2626" size={24} />
                 <Text style={{ fontSize: 16, fontWeight: "600" }}>주의사항</Text>
               </View>
 
               <View style={{ marginTop: 16 }}>
                 {[
                   "접힌 부분이 없도록 주의해주세요",
-                  "다른 문서와 겹치지 않도록 주의해주세요",
-                  "손가락이나 다른 물체가 가리지 않도록 주의해주세요",
+                  "다른 문서와 겹치지 않도록",
+                  "손가락이 문서에 닿지 않도록",
                   "너무 가깝거나 멀리서 촬영하지 마세요",
                 ].map((t, i) => (
                   <View key={i} style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
@@ -312,7 +316,12 @@ export default function ContractCameraScreen() {
         </TouchableOpacity>
 
         <Text
-          style={{ marginTop: 16, color: "#111827", fontSize: 20, fontWeight: "700" }}
+          style={{
+            marginTop: 16,
+            color: "#111827",
+            fontSize: 20,
+            fontWeight: "700",
+          }}
         >
           계약서 촬영
         </Text>
@@ -342,11 +351,12 @@ export default function ContractCameraScreen() {
               <Camera size={64} color="#6B7280" />
             </TouchableOpacity>
 
+            {/* OCR 없이 이동시키면 에러나니까 비활성화 */}
             <TouchableOpacity
-              onPress={sendToOCR}
+              disabled
               style={{
                 marginTop: 32,
-                backgroundColor: "#10B981",
+                backgroundColor: "#9CA3AF",
                 paddingVertical: 14,
                 borderRadius: 12,
                 flexDirection: "row",
@@ -364,6 +374,7 @@ export default function ContractCameraScreen() {
         {/* ================== 촬영 후 ================== */}
         {photo && (
           <>
+            {/* 이미지 미리보기 */}
             <View
               style={{
                 backgroundColor: "#fff",
@@ -397,6 +408,7 @@ export default function ContractCameraScreen() {
               />
             </View>
 
+            {/* 버튼 3개 */}
             {!loading ? (
               <View style={{ flexDirection: "row", gap: 12 }}>
                 {/* 다시 촬영 */}
@@ -415,6 +427,23 @@ export default function ContractCameraScreen() {
                 >
                   <RotateCw size={20} color="#111827" />
                   <Text style={{ color: "#111827" }}>재촬영</Text>
+                </TouchableOpacity>
+
+                {/* 사진만 사용하기 */}
+                <TouchableOpacity
+                  onPress={usePhotoOnly}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#2563EB",
+                    paddingVertical: 14,
+                    borderRadius: 12,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Text style={{ color: "#fff" }}>사진만 사용하기</Text>
                 </TouchableOpacity>
 
                 {/* OCR 보내기 */}
@@ -436,6 +465,7 @@ export default function ContractCameraScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
+              /* 로딩 */
               <View
                 style={{
                   backgroundColor: "#ECFDF5",
@@ -456,7 +486,6 @@ export default function ContractCameraScreen() {
                     borderTopColor: "#10B981",
                     borderRadius: 999,
                     marginBottom: 12,
-                    alignSelf: "center",
                   }}
                 />
                 <Text style={{ color: "#111827" }}>OCR 처리 중입니다...</Text>

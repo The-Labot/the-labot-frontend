@@ -1,4 +1,3 @@
-// src/screens/MyPageScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -9,13 +8,41 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image
+  ,Modal
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { getTempAccessToken, setTempAccessToken } from '../api/auth';
 import { BASE_URL } from "../api/config";
+import ScreenWrapper from '../ScreenWrapper';
+
+// 🔵 근로자 파일 조회 API
+async function fetchMyFile(fileId: number) {
+  const token = getTempAccessToken();
+  console.log("🔑 토큰:", token);
+  console.log("📡 파일 조회 API 호출:", `${BASE_URL}/worker/mypage/files/${fileId}`);
+
+  if (!token) throw new Error("토큰 없음");
+
+  const res = await fetch(`${BASE_URL}/worker/files/${fileId}`, {
+    method: "GET",
+    headers: { Authorization: token },
+  });
+    console.log("📥 상태 코드:", res.status);
+
+  const text = await res.text();
+    console.log("📥 응답 RAW:", text);
+
+  return JSON.parse(text); // { id, fileUrl, originalFileName }
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerMyPage'>;
+interface FileResponse {
+  id: number;
+  fileUrl: string;
+  originalFileName: string;
+}
 
 interface WorkerMyPageData {
   name: string;
@@ -31,17 +58,23 @@ interface WorkerMyPageData {
   bankName: string;
   accountNumber: string;
   accountHolder: string;
-  contractFileId: number | null;
-  payrollFileId: number | null;
-  certificateFileId: number | null;
+
+  // ⬇️ 여기 완전 변경됨!!
+  contractFile: FileResponse | null;
+  payrollFiles: FileResponse[];
+  certificateFiles: FileResponse[];
 }
 
 const MyPageScreen: React.FC<Props> = ({ navigation }) => {
   const [data, setData] = useState<WorkerMyPageData | null>(null);
 
-  // 수정 상태
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
+  // 전체 수정 모드
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedValues, setEditedValues] = useState<Partial<WorkerMyPageData>>({});
+
+
+  const [contractPreviewUrl, setContractPreviewUrl] = useState("");
+  const [contractPreviewOpen, setContractPreviewOpen] = useState(false);
 
   // GET
   async function loadMyPage() {
@@ -55,6 +88,7 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
 
       const json = await res.json();
       setData(json);
+      setEditedValues(json);
 
     } catch (err) {
       Alert.alert("에러", "마이페이지 데이터를 불러오지 못했습니다.");
@@ -65,37 +99,68 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
     loadMyPage();
   }, []);
 
-  // PATCH
-  async function patchMyPage(field: string, value: string) {
+  // PATCH — 수정 가능한 항목만 전송
+  async function saveAllEdits() {
     try {
       const token = getTempAccessToken();
 
-      const body = { [field]: value };
-
+      const patchBody: any = {
+        address: editedValues.address,
+        phoneNumber: editedValues.phone,
+        emergencyNumber: editedValues.emergencyNumber,
+        bankName: editedValues.bankName,
+        accountNumber: editedValues.accountNumber,
+        accountHolder: editedValues.accountHolder,
+      };
+      console.log("📤 PATCH 요청 보냄:", patchBody);
       const res = await fetch(`${BASE_URL}/worker/mypage`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(patchBody),
       });
 
       const json = await res.json();
-
+      console.log("📨 PATCH 응답:", res.status, json);
       if (!res.ok) {
         Alert.alert("수정 실패", json.message || "오류 발생");
         return;
       }
 
-      setData(prev => prev ? { ...prev, [field]: value } : prev);
-      setEditingField(null);
+      setData(prev => ({ ...(prev as any), ...patchBody }));
+      console.log("🟢 화면 데이터 업데이트됨:", patchBody);
+      setIsEditing(false);
+
       Alert.alert("성공", "정보가 수정되었습니다.");
 
     } catch (err) {
       Alert.alert("오류", "네트워크 오류가 발생했습니다.");
     }
   }
+  async function openContractFile() {
+  try {
+    if (!data?.contractFile?.id) {
+      console.log("🚫 contractFile 없음:", data?.contractFile);
+      Alert.alert("계약서 없음", "등록된 계약서 파일이 없습니다.");
+      return;
+    }
+
+    const fileId = data.contractFile.id;
+    console.log("📄 파일 조회:", fileId);
+
+    const res = await fetchMyFile(fileId);
+
+    setContractPreviewUrl(res.fileUrl);
+    setContractPreviewOpen(true);
+
+  } catch (e) {
+    console.log("❌ 파일 조회 실패:", e);
+    Alert.alert("에러", "계약서를 불러올 수 없습니다.");
+  }
+}
+
 
   if (!data) {
     return (
@@ -107,18 +172,12 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
     );
   }
 
-  function startEdit(field: keyof WorkerMyPageData) {
-    setEditingField(field);
-    setEditValue(String(data[field] ?? ""));
-  }
-
-  function saveEdit() {
-    if (!editingField) return;
-    patchMyPage(editingField, editValue);
-  }
+  const handleChange = (field: keyof WorkerMyPageData, value: string) => {
+    setEditedValues(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
       {/* 헤더 */}
       <View style={styles.headerWrapper}>
         <View style={styles.headerContent}>
@@ -139,18 +198,15 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* 프로필 */}
+
+        {/* 프로필 카드 */}
         <View style={styles.card}>
           <View style={styles.cardInner}>
             <View style={styles.profileWrapper}>
-              <View style={styles.avatarWrapper}>
-                <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarInitial}>{data.name?.[0] ?? '?'}</Text>
-                </View>
-
-                <TouchableOpacity style={styles.cameraButton}>
-                  <Text style={styles.cameraIcon}>📷</Text>
-                </TouchableOpacity>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {data.name?.[0] ?? '?'}
+                </Text>
               </View>
 
               <Text style={styles.nameText}>{data.name}</Text>
@@ -163,57 +219,73 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
         {/* 개인정보 */}
         <View style={styles.card}>
           <View style={styles.cardInner}>
-            <Text style={styles.sectionTitle}>개인정보</Text>
 
-            <FieldRow label="주소" value={data.address}
-              editing={editingField === 'address'} editValue={editValue}
-              onPressEdit={() => startEdit('address')} onChangeEdit={setEditValue}
-              editable={true}
+            {/* 개인정보 + 수정 버튼 */}
+            <View style={styles.infoHeaderRow}>
+              <Text style={styles.sectionTitle}>개인정보</Text>
+
+              {!isEditing && (
+                <TouchableOpacity onPress={() => setIsEditing(true)}>
+                  <Text style={styles.editAllBtn}>수정</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* 주소 */}
+            <FieldRow
+              label="주소"
+              editing={isEditing}
+              value={editedValues.address}
+              onChangeText={(t: string) => handleChange("address", t)}
             />
 
-            <FieldRow label="생년월일" value={data.birthDate} editable={false} />
+            {/* 수정 불가 항목 */}
+            <FieldRow label="생년월일" value={data.birthDate} editing={false} />
+            <FieldRow label="성별" value={data.gender} editing={false} />
+            <FieldRow label="국적" value={data.nationality} editing={false} />
 
-            <FieldRow label="성별" value={data.gender} editable={false} />
-
-            <FieldRow label="국적" value={data.nationality} editable={false} />
-
-            <FieldRow label="전화번호" value={data.phone}
-              editing={editingField === 'phone'} editValue={editValue}
-              onPressEdit={() => startEdit('phone')} onChangeEdit={setEditValue}
-              editable={true}
+            {/* 수정 가능 항목 */}
+            <FieldRow
+              label="전화번호"
+              editing={isEditing}
+              value={editedValues.phone}
+              onChangeText={(t: string) => handleChange("phone", t)}
             />
 
-            <FieldRow label="비상전화" value={data.emergencyNumber}
-              editing={editingField === 'emergencyNumber'} editValue={editValue}
-              onPressEdit={() => startEdit('emergencyNumber')} onChangeEdit={setEditValue}
-              editable={true}
+            <FieldRow
+              label="비상전화"
+              editing={isEditing}
+              value={editedValues.emergencyNumber}
+              onChangeText={(t: string) => handleChange("emergencyNumber", t)}
             />
 
-            <FieldRow label="직종" value={data.jobRole} editable={false} />
+            <FieldRow label="직종" value={data.jobRole} editing={false} />
+            <FieldRow label="현장명" value={data.siteName} editing={false} />
 
-            <FieldRow label="현장명" value={data.siteName} editable={false} />
-
-            <FieldRow label="은행명" value={data.bankName}
-              editing={editingField === 'bankName'} editValue={editValue}
-              onPressEdit={() => startEdit('bankName')} onChangeEdit={setEditValue}
-              editable={true}
+            <FieldRow
+              label="은행명"
+              editing={isEditing}
+              value={editedValues.bankName}
+              onChangeText={(t: string) => handleChange("bankName", t)}
             />
 
-            <FieldRow label="계좌번호" value={data.accountNumber}
-              editing={editingField === 'accountNumber'} editValue={editValue}
-              onPressEdit={() => startEdit('accountNumber')} onChangeEdit={setEditValue}
-              editable={true}
+            <FieldRow
+              label="계좌번호"
+              editing={isEditing}
+              value={editedValues.accountNumber}
+              onChangeText={(t: string) => handleChange("accountNumber", t)}
             />
 
-            <FieldRow label="예금주" value={data.accountHolder}
-              editing={editingField === 'accountHolder'} editValue={editValue}
-              onPressEdit={() => startEdit('accountHolder')} onChangeEdit={setEditValue}
-              editable={true}
+            <FieldRow
+              label="예금주"
+              editing={isEditing}
+              value={editedValues.accountHolder}
+              onChangeText={(t: string) => handleChange("accountHolder", t)}
             />
 
             {/* 저장 버튼 */}
-            {editingField && (
-              <TouchableOpacity style={styles.saveBtn} onPress={saveEdit}>
+            {isEditing && (
+              <TouchableOpacity style={styles.saveBtn} onPress={saveAllEdits}>
                 <Text style={styles.saveText}>저장</Text>
               </TouchableOpacity>
             )}
@@ -229,57 +301,88 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* 문서 링크 */}
+        {/* 문서 — 계약서만 남김 */}
         <View style={styles.docSection}>
-          <DocButton title="근로 계약서 보기" subtitle={`ID: ${data.contractFileId ?? '없음'}`} bg="#E5F0FF" />
-          <DocButton title="급여 명세서 보기" subtitle={`ID: ${data.payrollFileId ?? '없음'}`} bg="#FFEBD7" />
-          <DocButton title="자격증 보기" subtitle={`ID: ${data.certificateFileId ?? '없음'}`} bg="#E5F7E9" />
+          <DocButton
+            title="근로 계약서 보기"
+            subtitle={`파일명: ${data.contractFile?.originalFileName ?? '없음'}`}
+            onPress={openContractFile}
+              bg="#EFF6FF"   // 연한 파란색
+
+          />
         </View>
+
       </ScrollView>
-    </SafeAreaView>
+      <Modal
+  visible={contractPreviewOpen}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setContractPreviewOpen(false)}
+>
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <TouchableOpacity
+      onPress={() => setContractPreviewOpen(false)}
+      style={{
+        position: "absolute",
+        top: 40,
+        right: 40,
+        padding: 10,
+      }}
+    >
+      <Text style={{ fontSize: 32, color: "white" }}>✕</Text>
+    </TouchableOpacity>
+
+    <Image
+      source={{ uri: contractPreviewUrl }}
+      style={{ width: "90%", height: "80%" }}
+      resizeMode="contain"
+    />
+  </View>
+</Modal>
+
+    </ScreenWrapper>
+
   );
 };
 
 export default MyPageScreen;
 
 /* ---------------------------------------
-   공통 컴포넌트
+   필드 컴포넌트
 --------------------------------------- */
-function FieldRow({
-  label, value,
-  editing, editValue,
-  onChangeEdit, onPressEdit,
-  editable = true,
-}: any) {
-
+function FieldRow({ label, value, editing, onChangeText }: any) {
   return (
     <View style={{ marginBottom: 16 }}>
       <Text style={styles.label}>{label}</Text>
 
       {editing ? (
         <TextInput
-          value={editValue}
-          onChangeText={onChangeEdit}
+          value={value ?? ""}
+          onChangeText={onChangeText}
           style={styles.input}
         />
       ) : (
         <View style={styles.readonlyBox}>
           <Text style={styles.readonlyValue}>{value ?? '-'}</Text>
-
-          {editable && onPressEdit && (
-            <TouchableOpacity onPress={onPressEdit}>
-              <Text style={styles.editBtn}>수정</Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
     </View>
   );
 }
 
-function DocButton({ title, subtitle, bg }: any) {
+function DocButton({ title, subtitle, bg, onPress }: any) {
   return (
-    <TouchableOpacity style={[styles.docCard, { backgroundColor: bg }]} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.docCard, { backgroundColor: bg }]}
+    >
       <View style={styles.docInner}>
         <View style={styles.docLeft}>
           <View style={styles.docIconCircle}>
@@ -287,7 +390,13 @@ function DocButton({ title, subtitle, bg }: any) {
           </View>
           <View>
             <Text style={styles.docTitle}>{title}</Text>
-            <Text style={styles.docSubtitle}>{subtitle}</Text>
+            <Text
+  style={styles.docSubtitle}
+  numberOfLines={1}
+  ellipsizeMode="tail"
+>
+  {subtitle}
+</Text>
           </View>
         </View>
         <Text style={styles.chevron}>›</Text>
@@ -341,8 +450,6 @@ const styles = StyleSheet.create({
   cardInner: { padding: 16 },
 
   profileWrapper: { alignItems: 'center' },
-
-  avatarWrapper: { marginBottom: 10 },
   avatarCircle: {
     width: 96,
     height: 96,
@@ -350,30 +457,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#DBEAFE',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
   },
   avatarInitial: { fontSize: 32, color: '#2563EB', fontWeight: '700' },
-
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 2,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cameraIcon: { color: '#fff' },
 
   nameText: { fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 4 },
   jobText: { fontSize: 14, color: '#4B5563' },
   phoneText: { fontSize: 13, color: '#6B7280' },
 
+  infoHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  editAllBtn: { color: '#2563EB', fontSize: 14, fontWeight: '500' },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 16,
     color: '#111827',
   },
 
@@ -388,12 +490,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   readonlyValue: { fontSize: 14, color: '#111827' },
-
-  editBtn: { color: '#2563EB', fontSize: 13 },
-
+  docSubtitle: {
+  fontSize: 12,
+  color: '#6B7280',
+  maxWidth: 220,   // 필요하면 조절 가능
+},
   input: {
     height: 44,
     borderWidth: 1,
@@ -417,7 +520,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   docLeft: { flexDirection: 'row', alignItems: 'center' },
-
   docIconCircle: {
     width: 44,
     height: 44,
@@ -429,12 +531,12 @@ const styles = StyleSheet.create({
   },
   docIcon: { fontSize: 22 },
   docTitle: { fontSize: 14, color: '#111827', marginBottom: 2 },
-  docSubtitle: { fontSize: 12, color: '#6B7280' },
+
 
   chevron: { fontSize: 20, color: '#9CA3AF' },
 
   saveBtn: {
-    marginTop: 10,
+    marginTop: 12,
     backgroundColor: "#2563EB",
     paddingVertical: 12,
     borderRadius: 10,
@@ -450,6 +552,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
+    marginTop: 14,
   },
   passwordTitle: { fontSize: 14, color: '#111827', marginBottom: 2 },
   passwordDesc: { fontSize: 12, color: '#6B7280' },
