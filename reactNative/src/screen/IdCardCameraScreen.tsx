@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { launchCamera } from "react-native-image-picker";
 import { uploadIdCardImage } from "../api/ocr";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Lucide Icons
 import {
@@ -24,6 +24,7 @@ import {
 
 export default function IdCardCameraScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();   // ✅ 이 줄 추가
 
   const [step, setStep] = useState<"guide" | "capture">("guide");
   const [photo, setPhoto] = useState<any>(null);
@@ -69,9 +70,11 @@ export default function IdCardCameraScreen() {
 
       setLoading(false);
 
-      navigation.navigate("WorkerManagement", {
-        idCardData: res,
-      });
+      // ✅ WorkerManagement에서 내려준 콜백 호출
+      route.params?.onOcrDone?.(res);
+
+      // ✅ 새 WorkerManagement 열지 말고, 원래 화면으로 돌아가기
+      navigation.goBack();
     } catch (err) {
       setLoading(false);
       console.log("❌ 신분증 OCR 오류:", err);

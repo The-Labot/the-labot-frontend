@@ -158,9 +158,7 @@ const [socialOpen, setSocialOpen] = useState(false);
             <Text style={styles.headerSubtitle}>My Page</Text>
           </View>
 
-          <TouchableOpacity onPress={handleLogout} style={styles.headerLogoutBtn}>
-            <Text style={styles.headerLogoutText}>로그아웃</Text>
-          </TouchableOpacity>
+         
         </View>
 
         {/* 메인 */}

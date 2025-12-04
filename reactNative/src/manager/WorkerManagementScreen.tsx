@@ -66,66 +66,103 @@ export default function WorkerManagementScreen() {
   // 🔹 데이터 수신 로직 (useEffect)
   // 2️⃣ 수정: return 제거하여 데이터가 씹히지 않도록 함
   // ----------------------------------
-  useEffect(() => {
-    const p = route.params;
-    if (!p) return;
+   useEffect(() => {
+  const p = route.params;
+  if (!p) return;
 
-    console.log("📥 [WorkerManagement] 파라미터 수신:", JSON.stringify(p, null, 2));
+  console.log("📥 [WorkerManagement] 파라미터 수신:", JSON.stringify(p, null, 2));
 
-    let hasDataUpdate = false;
+  let hasDataUpdate = false;
 
-    // 1) OCR 데이터 (계약서 텍스트)
-    if (p.ocrData) {
-      const o = p.ocrData;
-      setShowRegister(true);
+  // 1) 계약서 OCR 데이터
+  if (p.ocrData) {
+    const o = p.ocrData;
+    setShowRegister(true);
 
-      setRegContractType(o.contractType ?? "");
-      setRegJobType(o.jobType ?? "");
-      setRegSalary(o.salary ?? "");
-      setRegPayReceive(o.payReceive ?? "");
-      setRegSiteName(o.siteName ?? "");
-      setRegBankName(o.bankName ?? "");
-      setRegAccountHolder(o.accountHolder ?? "");
-      setRegAccountNumber(o.accountNumber ?? "");
-      setRegPhone(o.phoneNumber ?? "");
-      setRegEmergencyNumber(o.emergencyNumber ?? "");
-      setRegContractStartDate(o.contractStartDate ?? "");
-      setRegContractEndDate(o.contractEndDate ?? "");
-      setRegWageStartDate(o.wageStartDate ?? "");
-      setRegWageEndDate(o.wageEndDate ?? "");
-      
-      hasDataUpdate = true;
-    }
+    // 🔥 "값이 있을 때만" 덮어쓰기 (없으면 기존 값 유지)
+    setRegContractType(prev =>
+      o.contractType && o.contractType.trim() !== "" ? o.contractType : prev
+    );
+    setRegJobType(prev =>
+      o.jobType && o.jobType.trim() !== "" ? o.jobType : prev
+    );
+    setRegSalary(prev =>
+      o.salary && o.salary.trim() !== "" ? o.salary : prev
+    );
+    setRegPayReceive(prev =>
+      o.payReceive && o.payReceive.trim() !== "" ? o.payReceive : prev
+    );
+    setRegSiteName(prev =>
+      o.siteName && o.siteName.trim() !== "" ? o.siteName : prev
+    );
+    setRegBankName(prev =>
+      o.bankName && o.bankName.trim() !== "" ? o.bankName : prev
+    );
+    setRegAccountHolder(prev =>
+      o.accountHolder && o.accountHolder.trim() !== "" ? o.accountHolder : prev
+    );
+    setRegAccountNumber(prev =>
+      o.accountNumber && o.accountNumber.trim() !== "" ? o.accountNumber : prev
+    );
+    setRegPhone(prev =>
+      o.phoneNumber && o.phoneNumber.trim() !== "" ? o.phoneNumber : prev
+    );
+    setRegEmergencyNumber(prev =>
+      o.emergencyNumber && o.emergencyNumber.trim() !== "" ? o.emergencyNumber : prev
+    );
+    setRegContractStartDate(prev =>
+      o.contractStartDate && o.contractStartDate.trim() !== "" ? o.contractStartDate : prev
+    );
+    setRegContractEndDate(prev =>
+      o.contractEndDate && o.contractEndDate.trim() !== "" ? o.contractEndDate : prev
+    );
+    setRegWageStartDate(prev =>
+      o.wageStartDate && o.wageStartDate.trim() !== "" ? o.wageStartDate : prev
+    );
+    setRegWageEndDate(prev =>
+      o.wageEndDate && o.wageEndDate.trim() !== "" ? o.wageEndDate : prev
+    );
 
-    // 2) 계약서 이미지
-    if (p.contractImage) {
-      console.log("🖼 계약서 이미지 설정됨");
-      setContractImage(p.contractImage);
-      setShowRegister(true);
-      hasDataUpdate = true;
-    }
+    hasDataUpdate = true;
+  }
 
-    // 3) 신분증 데이터
-    if (p.idCardData) {
-      console.log("💳 신분증 데이터 설정됨");
-      const o = p.idCardData;
-      setShowRegister(true);
-      setRegName(o.name ?? "");
-      setRegAddress(o.address ?? "");
-      setRegResidentId(o.residentIdNumber ?? "");
-      hasDataUpdate = true;
-    }
+  // 2) 계약서 이미지
+  if (p.contractImage) {
+    console.log("🖼 계약서 이미지 설정됨");
+    setContractImage(p.contractImage);
+    setShowRegister(true);
+    hasDataUpdate = true;
+  }
 
-    // 처리가 끝났으면 파라미터 비우기 (중복 실행 방지)
-    if (hasDataUpdate) {
-      navigation.setParams({
-        ocrData: undefined,
-        contractImage: undefined,
-        idCardData: undefined,
-      });
-    }
+  // 3) 신분증 OCR 데이터 (이름 / 주소 / 주민번호만 담당)
+  if (p.idCardData) {
+    console.log("💳 신분증 데이터 설정됨");
+    const o = p.idCardData;
+    setShowRegister(true);
 
-  }, [route.params]);
+    // 🔥 이 셋만 업데이트, 그리고 값 없으면 이전 값 유지
+    setRegName(prev =>
+      o.name && o.name.trim() !== "" ? o.name : prev
+    );
+    setRegAddress(prev =>
+      o.address && o.address.trim() !== "" ? o.address : prev
+    );
+    setRegResidentId(prev =>
+      o.residentIdNumber && o.residentIdNumber.trim() !== "" ? o.residentIdNumber : prev
+    );
+
+    hasDataUpdate = true;
+  }
+
+  // 파라미터 한번 쓰고 나면 비워서 중복 적용 방지
+  if (hasDataUpdate) {
+    navigation.setParams({
+      ocrData: undefined,
+      contractImage: undefined,
+      idCardData: undefined,
+    });
+  }
+}, [route.params, navigation]);
 
   /* ------------------------------------------
      타입 정의
@@ -193,13 +230,102 @@ export default function WorkerManagementScreen() {
   const currentAttendanceIdRef = useRef<number | null>(null);
   const [contractImage, setContractImage] = useState<any>(null);
 
+  const [objMessage, setObjMessage] = useState(""); // 추가했습니다
+
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
     waiting: 0,
     objections: 0,
   });
+    // 🔵 계약서 OCR 결과를 현재 화면 state에 반영하는 함수
+  const openContractCamera = () => {
+    navigation.navigate("ContractCamera", {
+      onOcrDone: (ocrData: any, photo: any) => {
+        // 🔥 여기서 "현재 WorkerManagement 인스턴스"의 state를 직접 수정
+        if (photo) {
+          setContractImage(photo);
+        }
+        setShowRegister(true);
 
+        if (!ocrData) return;
+        const o = ocrData;
+
+        setRegContractType((prev) =>
+          o.contractType && o.contractType.trim() !== "" ? o.contractType : prev
+        );
+        setRegJobType((prev) =>
+          o.jobType && o.jobType.trim() !== "" ? o.jobType : prev
+        );
+        setRegSalary((prev) =>
+          o.salary && o.salary.trim() !== "" ? o.salary : prev
+        );
+        setRegPayReceive((prev) =>
+          o.payReceive && o.payReceive.trim() !== "" ? o.payReceive : prev
+        );
+        setRegSiteName((prev) =>
+          o.siteName && o.siteName.trim() !== "" ? o.siteName : prev
+        );
+        setRegBankName((prev) =>
+          o.bankName && o.bankName.trim() !== "" ? o.bankName : prev
+        );
+        setRegAccountHolder((prev) =>
+          o.accountHolder && o.accountHolder.trim() !== "" ? o.accountHolder : prev
+        );
+        setRegAccountNumber((prev) =>
+          o.accountNumber && o.accountNumber.trim() !== "" ? o.accountNumber : prev
+        );
+        setRegPhone((prev) =>
+          o.phoneNumber && o.phoneNumber.trim() !== "" ? o.phoneNumber : prev
+        );
+        setRegEmergencyNumber((prev) =>
+          o.emergencyNumber && o.emergencyNumber.trim() !== "" ? o.emergencyNumber : prev
+        );
+        setRegContractStartDate((prev) =>
+          o.contractStartDate && o.contractStartDate.trim() !== ""
+            ? o.contractStartDate
+            : prev
+        );
+        setRegContractEndDate((prev) =>
+          o.contractEndDate && o.contractEndDate.trim() !== ""
+            ? o.contractEndDate
+            : prev
+        );
+        setRegWageStartDate((prev) =>
+          o.wageStartDate && o.wageStartDate.trim() !== "" ? o.wageStartDate : prev
+        );
+        setRegWageEndDate((prev) =>
+          o.wageEndDate && o.wageEndDate.trim() !== "" ? o.wageEndDate : prev
+        );
+      },
+    });
+  };
+
+  // 🔵 신분증 OCR 결과를 현재 화면 state에 반영하는 함수
+  const openIdCardCamera = () => {
+    navigation.navigate("IdCardCamera", {
+      onOcrDone: (idCardData: any) => {
+        if (!idCardData) return;
+        const o = idCardData;
+
+        setShowRegister(true);
+
+        // ⚠ 이름/주소/주민번호만 수정 (다른 계약 정보는 손대지 않음)
+        setRegName((prev) =>
+          o.name && o.name.trim() !== "" ? o.name : prev
+        );
+        setRegAddress((prev) =>
+          o.address && o.address.trim() !== "" ? o.address : prev
+        );
+        setRegResidentId((prev) =>
+          o.residentIdNumber && o.residentIdNumber.trim() !== ""
+            ? o.residentIdNumber
+            : prev
+        );
+      },
+    });
+  };
+  
   useEffect(() => {
     loadWorkers();
   }, []);
@@ -221,9 +347,16 @@ export default function WorkerManagementScreen() {
   );
 
   function openObjection(rec: any) {
+
+    console.log("📌 [이의제기 버튼 클릭] attendance 데이터:", JSON.stringify(rec, null, 2));
+    //추가햇습니다.
+
     setObjDate(rec.date);
     setObjInTime(rec.clockInTime?.split(":").slice(0, 2).join(":") ?? "");
     setObjOutTime(rec.clockOutTime?.split(":").slice(0, 2).join(":") ?? "");
+
+    // 🔥 추가했습니다, 아래 한줄만 추가하면 됨
+    setObjMessage(rec.objectionMessage ?? "");
 
     const statusMap: any = {
       PRESENT: "정상 출근",
@@ -387,6 +520,7 @@ export default function WorkerManagementScreen() {
       Alert.alert("등록 실패", err.message ?? "등록 중 오류가 발생했습니다.");
     }
   };
+  
 
   const LeftItem = ({ item }: { item: Worker }) => {
     const sel = selectedWorker?.id === item.id;
@@ -512,20 +646,23 @@ export default function WorkerManagementScreen() {
                 <Text style={styles.sectionTitle}>서류 첨부</Text>
                 <Text style={styles.subtitleSmall}>Document Attachments</Text>
                 <View style={{ height: 16 }} />
+                
                 <TouchableOpacity
                   style={styles.docBtn}
-                  onPress={() => navigation.navigate("ContractCamera")}
+                   onPress={openContractCamera}   // ✅ 여기 변경
+
                 >
                   <Text style={{ color: "#111827", fontWeight: "600" }}>계약서 촬영</Text>
                   <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.docBtn}
-                  onPress={() => navigation.navigate("IdCardCamera")}
+                    onPress={openIdCardCamera}     // ✅ 여기 변경
                 >
                   <Text style={{ color: "#111827", fontWeight: "600" }}>신분증 촬영</Text>
                   <Text style={{ color: "#9CA3AF" }}>{">"}</Text>
                 </TouchableOpacity>
+                
                 <View style={{ backgroundColor: "#F3F9FF", borderRadius: 12, padding: 14, marginTop: 12 }}>
                   <Text style={{ color: "#2563EB", fontSize: 12 }}>
                     신분증 촬영 시 OCR 기술로 개인정보가 자동으로 입력됩니다.{"\n"}
@@ -768,28 +905,82 @@ export default function WorkerManagementScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>이의제기 처리</Text>
             {selectedWorker && (
+
               <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-                <Text style={{ marginTop: 8, color: "#374151", fontSize: 16 }}>{selectedWorker.name} · {selectedWorker.position}</Text>
+                 {/*추가했습니다, 기존 scrollview content.. 위에 꺼부터 아래 대체  */}
+                <Text style={{ marginTop: 8, color: "#374151", fontSize: 16 }}>
+                  {selectedWorker.name} · {selectedWorker.position}
+                </Text>
+
                 <View style={{ height: 16 }} />
                 <Field label="날짜" value={objDate} />
+
+                <View style={{ marginTop: 20 }}>
+                  <Text style={styles.label}>근로자 이의제기 내용</Text>
+                  <View
+                    style={{
+                      backgroundColor: "#F3F4F6",
+                      borderWidth: 1,
+                      borderColor: "#E5E7EB",
+                      borderRadius: 10,
+                      padding: 12,
+                      minHeight: 70,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#374151",
+                        fontSize: 14,
+                        lineHeight: 20,
+                      }}
+                    >
+                      {objMessage || "내용 없음"}
+                    </Text>
+                  </View>
+                </View>
+                {/* 🔥 여기까지 추가, 추가했습니다 */}
+                    
                 <View style={{ marginTop: 20 }}>
                   <Text style={styles.label}>수정할 출근 시간</Text>
-                  <TextInput value={objInTime} onChangeText={setObjInTime} placeholder="예: 09:30" style={styles.timeInput} />
+                  <TextInput
+                    value={objInTime}
+                    onChangeText={setObjInTime}
+                    placeholder="예: 09:30"
+                    style={styles.timeInput}
+                  />
                 </View>
+
                 <View style={{ marginTop: 20 }}>
                   <Text style={styles.label}>수정할 퇴근 시간</Text>
-                  <TextInput value={objOutTime} onChangeText={setObjOutTime} placeholder="예: 18:00" style={styles.timeInput} />
+                  <TextInput
+                    value={objOutTime}
+                    onChangeText={setObjOutTime}
+                    placeholder="예: 18:00"
+                    style={styles.timeInput}
+                  />
                 </View>
+
                 <View style={{ marginTop: 20 }}>
                   <Text style={styles.label}>출퇴근 상태</Text>
-                  <Toggle2 values={["정상 출근", "지각", "조퇴", "결근"]} value={objStatus} onChange={(v) => setObjStatus(v as any)} wide />
+                  <Toggle2
+                    values={["정상 출근", "지각", "조퇴", "결근"]}
+                    value={objStatus}
+                    onChange={(v) => setObjStatus(v as any)}
+                    wide
+                  />
                 </View>
+
                 <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 30 }}>
-                  <TouchableOpacity style={styles.outlineBtn} onPress={() => setObjectionOpen(false)}><Text>취소</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.outlineBtn} onPress={() => setObjectionOpen(false)}>
+                    <Text>취소</Text>
+                  </TouchableOpacity>
                   <View style={{ width: 12 }} />
-                  <TouchableOpacity style={styles.primaryBtnSmall} onPress={processObjection}><Text style={styles.primaryBtnText}>처리 완료</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.primaryBtnSmall} onPress={processObjection}>
+                    <Text style={styles.primaryBtnText}>처리 완료</Text>
+                  </TouchableOpacity>
                 </View>
               </ScrollView>
+              //추가했습니다
             )}
           </View>
         </View>

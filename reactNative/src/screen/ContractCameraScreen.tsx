@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { launchCamera } from "react-native-image-picker";
 import { uploadContractImage } from "../api/ocr";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Lucide Icons (RN)
 import {
@@ -24,6 +24,7 @@ import {
 
 export default function ContractCameraScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();   // ✅ 이 줄 추가
 
   const [step, setStep] = useState<"guide" | "capture">("guide");
   const [photo, setPhoto] = useState<any>(null);
@@ -70,10 +71,9 @@ export default function ContractCameraScreen() {
       setLoading(false);
 
       // 📌 OCR 성공 → OCR 데이터 + 사진 전달
-      navigation.navigate("WorkerManagement", {
-        ocrData: res,
-        contractImage: photo,
-      });
+      // 📌 OCR 성공 → 콜백 호출 + 현재 화면 닫기
+      route.params?.onOcrDone?.(res, photo);  // ✅ WorkerManagement에서 내려준 콜백 실행
+      navigation.goBack();                    // ✅ 기존 WorkerManagement 화면으로 복귀
     } catch (err) {
       setLoading(false);
       console.log("❌ OCR 오류:", err);
@@ -84,23 +84,22 @@ export default function ContractCameraScreen() {
       );
 
       // 📌 OCR 실패 → 사진만 전달
-    navigation.navigate("ManagerHome", {
-    activeTab: "worker-management",
-    contractImage: photo,
-  });
+    route.params?.onOcrDone?.(null, photo);
+    navigation.goBack();
     }
   };
 
   // ------------------------
   // 🔵 OCR 안 하고 사진만 사용
   // ------------------------
+    // 🔵 OCR 안 하고 사진만 사용
   const usePhotoOnly = () => {
-  if (!photo) return;
-  navigation.navigate("ManagerHome", {
-    activeTab: "worker-management",
-    contractImage: photo,
-  });
-};
+    if (!photo) return;
+
+    // ✅ OCR 없이도 동일하게: 사진만 넘기고 뒤로가기
+    route.params?.onOcrDone?.(null, photo);
+    navigation.goBack();
+  };
 
   // ------------------------
   // 🔙 뒤로가기

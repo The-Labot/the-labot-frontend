@@ -56,9 +56,8 @@ export type RootStackParamList = {
   WorkerManagement: { ocrData?: any; idCardData?: any } | undefined;
 
   // OCR
-  IdCardCamera: undefined;
-  ContractCamera: undefined;
-
+  IdCardCamera: { onOcrDone?: (idCardData: any) => void } | undefined;
+  ContractCamera: { onOcrDone?: (ocrData: any, photo: any) => void } | undefined;
   // 공지사항
   WorkerNoticeList: undefined;
   WorkerNoticeDetail: { noticeId: number };
