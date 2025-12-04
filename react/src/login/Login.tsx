@@ -30,7 +30,7 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
     try {
       const res = await login(payload);
       const rawToken = res.data?.token;
-
+      
       if (!rawToken) {
         alert("로그인 token 을 찾을 수 없습니다.");
         return;
@@ -48,7 +48,13 @@ export function Login({ onSignUpClick, onLoginSuccess }: LoginProps) {
       alert("로그인 성공");
     } catch (err: any) {
       console.error("로그인 실패:", err);
-      alert("로그인 실패");
+
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "아이디 또는 비밀번호가 올바르지 않습니다.";
+
+      alert(msg);
     }
   };
 

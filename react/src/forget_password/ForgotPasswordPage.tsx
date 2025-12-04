@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     try {
       const res = await requestTempPassword(name, phone);
 
-      setMessage(res.message || "임시 비밀번호가 발급되었습니다.");
+      setMessage(res.message || "임시 비밀번호가 문자로 발송되었습니다.");
 
       // 1.5초 후 로그인 페이지로 이동
       setTimeout(() => {

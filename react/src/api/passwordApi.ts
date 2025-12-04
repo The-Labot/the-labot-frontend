@@ -7,5 +7,5 @@ export const requestTempPassword = async (name: string, phoneNumber: string) => 
     phoneNumber,
   });
 
-  return res.data.data;
+  return res.data;
 };
