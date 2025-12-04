@@ -1,6 +1,6 @@
 import api from "axios";
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+//const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const getDailyReports = async (
   siteId: number,
@@ -11,7 +11,7 @@ export const getDailyReports = async (
   const token = localStorage.getItem("accessToken");
 
   const res = await api.get(
-    `${API_URL}/admin/reports/sites/${siteId}`,
+    `/admin/reports/sites/${siteId}`,
     {
       params: { 
         year,

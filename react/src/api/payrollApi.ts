@@ -1,6 +1,6 @@
 import api from "axios";
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+//const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const getWorkersBySite = async (
   siteId: number,
@@ -9,7 +9,7 @@ export const getWorkersBySite = async (
 ) => {
   const token = localStorage.getItem("accessToken");
 
-  const res = await api.get(`${API_URL}/admin/sites/${siteId}/payrolls`, {
+  const res = await api.get(`/admin/sites/${siteId}/payrolls`, {
     params: { year, month },
     headers: {
       Authorization: `Bearer ${token}`,
@@ -28,7 +28,7 @@ export const getMonthlyPayroll = async (
 ) => {
   const token = localStorage.getItem("accessToken");
 
-  const res = await api.get(`${API_URL}/admin/sites/${siteId}/payrolls`, {
+  const res = await api.get(`/admin/sites/${siteId}/payrolls`, {
     params: { year, month },
     headers: {
       Authorization: `Bearer ${token}`,
@@ -52,7 +52,7 @@ export const createMonthlyPayroll = async (
   const token = localStorage.getItem("accessToken");
 
   const res = await api.post(
-    `${API_URL}/admin/sites/${siteId}/payrolls/create`,
+    `/admin/sites/${siteId}/payrolls/create`,
     { 
       year, 
       month,
@@ -78,7 +78,7 @@ export const deleteMonthlyPayroll = async (
   const token = localStorage.getItem("accessToken");
 
   return api.post(
-    `${API_URL}/admin/sites/${siteId}/payrolls/delete`,
+    `/admin/sites/${siteId}/payrolls/delete`,
     {
       year,
       month,
@@ -102,7 +102,7 @@ export const getAttendanceMonthly = async (
   const token = localStorage.getItem("accessToken");
 
   const res = await api.get(
-    `${API_URL}/admin/sites/${siteId}/workers/${workerId}/manHour`,
+    `/admin/sites/${siteId}/workers/${workerId}/manHour`,
     {
       params: { year, month },
       headers: {
@@ -123,7 +123,7 @@ export const getPayrollDetail = async (
   const token = localStorage.getItem("accessToken");
 
   const res = await api.get(
-    `${API_URL}/admin/sites/${siteId}/payrolls/${workerId}/${payrollId}`, 
+    `/admin/sites/${siteId}/payrolls/${workerId}/${payrollId}`, 
     {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -141,7 +141,7 @@ export const updatePayrollDetail = async (
   const token = localStorage.getItem("accessToken");
 
   const res = await api.patch(
-    `${API_URL}/admin/sites/${siteId}/payrolls/${payrollId}`,
+    `/admin/sites/${siteId}/payrolls/${payrollId}`,
     payload,
     {
       headers: {

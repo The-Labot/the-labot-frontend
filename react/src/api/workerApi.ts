@@ -1,11 +1,11 @@
 import api from "axios";
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+//const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const getWorkerList = async (siteId: number) => {
   const token = localStorage.getItem("accessToken");
 
-  const response = await api.get(`${API_URL}/admin/workers/${siteId}`, {
+  const response = await api.get(`/admin/workers/${siteId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -17,7 +17,7 @@ export const getWorkerList = async (siteId: number) => {
 export const getWorkerDetail = async (workerId: number) => {
   const token = localStorage.getItem("accessToken");
 
-  const res = await api.get(`${API_URL}/admin/workers/detail/${workerId}`, {
+  const res = await api.get(`/admin/workers/detail/${workerId}`, {
     headers: {
       Authorization: `Bearer ${token}`, // Bearer 포함
     },
@@ -36,7 +36,7 @@ export const getWorkerMonthlyAttendance = async (
   const token = localStorage.getItem("accessToken");
   
   const res = await api.get(
-    `${API_URL}/admin/sites/${siteId}/workers/${userId}`,
+    `/admin/sites/${siteId}/workers/${userId}`,
     {
       params: { year, month },
       headers: { Authorization: `Bearer ${token}` },
