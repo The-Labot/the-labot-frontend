@@ -15,6 +15,7 @@ import { getTempAccessToken } from '../api/auth';
 import { BASE_URL } from '../api/config';
 import { StyleSheet } from 'react-native';
 import { PermissionsAndroid, Platform } from "react-native";
+import ScreenWrapper from '../ScreenWrapper';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Attendance'>;
 
@@ -176,7 +177,8 @@ const requestAttendance = async (type: 'IN' | 'OUT') => {
   })();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <View style={styles.container}>
         {/* ===== 헤더 ===== */}
         <View style={styles.header}>
@@ -279,7 +281,8 @@ const requestAttendance = async (type: 'IN' | 'OUT') => {
             </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
+
   );
 };
 
@@ -445,6 +448,8 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+    paddingBottom: 60,   // ⭐ 추가: 바텀을 확실히 띄움
+
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#E5E7EB',

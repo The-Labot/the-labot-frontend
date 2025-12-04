@@ -8,13 +8,41 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image
+  ,Modal
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { getTempAccessToken, setTempAccessToken } from '../api/auth';
 import { BASE_URL } from "../api/config";
+import ScreenWrapper from '../ScreenWrapper';
+
+// 🔵 근로자 파일 조회 API
+async function fetchMyFile(fileId: number) {
+  const token = getTempAccessToken();
+  console.log("🔑 토큰:", token);
+  console.log("📡 파일 조회 API 호출:", `${BASE_URL}/worker/mypage/files/${fileId}`);
+
+  if (!token) throw new Error("토큰 없음");
+
+  const res = await fetch(`${BASE_URL}/worker/files/${fileId}`, {
+    method: "GET",
+    headers: { Authorization: token },
+  });
+    console.log("📥 상태 코드:", res.status);
+
+  const text = await res.text();
+    console.log("📥 응답 RAW:", text);
+
+  return JSON.parse(text); // { id, fileUrl, originalFileName }
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerMyPage'>;
+interface FileResponse {
+  id: number;
+  fileUrl: string;
+  originalFileName: string;
+}
 
 interface WorkerMyPageData {
   name: string;
@@ -30,9 +58,11 @@ interface WorkerMyPageData {
   bankName: string;
   accountNumber: string;
   accountHolder: string;
-  contractFileId: number | null;
-  payrollFileId: number | null;
-  certificateFileId: number | null;
+
+  // ⬇️ 여기 완전 변경됨!!
+  contractFile: FileResponse | null;
+  payrollFiles: FileResponse[];
+  certificateFiles: FileResponse[];
 }
 
 const MyPageScreen: React.FC<Props> = ({ navigation }) => {
@@ -41,6 +71,10 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
   // 전체 수정 모드
   const [isEditing, setIsEditing] = useState(false);
   const [editedValues, setEditedValues] = useState<Partial<WorkerMyPageData>>({});
+
+
+  const [contractPreviewUrl, setContractPreviewUrl] = useState("");
+  const [contractPreviewOpen, setContractPreviewOpen] = useState(false);
 
   // GET
   async function loadMyPage() {
@@ -105,6 +139,28 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert("오류", "네트워크 오류가 발생했습니다.");
     }
   }
+  async function openContractFile() {
+  try {
+    if (!data?.contractFile?.id) {
+      console.log("🚫 contractFile 없음:", data?.contractFile);
+      Alert.alert("계약서 없음", "등록된 계약서 파일이 없습니다.");
+      return;
+    }
+
+    const fileId = data.contractFile.id;
+    console.log("📄 파일 조회:", fileId);
+
+    const res = await fetchMyFile(fileId);
+
+    setContractPreviewUrl(res.fileUrl);
+    setContractPreviewOpen(true);
+
+  } catch (e) {
+    console.log("❌ 파일 조회 실패:", e);
+    Alert.alert("에러", "계약서를 불러올 수 없습니다.");
+  }
+}
+
 
   if (!data) {
     return (
@@ -121,7 +177,7 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
       {/* 헤더 */}
       <View style={styles.headerWrapper}>
         <View style={styles.headerContent}>
@@ -249,13 +305,50 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.docSection}>
           <DocButton
             title="근로 계약서 보기"
-            subtitle={`ID: ${data.contractFileId ?? '없음'}`}
-            bg="#E5F0FF"
+            subtitle={`파일명: ${data.contractFile?.originalFileName ?? '없음'}`}
+            onPress={openContractFile}
+              bg="#EFF6FF"   // 연한 파란색
+
           />
         </View>
 
       </ScrollView>
-    </SafeAreaView>
+      <Modal
+  visible={contractPreviewOpen}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setContractPreviewOpen(false)}
+>
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+  >
+    <TouchableOpacity
+      onPress={() => setContractPreviewOpen(false)}
+      style={{
+        position: "absolute",
+        top: 40,
+        right: 40,
+        padding: 10,
+      }}
+    >
+      <Text style={{ fontSize: 32, color: "white" }}>✕</Text>
+    </TouchableOpacity>
+
+    <Image
+      source={{ uri: contractPreviewUrl }}
+      style={{ width: "90%", height: "80%" }}
+      resizeMode="contain"
+    />
+  </View>
+</Modal>
+
+    </ScreenWrapper>
+
   );
 };
 
@@ -284,9 +377,12 @@ function FieldRow({ label, value, editing, onChangeText }: any) {
   );
 }
 
-function DocButton({ title, subtitle, bg }: any) {
+function DocButton({ title, subtitle, bg, onPress }: any) {
   return (
-    <TouchableOpacity style={[styles.docCard, { backgroundColor: bg }]}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.docCard, { backgroundColor: bg }]}
+    >
       <View style={styles.docInner}>
         <View style={styles.docLeft}>
           <View style={styles.docIconCircle}>
@@ -294,7 +390,13 @@ function DocButton({ title, subtitle, bg }: any) {
           </View>
           <View>
             <Text style={styles.docTitle}>{title}</Text>
-            <Text style={styles.docSubtitle}>{subtitle}</Text>
+            <Text
+  style={styles.docSubtitle}
+  numberOfLines={1}
+  ellipsizeMode="tail"
+>
+  {subtitle}
+</Text>
           </View>
         </View>
         <Text style={styles.chevron}>›</Text>
@@ -390,7 +492,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   readonlyValue: { fontSize: 14, color: '#111827' },
-
+  docSubtitle: {
+  fontSize: 12,
+  color: '#6B7280',
+  maxWidth: 220,   // 필요하면 조절 가능
+},
   input: {
     height: 44,
     borderWidth: 1,
@@ -425,7 +531,7 @@ const styles = StyleSheet.create({
   },
   docIcon: { fontSize: 22 },
   docTitle: { fontSize: 14, color: '#111827', marginBottom: 2 },
-  docSubtitle: { fontSize: 12, color: '#6B7280' },
+
 
   chevron: { fontSize: 20, color: '#9CA3AF' },
 

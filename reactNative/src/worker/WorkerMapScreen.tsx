@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { getTempAccessToken } from '../api/auth';
 import { BASE_URL } from '../api/config';
+import ScreenWrapper from '../ScreenWrapper';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Map'>;
 
@@ -65,7 +66,8 @@ const WorkerMapScreen: React.FC<Props> = ({ navigation }) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <View style={styles.container}>
 
         {/* 헤더 */}
@@ -96,7 +98,8 @@ const WorkerMapScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
+
   );
 };
 

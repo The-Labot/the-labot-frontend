@@ -15,6 +15,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { StyleSheet } from "react-native";
 import { getTempAccessToken } from "../api/auth";
 import { BASE_URL } from "../api/config";
+import ScreenWrapper from '../ScreenWrapper';
 
 export default function HazardReportScreen({ navigation }: any) {
   const [hazardType, setHazardType] = useState("");
@@ -100,7 +101,8 @@ export default function HazardReportScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+  <ScreenWrapper>
+
       {/* 헤더 */}
       <View style={styles.headerWrapper}>
         <View style={styles.headerRow}>
@@ -178,7 +180,8 @@ export default function HazardReportScreen({ navigation }: any) {
         </TouchableOpacity>
 
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
+
   );
 }
 
@@ -227,6 +230,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#D1D5DB", // 연한 회색
   },
 
   textArea: {
@@ -235,6 +240,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: 200,
     marginBottom: 12,
+    borderWidth: 1,
+  borderColor: "#D1D5DB",
   },
 
   urgentBtn: {
