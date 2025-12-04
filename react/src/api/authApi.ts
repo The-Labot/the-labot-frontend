@@ -1,5 +1,5 @@
 // src/api/authApi.ts
-import apiClient from "./apiClient";
+import api from "./axios";
 
 // ✅ 회원가입 요청 타입 (이미 있던 거 그대로)
 export interface AdminSignUpRequest {
@@ -17,8 +17,9 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+// 회원가입 api
 export const signUpAdmin = (data: AdminSignUpRequest) => {
-  return apiClient.post<ApiResponse<unknown>>("/auth/signup/admin", data);
+  return api.post<ApiResponse<unknown>>("/auth/signup/admin", data);
 };
 
 // ✅ 로그인 요청 타입
@@ -37,7 +38,7 @@ export interface LoginResponse {
   name: string;
 }
 
-// 로그인
+// 로그인 api
 export const login = (data: LoginRequest) => {
-  return apiClient.post<LoginResponse>("/auth/login", data);
+  return api.post<LoginResponse>("/auth/login", data);
 };

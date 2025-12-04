@@ -1,6 +1,5 @@
 // src/api/authApi.ts
-import api from "axios"
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import api from "./axios"
 
 export const requestTempPassword = async (name: string, phoneNumber: string) => {
   const res = await api.post(`/auth/reset-password`, {
@@ -8,5 +7,5 @@ export const requestTempPassword = async (name: string, phoneNumber: string) => 
     phoneNumber,
   });
 
-  return res.data;
+  return res.data.data;
 };

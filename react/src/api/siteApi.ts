@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import api from "./axios";
 
 export interface SiteDetailResponse {
   status: number;
@@ -7,7 +7,7 @@ export interface SiteDetailResponse {
 }
 
 export const getSiteDetail = async (accessToken: string, siteId: number) => {
-  return apiClient.get<SiteDetailResponse>(`/admin/sites/${siteId}`, {
+  return api.get<SiteDetailResponse>(`/admin/sites/${siteId}`, {
     params: { siteId },
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -20,7 +20,7 @@ export const updateSiteDetail = async (
   siteId: number,
   body: any
 ) => {
-  return apiClient.patch(`/admin/sites/${siteId}`, body, {
+  return api.patch(`/admin/sites/${siteId}`, body, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -29,7 +29,7 @@ export const updateSiteDetail = async (
 };
 //삭제
 export const deleteSite = async (accessToken: string, siteId: number) => {
-  return apiClient.delete(`/admin/sites/${siteId}`, {
+  return api.delete(`/admin/sites/${siteId}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -41,7 +41,7 @@ export const addSiteManager = async (
   siteId: number,
   body: { phoneNumber: string; name: string }
 ) => {
-  return apiClient.post(`/admin/sites/${siteId}/manager`, body, {
+  return api.post(`/admin/sites/${siteId}/manager`, body, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

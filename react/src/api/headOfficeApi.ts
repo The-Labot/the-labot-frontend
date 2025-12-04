@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import api from "./axios";
 
 export interface CreateHeadOfficeRequest {
   name: string;
@@ -26,7 +26,7 @@ export interface ApiResponse<T> {
 export type CreateHeadOfficeResponse = ApiResponse<HeadOfficeData>;
 
 export const createHeadOffice = (data: CreateHeadOfficeRequest) => {
-  return apiClient.post<CreateHeadOfficeResponse>("/admin/head-office", data);
+  return api.post<CreateHeadOfficeResponse>("/admin/head-office", data);
 };
 
 export interface CheckHeadOfficeRequest {
@@ -34,7 +34,7 @@ export interface CheckHeadOfficeRequest {
 }
 
 export const checkHeadOffice = (data: CheckHeadOfficeRequest) => {
-  return apiClient.post<ApiResponse<HeadOfficeData>>(
+  return api.post<ApiResponse<HeadOfficeData>>(
     "/admin/head-office/select",
     data
   );
@@ -45,7 +45,7 @@ export interface HeadOfficeExistsResponse {
 }
 
 export const checkHeadOfficeExists = () => {
-  return apiClient.get<ApiResponse<HeadOfficeExistsResponse>>(
+  return api.get<ApiResponse<HeadOfficeExistsResponse>>(
     "/admin/head-office/exists"
   );
 };

@@ -1,4 +1,4 @@
-import api from "axios";
+import api from "./axios";
 
 //const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,7 +30,7 @@ export async function getWorkReportDetail(reportId: number) {
   if (!token) throw new Error("No token");
 
   const res = await api.get(
-    `http://localhost:8080/api/admin/reports/${reportId}`,
+    `/admin/reports/${reportId}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }

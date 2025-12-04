@@ -1,5 +1,5 @@
 // src/api/adminHeadOfficeApi.ts
-import apiClient from "./apiClient";
+import api from "./axios";
 
 /* ===========================
    본사 정보 타입
@@ -19,12 +19,10 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-/* ===========================
-   1) 본사 상세 조회 (GET)
-   GET /api/admin/head-office
+/* 🔥본사 조회 API
 =========================== */
 export const getHeadOffice = (accessToken: string) => {
-  return apiClient.get<ApiResponse<HeadOfficeData>>(
+  return api.get<ApiResponse<HeadOfficeData>>(
     "/admin/head-office",
     {
       headers: {
@@ -46,11 +44,12 @@ export interface UpdateHeadOfficeRequest {
   secretCode: string;
 }
 
+// 🔥 본사 수정 API
 export const updateHeadOffice = (
   accessToken: string,
   data: UpdateHeadOfficeRequest
 ) => {
-  return apiClient.put<ApiResponse<HeadOfficeData>>(
+  return api.put<ApiResponse<HeadOfficeData>>(
     "/admin/head-office",
     data,
     {
@@ -61,9 +60,10 @@ export const updateHeadOffice = (
     }
   );
 };
-// 📌 본사 코드 재생성 API
+
+// 🔥 본사 코드 재생성 API
 export const regenerateHeadOfficeCode = (accessToken: string) => {
-  return apiClient.get<ApiResponse<string>>(
+  return api.get<ApiResponse<string>>(
     "/admin/head-office/secret-code",
     {
       headers: {
