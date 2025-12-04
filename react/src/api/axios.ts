@@ -40,11 +40,19 @@ api.interceptors.response.use(
 
   (error) => {
     const status = error.response?.status;
+    const requestUrl = error.config?.url;
 
-    if (status === 401) {
-      alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
-      localStorage.removeItem("accessToken");
-      window.location.href = "/login";
+    // ① 로그인 요청은 401이어도 인터셉터가 처리하면 안 됨
+    const isLoginRequest = requestUrl?.includes("/auth/login");
+    const isResetPasswordRequest = requestUrl?.includes("/auth/reset-password");
+
+    if (!isLoginRequest && !isResetPasswordRequest) {
+      // ② 일반 요청에서만 401 = 토큰 만료 처리
+      if (status === 401) {
+        alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+        localStorage.removeItem("accessToken");
+        window.location.href = "/login";
+      }
     }
 
     if (status === 403) {
@@ -54,5 +62,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;
