@@ -1,4 +1,5 @@
 // src/api/auth.ts
+console.log("🔥 AUTH.TS LOADED");
 import { BASE_URL } from './config';
 
 export interface LoginResponse {
@@ -61,6 +62,26 @@ export async function loginManager(
   const tokenFromServer = data.accessToken ?? data.token;
   if (tokenFromServer) {
     setTempAccessToken(tokenFromServer);
+  }
+
+  return data;
+}
+
+
+export async function resetPassword(name: string, phoneNumber: string) {
+  
+  const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, phoneNumber }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "비밀번호 재설정 실패");
   }
 
   return data;

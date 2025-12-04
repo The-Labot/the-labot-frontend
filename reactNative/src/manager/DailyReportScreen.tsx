@@ -724,28 +724,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  headerActions: { flexDirection: "row", gap: 8 },
-
+  headerActions: {
+  flexDirection: "row",
+  gap: 12,
+  height: 50,          // 버튼 높이 보장
+  alignItems: "center"
+},
   primaryButtonSmall: {
     backgroundColor: "#2563EB",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderRadius: 10,
   },
 
   outlineButtonSmall: {
     borderWidth: 1,
     borderColor: "#D1D5DB",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderRadius: 10,
   },
 
   deleteButtonSmall: {
     borderWidth: 1,
     borderColor: "#FCA5A5",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderRadius: 10,
     backgroundColor: "#FEF2F2",
   },

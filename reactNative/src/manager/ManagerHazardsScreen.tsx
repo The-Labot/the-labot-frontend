@@ -12,7 +12,7 @@ import {
   Image,
   Modal,
 } from 'react-native';
-
+import ImageViewer from "react-native-image-zoom-viewer";
 import { fetchHazards, updateHazardStatus, deleteHazard } from '../api/hazard';
 import { fetchHazardDetail } from '../api/hazardDetail';
 
@@ -333,40 +333,35 @@ export default function SafetyReportScreen() {
         </View>
       </Modal>
       {/* 🔥 이미지 전체 화면 미리보기 */}
-<Modal visible={previewVisible} transparent animationType="fade">
-  <View
-    style={{
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.85)",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    {/* 닫기 버튼 */}
-    <TouchableOpacity
-      style={{
-        position: "absolute",
-        top: 40,
-        right: 30,
-        padding: 10,
-      }}
-      onPress={() => setPreviewVisible(false)}
-    >
-      <Text style={{ fontSize: 32, color: "#fff" }}>✕</Text>
-    </TouchableOpacity>
+      {/* 🔥 이미지 확대 모달 - react-native-image-zoom-viewer */}
+      <Modal visible={previewVisible} transparent>
+        <View style={{ flex: 1, backgroundColor: "black" }}>
+          
+          {/* 닫기 버튼 */}
+          <TouchableOpacity
+            onPress={() => setPreviewVisible(false)}
+            style={{
+              position: "absolute",
+              top: 40,
+              right: 20,
+              zIndex: 10,
+              padding: 10,
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 30 }}>✕</Text>
+          </TouchableOpacity>
 
-    {/* 확대 이미지 */}
-    <Image
-      source={{ uri: previewImage ?? undefined }}
-      style={{
-        width: "90%",
-        height: "70%",
-        borderRadius: 12,
-      }}
-      resizeMode="contain"
-    />
-  </View>
-</Modal>
+          {/* 이미지 Zoom Viewer */}
+          <ImageViewer
+            imageUrls={[{ url: previewImage ?? "" }]}
+            enableSwipeDown
+            onSwipeDown={() => setPreviewVisible(false)}
+            saveToLocalByLongPress={false}
+            backgroundColor="black"
+            renderIndicator={() => null}   // 상단 페이지 인디케이터 숨김
+          />
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -26,7 +26,13 @@ import WorkerMapScreen from './src/worker/WorkerMapScreen';
 import IdCardCameraScreen from './src/screen/IdCardCameraScreen';
 import ContractCameraScreen from './src/screen/ContractCameraScreen';
 
-// ----------------------------------------------------
+import ForgotPasswordScreen from './src/ForgotPasswordScreen';
+import ChangePasswordScreen from './src/manager/ChangePasswordScreen';
+import WorkerChangePasswordScreen from './src/worker/WorkerChangePasswordScreen';
+
+console.log("ChangePasswordScreen:", ChangePasswordScreen);
+// -------------------------
+// ---------------------------
 // ⭐ Navigation 타입 정의
 // ----------------------------------------------------
 export type RootStackParamList = {
@@ -56,6 +62,11 @@ export type RootStackParamList = {
   // 공지사항
   WorkerNoticeList: undefined;
   WorkerNoticeDetail: { noticeId: number };
+
+  ForgotPassword: undefined;
+  ChangePassword: undefined;
+
+  WorkerChangePassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -102,6 +113,12 @@ export default function App() {
           {/* OCR */}
           <Stack.Screen name="IdCardCamera" component={IdCardCameraScreen} />
           <Stack.Screen name="ContractCamera" component={ContractCameraScreen} />
+
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen}/>
+
+          <Stack.Screen name="WorkerChangePassword" component={WorkerChangePasswordScreen} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

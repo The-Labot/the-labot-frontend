@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,49 +8,51 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Modal,
 } from 'react-native';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, X } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { getTempAccessToken } from '../api/auth';
 import { BASE_URL } from '../api/config';
 
+import ImageViewer from 'react-native-image-zoom-viewer';
+import ScreenWrapper from '../ScreenWrapper';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'MapManagement'>;
 
 const MapManagementScreen: React.FC<Props> = ({ navigation }) => {
-  const [siteMapUrl, setSiteMapUrl] = React.useState<string | null>(null);
+  const [siteMapUrl, setSiteMapUrl] = useState<string | null>(null);
+
+  // 🔵 확대 모달 상태
+  const [zoomVisible, setZoomVisible] = useState(false);
 
   // === 지도 조회 ===
-const fetchSiteMap = async () => {
-  console.log("📌 [지도조회] fetchSiteMap() 호출됨");
-  const token = getTempAccessToken();
-  if (!token) return;
+  const fetchSiteMap = async () => {
+    const token = getTempAccessToken();
+    if (!token) return;
 
-  try {
-    const res = await fetch(`${BASE_URL}/manager/map`, {
-      method: 'GET',
-      headers: {
-        Authorization: token,
-      },
-    });
+    try {
+      const res = await fetch(`${BASE_URL}/manager/map`, {
+        method: 'GET',
+        headers: { Authorization: token },
+      });
 
-    const text = await res.text();
-    console.log("📌 [지도조회] 서버 응답(raw):", text);
-    const json = JSON.parse(text);
-    console.log("📌 [지도조회] 파싱된 JSON:", json);
-    if (json.siteMapUrl && json.siteMapUrl.length > 0) {
-      const lastFile = json.siteMapUrl[json.siteMapUrl.length - 1];
-      setSiteMapUrl(lastFile.fileUrl); //url 자체가 s3경로 자체이기 때문에 그대로 사용
+      const text = await res.text();
+      const json = JSON.parse(text);
 
-    } else {
-      setSiteMapUrl(null);
+      if (json.siteMapUrl?.length > 0) {
+        setSiteMapUrl(json.siteMapUrl[json.siteMapUrl.length - 1].fileUrl);
+      } else {
+        setSiteMapUrl(null);
+      }
+    } catch (error) {
+      console.log("🚨 지도 조회 실패:", error);
     }
-  } catch (error) {
-    console.log("🚨 지도 조회 실패:", error);
-  }
-};
-  // === 지도 등록 ===
+  };
+
+  // === 지도 업로드 ===
   const handleSelectMap = () => {
     launchImageLibrary(
       { mediaType: 'photo', selectionLimit: 1 },
@@ -58,38 +60,27 @@ const fetchSiteMap = async () => {
         if (response.didCancel) return;
         if (!response.assets || response.assets.length === 0) return;
 
-        const image = response.assets[0];
-
-        if (!image.uri) {
-          Alert.alert('오류', '이미지를 불러올 수 없습니다.');
-          return;
-        }
-
-        await uploadMap(image);
+        await uploadMap(response.assets[0]);
       }
     );
   };
 
-  // === 서버 업로드 ===
   const uploadMap = async (image: any) => {
     const token = getTempAccessToken();
-    if (!token) {
-      Alert.alert('인증 오류', '로그인이 필요합니다.');
-      return;
-    }
+    if (!token) return;
 
     const formData = new FormData();
     formData.append('files', {
       uri: image.uri,
       name: image.fileName || 'map.jpg',
       type: image.type || 'image/jpeg',
-    }as any);
+    } as any);
 
     try {
       const res = await fetch(`${BASE_URL}/manager/map`, {
         method: 'POST',
         headers: {
-          Authorization: token, // Bearer 포함됨
+          Authorization: token,
           'Content-Type': 'multipart/form-data',
         },
         body: formData,
@@ -100,24 +91,23 @@ const fetchSiteMap = async () => {
       if (res.ok) {
         Alert.alert('성공', '지도 등록 성공!');
         fetchSiteMap();
-        // 서버에서 지도 URL을 내려주는 경우 반영
-        if (json.mapUrl) setSiteMapUrl(json.mapUrl);
       } else {
         Alert.alert('오류', json.message || '지도 등록 실패');
       }
     } catch (error) {
-      console.log(error);
       Alert.alert('오류', '업로드 중 문제가 발생했습니다.');
     }
   };
 
-  React.useEffect(() => {
-  fetchSiteMap();
-}, []);
+  useEffect(() => {
+    fetchSiteMap();
+  }, []);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <ScrollView contentContainerStyle={styles.container}>
-        
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -127,7 +117,11 @@ const fetchSiteMap = async () => {
         </View>
 
         {/* 지도 이미지 영역 */}
-        <View style={styles.mapContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => siteMapUrl && setZoomVisible(true)}
+          style={styles.mapContainer}
+        >
           {siteMapUrl ? (
             <Image
               source={{ uri: siteMapUrl }}
@@ -139,7 +133,7 @@ const fetchSiteMap = async () => {
               <Text style={styles.noImageText}>등록된 현장 지도가 없습니다</Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* 버튼 영역 */}
         <View style={styles.buttonArea}>
@@ -147,9 +141,34 @@ const fetchSiteMap = async () => {
             <Text style={styles.actionBtnText}>지도 등록</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
-    </SafeAreaView>
+
+      {/* ======================= */}
+      {/* 확대 모달 */}
+      {/* ======================= */}
+      <Modal visible={zoomVisible} transparent={true}>
+        <View style={{ flex: 1, backgroundColor: 'black' }}>
+          {/* 닫기 버튼 */}
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => setZoomVisible(false)}
+          >
+            <X size={28} color="white" />
+          </TouchableOpacity>
+
+          {/* 이미지 확대 뷰어 */}
+          <ImageViewer
+            imageUrls={[{ url: siteMapUrl ?? '' }]}
+            enableSwipeDown
+            onSwipeDown={() => setZoomVisible(false)}
+            saveToLocalByLongPress={false}
+            backgroundColor="black"
+          />
+        </View>
+      </Modal>
+
+    </ScreenWrapper>
+
   );
 };
 
@@ -177,6 +196,13 @@ const styles = StyleSheet.create({
   },
   mapImage: { width: '100%', height: '100%' },
 
+  noImageBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noImageText: { color: '#6B7280', fontSize: 14 },
+
   buttonArea: { width: '100%', gap: 12 },
   actionButton: {
     height: 48,
@@ -187,12 +213,11 @@ const styles = StyleSheet.create({
   },
   actionBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 
-  noImageBox: {
-    flex: 1,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  closeBtn: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 999,
+    padding: 8,
   },
-  noImageText: { color: '#6B7280', fontSize: 14 },
 });

@@ -149,49 +149,55 @@ export default function AttendanceHistoryScreen({ navigation }: Props) {
   return (
     <ScreenWrapper>
 
-      <ScrollView style={styles.container}>
-
-        {/* ===== Header ===== */}
-        <View style={styles.header}>
+      <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <ArrowLeft size={22} color="#374151" />
           </TouchableOpacity>
 
           <View style={{ alignItems: "center" }}>
             <Text style={styles.headerTitle}>출퇴근 기록</Text>
-            <Text style={styles.headerSubtitle}>Attendance History</Text>
+            <Text style={styles.headerSubtitle}>Attendance Hitory</Text>
           </View>
-        </View>
+      </View>
+      {/* ===== Year/Month 선택 ===== */}
+       <View style={{ paddingHorizontal: 20 }}>
+  <View style={styles.selectorRow}>
+    <View style={styles.selectorBox}>
+      <Calendar size={16} color="#666" style={{ marginRight: 6 }} />
+      <Picker
+        selectedValue={selectedYear}
+        onValueChange={setSelectedYear}
+        style={{ flex: 1 }}
+      >
+        <Picker.Item label="2025년" value="2025" />
+        <Picker.Item label="2024년" value="2024" />
+      </Picker>
+    </View>
 
-        {/* ===== Year/Month 선택 ===== */}
-        <View style={styles.selectorRow}>
-          <View style={styles.selectorBox}>
-            <Calendar size={16} color="#666" style={{ marginRight: 6 }} />
-            <Picker
-              selectedValue={selectedYear}
-              onValueChange={(value) => setSelectedYear(value)}
-              style={styles.picker}
-            >
-              <Picker.Item label="2025년" value="2025" />
-              <Picker.Item label="2024년" value="2024" />
-              <Picker.Item label="2023년" value="2023" />
-            </Picker>
-          </View>
+    <View style={styles.selectorBox}>
+      <Picker
+        selectedValue={selectedMonth}
+        onValueChange={setSelectedMonth}
+        style={{ flex: 1 }}
+      >
+        {Array.from({ length: 12 }, (_, i) => {
+          const m = String(i + 1).padStart(2, "0");
+          return <Picker.Item label={`${m}월`} value={m} key={m} />;
+        })}
+      </Picker>
+    </View>
+  </View>
+</View>
 
-          <View style={styles.selectorBox}>
-            <Picker
-              selectedValue={selectedMonth}
-              onValueChange={(value) => setSelectedMonth(value)}
-              style={styles.picker}
-            >
-              {Array.from({ length: 12 }, (_, i) => {
-                const m = String(i + 1).padStart(2, "0");
-                return <Picker.Item label={`${m}월`} value={m} key={m} />;
-              })}
-            </Picker>
-          </View>
-        </View>
 
+
+
+      <ScrollView style={styles.container}>
+
+        {/* ===== Header ===== */}
+
+
+    
         {/* ===== Summary ===== */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>

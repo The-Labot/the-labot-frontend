@@ -202,7 +202,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* 하단 링크 */}
           <View style={styles.bottomRow}>
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity activeOpacity={0.7}
+              onPress={() => navigation.navigate("ForgotPassword")}
+>
               <Text style={styles.bottomLink}>비밀번호 찾기</Text>
             </TouchableOpacity>
           </View>

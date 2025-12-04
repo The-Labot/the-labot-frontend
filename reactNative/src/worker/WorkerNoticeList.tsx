@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { BASE_URL } from '../api/config';
 import { getTempAccessToken } from '../api/auth';
+import ScreenWrapper from "../ScreenWrapper";
 
 export default function WorkerNoticeList({ navigation }: any) {
   const [notices, setNotices] = useState<any[]>([]);
@@ -68,7 +69,7 @@ export default function WorkerNoticeList({ navigation }: any) {
     : notices;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <ScreenWrapper>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
@@ -141,7 +142,7 @@ export default function WorkerNoticeList({ navigation }: any) {
           );
         })}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

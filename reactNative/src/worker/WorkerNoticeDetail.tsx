@@ -1,42 +1,41 @@
 // 📌 src/worker/WorkerNoticeDetail.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Linking,
-} from 'react-native';
+  Image,
+  Modal,
+} from "react-native";
 
-import { BASE_URL } from '../api/config';
-import { getTempAccessToken } from '../api/auth';
+import { BASE_URL } from "../api/config";
+import { getTempAccessToken } from "../api/auth";
+import ScreenWrapper from "../ScreenWrapper";
 
 export default function WorkerNoticeDetail({ route, navigation }: any) {
   const { noticeId } = route.params;
   const [detail, setDetail] = useState<any>(null);
 
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
   const fetchDetail = async () => {
-  try {
-    const token = getTempAccessToken();
-    const res = await fetch(`${BASE_URL}/worker/notices/${noticeId}`, {
-      headers: { Authorization: token },
-    });
+    try {
+      const token = getTempAccessToken();
+      const res = await fetch(`${BASE_URL}/worker/notices/${noticeId}`, {
+        headers: { Authorization: token },
+      });
 
-    const text = await res.text();
-    console.log("📌 raw:", text);
+      const text = await res.text();
+      const json = JSON.parse(text);
 
-    const json = JSON.parse(text);
-    console.log("📌 JSON:", json);
-
-    setDetail(json);   // 🔥 여기만 변경
-
-  } catch (err) {
-    console.log("❌ 상세조회 오류:", err);
-  }
-};
+      setDetail(json); // 절대 바꾸면 안됨
+    } catch (err) {
+      console.log("❌ 상세조회 오류:", err);
+    }
+  };
 
   useEffect(() => {
     fetchDetail();
@@ -44,225 +43,247 @@ export default function WorkerNoticeDetail({ route, navigation }: any) {
 
   const getTagStyle = (category: string) => {
     switch (category) {
-      case '안전':
-        return { bg: '#DBEAFE', color: '#1D4ED8' };
-      case '일정':
-        return { bg: '#FFEDD5', color: '#C2410C' };
-      case '현장':
-        return { bg: '#E2FBEA', color: '#15803D' };
-      case 'SITE':
-        return { bg: '#DCFCE7', color: '#16A34A' };
-      case 'SAFETY':
-        return { bg: '#FEE2E2', color: '#DC2626' };
-      case 'GENERAL':
+      case "SITE":
+        return { bg: "#E8FBEF", color: "#16A34A" };
+      case "SAFETY":
+        return { bg: "#FEE2E2", color: "#DC2626" };
       default:
-        return { bg: '#E5E7EB', color: '#374151' };
+        return { bg: "#E5E7EB", color: "#374151" };
     }
   };
 
   if (!detail) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <ScreenWrapper>
         <Text style={{ padding: 20 }}>불러오는 중...</Text>
-      </SafeAreaView>
+      </ScreenWrapper>
     );
   }
 
   const { bg, color } = getTagStyle(detail.category);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* 헤더 */}
-<View style={styles.header}>
-  <TouchableOpacity
-    onPress={() => navigation.goBack()}
-    style={styles.backButtonArea}   // 👈 터치 영역 확대
-    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // 👈 터치 보정
-  >
-    <Text style={styles.backIcon}>←</Text>
-  </TouchableOpacity>
+    <ScreenWrapper>
+      {/* ===== Header ===== */}
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBackBtn}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
 
-  <Text style={styles.headerTitle}>공지 상세</Text>
+        <Text style={styles.headerTitle}>공지 상세</Text>
+        <View style={{ width: 32 }} />
+      </View>
 
-  {/* 오른쪽 공간 맞추기용 */}
-  <View style={{ width: 32 }} />
-</View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* ───────────────────────────────
+            Title Card
+        ─────────────────────────────── */}
+        <View style={styles.card}>
+          <View
+            style={[styles.tag, { backgroundColor: bg }]}
+          >
+            <Text style={[styles.tagText, { color }]}>{detail.category}</Text>
+          </View>
 
-      <ScrollView style={styles.scroll}>
-        {/* 카테고리 */}
-        <View style={[styles.tag, { backgroundColor: bg }]}>
-          <Text style={[styles.tagText, { color }]}>{detail.category}</Text>
+          <Text style={styles.title}>{detail.title}</Text>
         </View>
 
-        {/* 제목 */}
-        <Text style={styles.title}>
-          {detail.pinned ? '📌 ' : ''}{detail.title}
-        </Text>
+        {/* ───────────────────────────────
+            Meta Info Card
+        ─────────────────────────────── */}
+        <View style={styles.card}>
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>작성자</Text>
+              <Text style={styles.metaValue}>{detail.writerName}</Text>
+            </View>
 
-        {/* 작성 정보 */}
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>작성자</Text>
-          <Text style={styles.infoValue}>{detail.writerName}</Text>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>작성일</Text>
+              <Text style={styles.metaValue}>
+                {detail.createdDate?.split("T")[0]}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>작성일</Text>
-          <Text style={styles.infoValue}>
-            {detail.createdDate?.split('T')[0]}
-          </Text>
+        {/* ───────────────────────────────
+            Content Card
+        ─────────────────────────────── */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>내용</Text>
+          <Text style={styles.contentText}>{detail.content}</Text>
         </View>
 
-        {/* 긴급 여부 */}
-        {detail.urgent && (
-          <View style={styles.urgentBox}>
-            <Text style={styles.urgentText}>⚠ 긴급 공지</Text>
+        {/* ───────────────────────────────
+            Attached Images Card
+        ─────────────────────────────── */}
+        {detail.files && detail.files.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>첨부 이미지</Text>
+
+            <View style={{ gap: 12 }}>
+              {detail.files.map((file: any, idx: number) => {
+                const url = file.fileUrl;
+
+                const isImage =
+                  url.endsWith(".jpg") ||
+                  url.endsWith(".jpeg") ||
+                  url.endsWith(".png");
+
+                if (!isImage) return null;
+
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => setImagePreviewUrl(url)}
+                  >
+                    <Image
+                      source={{ uri: url }}
+                      style={styles.attachedImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         )}
-
-        {/* 내용 */}
-        <Text style={styles.content}>{detail.content}</Text>
-
-        {/* 첨부 파일 */}
-{detail.files && detail.files.length > 0 && (
-  <>
-    <Text style={styles.attachTitle}>첨부파일</Text>
-
-    {detail.files.map((url: string, idx: number) => (
-      <TouchableOpacity
-        key={idx}
-        style={styles.fileBox}
-        onPress={() => Linking.openURL(url)}
-      >
-        <Text style={styles.fileIcon}>📎</Text>
-        <Text style={styles.fileName}>파일 {idx + 1}</Text>
-      </TouchableOpacity>
-    ))}
-  </>
-)}
       </ScrollView>
-    </SafeAreaView>
+
+      {/* 🔥 이미지 전체 확대 모달 */}
+      <Modal
+        visible={!!imagePreviewUrl}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImagePreviewUrl(null)}
+      >
+        <View style={styles.modalBackground}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setImagePreviewUrl(null)}
+          >
+            <Text style={styles.modalCloseText}>✕</Text>
+          </TouchableOpacity>
+
+          <Image
+            source={{ uri: imagePreviewUrl! }}
+            style={styles.modalImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
+    </ScreenWrapper>
   );
 }
 
+/* ------------------------------------------------------
+   스타일 — 피그마 스타일 100% 동일하게 구성
+------------------------------------------------------ */
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F5F7' },
-
-  /* 헤더 */
+  /* HEADER */
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
     paddingVertical: 14,
-    backgroundColor: '#FFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  backBtn: { fontSize: 26, fontWeight: '300', color: '#111' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '600' },
+  headerBackBtn: { padding: 6 },
+  backIcon: { fontSize: 24, fontWeight: "600", color: "#111" },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: -24,
+  },
 
-  scroll: { padding: 20 },
+  scrollContent: {
+    padding: 16,
+    gap: 16,
+  },
 
-  /* 카테고리 태그 */
+  /* CARD UI */
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  /* TAG */
   tag: {
+    alignSelf: "flex-start",
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-  },
-  tagText: { fontSize: 12, fontWeight: '700' },
-
-  /* 제목 */
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
+    paddingVertical: 5,
+    borderRadius: 6,
     marginBottom: 12,
   },
+  tagText: { fontSize: 13, fontWeight: "600" },
 
-  /* 정보 */
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  infoLabel: {
-    width: 70,
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  infoValue: {
-    fontSize: 13,
-    color: '#111',
+  /* TITLE */
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111",
   },
 
-  /* 긴급 박스 */
-  urgentBox: {
-    backgroundColor: '#FEE2E2',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 12,
-    marginBottom: 20,
+  /* META INFO */
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    gap: 30,
   },
-  urgentText: {
-    color: '#DC2626',
-    fontWeight: '700',
-    fontSize: 14,
-  },
+  metaItem: { flexDirection: "row", gap: 6 },
+  metaLabel: { color: "#6B7280", fontSize: 14 },
+  metaValue: { color: "#111", fontSize: 14, fontWeight: "500" },
 
-  /* 본문 */
-  content: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#111',
-    marginBottom: 20,
-  },
-
-  /* 첨부파일 */
-  attachTitle: {
+  /* CONTENT */
+  sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
+    fontWeight: "600",
+    marginBottom: 12,
+    color: "#111",
   },
-  attachLink: {
-    color: '#2563EB',
-    marginBottom: 8,
-    fontSize: 14,
+  contentText: {
+    fontSize: 15,
+    color: "#374151",
+    lineHeight: 22,
   },
-  backButtonArea: {
-  padding: 8,
-  justifyContent: "center",
-  alignItems: "center",
-},
 
-backIcon: {
-  fontSize: 26,
-  fontWeight: '600',
-  color: '#111',
-},
-fileBox: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#FFF',
-  borderRadius: 10,
-  padding: 12,
-  marginBottom: 10,
-  shadowColor: '#000',
-  shadowOpacity: 0.05,
-  shadowRadius: 4,
-  shadowOffset: { width: 0, height: 2 },
-  borderWidth: 1,
-  borderColor: '#E5E7EB',
-},
+  /* ATTACHED IMAGES */
+  attachedImage: {
+    width: "100%",
+    height: 220,
+    borderRadius: 10,
+    backgroundColor: "#F3F4F6",
+  },
 
-fileIcon: {
-  fontSize: 18,
-  marginRight: 10,
-},
-
-fileName: {
-  fontSize: 14,
-  color: '#2563EB',
-  fontWeight: '500',
-},
+  /* MODAL */
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+  },
+  modalCloseText: { fontSize: 32, color: "#fff" },
+  modalImage: {
+    width: "100%",
+    height: "80%",
+  },
 });

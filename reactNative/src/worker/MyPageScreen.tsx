@@ -291,7 +291,10 @@ const MyPageScreen: React.FC<Props> = ({ navigation }) => {
             )}
 
             {/* 비밀번호 변경 */}
-            <TouchableOpacity style={styles.passwordRow}>
+            <TouchableOpacity
+              style={styles.passwordRow}
+              onPress={() => navigation.navigate("WorkerChangePassword")}
+            >
               <View>
                 <Text style={styles.passwordTitle}>비밀번호 변경</Text>
                 <Text style={styles.passwordDesc}>정기적으로 변경하세요</Text>

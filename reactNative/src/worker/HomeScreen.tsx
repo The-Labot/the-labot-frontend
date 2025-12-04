@@ -1,6 +1,6 @@
 // 📌 src/screens/HomeScreen.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../App';
 import { BASE_URL } from '../api/config';
 import { getTempAccessToken } from '../api/auth';
 import ScreenWrapper from '../ScreenWrapper';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkerHome'>;
 
@@ -109,6 +110,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     fetchNotices();
   }, []);
 
+    // 🔥 화면에 다시 돌아올 때마다 공지사항 재조회
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotices();
+    }, [])
+  );
   // 카테고리 색상 매핑
   const getTagStyle = (category: string) => {
     switch (category) {

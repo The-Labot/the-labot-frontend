@@ -176,7 +176,13 @@ const [socialOpen, setSocialOpen] = useState(false);
           <View style={styles.card}>
             <Text style={styles.cardTitle}>계정 관리</Text>
             <View style={styles.accountButtonRow}>
-              <TouchableOpacity style={[styles.primaryBtn, { flex: 1 }]}>
+              <TouchableOpacity
+                style={[styles.primaryBtn, { flex: 1 }]}
+                onPress={() => {
+                  console.log("비밀번호 변경 버튼 눌림");
+                  navigation.navigate("ChangePassword");
+                }}
+>
                 <Text style={styles.primaryBtnText}>비밀번호 변경</Text>
               </TouchableOpacity>
 

@@ -18,6 +18,9 @@ import { getTempAccessToken } from "../api/auth";
 import { BASE_URL } from "../api/config";
 import { launchImageLibrary } from "react-native-image-picker";
 
+import ImageViewer from "react-native-image-zoom-viewer";
+import { Modal } from "react-native";
+
 import {
   Megaphone,
   Pin,
@@ -829,45 +832,34 @@ const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
           </ScrollView>
         )}
       </View>
-      {imagePreviewVisible && (
-  <View
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.85)",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999,
-    }}
-  >
+     {/* 🔥 이미지 확대 모달 */}
+<Modal visible={imagePreviewVisible} transparent={true}>
+  <View style={{ flex: 1, backgroundColor: "black" }}>
+    
     {/* 닫기 버튼 */}
     <TouchableOpacity
+      onPress={() => setImagePreviewVisible(false)}
       style={{
         position: "absolute",
         top: 40,
-        right: 30,
+        right: 20,
+        zIndex: 10,
         padding: 10,
       }}
-      onPress={() => setImagePreviewVisible(false)}
     >
-      <Text style={{ fontSize: 32, color: "#fff" }}>✕</Text>
+      <Text style={{ color: "white", fontSize: 30 }}>✕</Text>
     </TouchableOpacity>
 
-    {/* 확대 이미지 */}
-    <Image
-      source={{ uri: imagePreviewUrl! }}
-      style={{
-        width: "90%",
-        height: "70%",
-        borderRadius: 12,
-      }}
-      resizeMode="contain"
+    {/* 이미지 확대 */}
+    <ImageViewer
+      imageUrls={[{ url: imagePreviewUrl! }]}
+      enableSwipeDown={true}
+      onSwipeDown={() => setImagePreviewVisible(false)}
+      saveToLocalByLongPress={false}
+      backgroundColor="black"
     />
   </View>
-)}
+</Modal>
     
     </View>
 

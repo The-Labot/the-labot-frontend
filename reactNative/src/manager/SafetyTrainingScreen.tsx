@@ -10,7 +10,8 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-
+import ImageViewer from 'react-native-image-zoom-viewer';
+import { Modal } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useEffect } from 'react';
 import { getEducationList, createEducationLog, getEducationDetail,updateEducationLog, deleteEducationLog } from '../api/education';
@@ -874,45 +875,33 @@ const SafetyTrainingScreen: React.FC = () => {
           ? renderForm("edit")
           : renderViewMode()}
       </View>
-      {imagePreviewVisible && (
-  <View
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.9)",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999,
-    }}
-  >
+          <Modal visible={imagePreviewVisible} transparent={true}>
+  <View style={{ flex: 1, backgroundColor: 'black' }}>
+    
     {/* 닫기 버튼 */}
     <TouchableOpacity
+      onPress={() => setImagePreviewVisible(false)}
       style={{
-        position: "absolute",
+        position: 'absolute',
         top: 40,
-        right: 30,
+        right: 20,
+        zIndex: 10,
         padding: 10,
       }}
-      onPress={() => setImagePreviewVisible(false)}
     >
-      <Text style={{ fontSize: 34, color: "#fff" }}>✕</Text>
+      <Text style={{ color: 'white', fontSize: 30 }}>✕</Text>
     </TouchableOpacity>
 
-    {/* 확대 이미지 */}
-    <Image
-      source={{ uri: imagePreviewUrl! }}
-      style={{
-        width: "90%",
-        height: "75%",
-        borderRadius: 16,
-      }}
-      resizeMode="contain"
+    {/* 확대 뷰어 */}
+    <ImageViewer
+      imageUrls={[{ url: imagePreviewUrl! }]}
+      enableSwipeDown
+      onSwipeDown={() => setImagePreviewVisible(false)}
+      backgroundColor="black"
+      saveToLocalByLongPress={false}
     />
   </View>
-)}
+</Modal>
     </View>
   );
 };

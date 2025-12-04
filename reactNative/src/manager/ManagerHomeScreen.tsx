@@ -15,7 +15,7 @@ import { RootStackParamList } from "../../App";
 
 import { WorkStatusPanel } from "./WorkStatusPanel";
 import WorkerManagementScreen from "./WorkerManagementScreen";
-import SafetyReportScreen from "./ManagerHazardsScreen.tsx";
+import SafetyReportScreen from "./ManagerHazardsScreen";
 import ManagerAnnouncementsScreen from "./ManagerAnnouncementsScreen";
 import SafetyTrainingScreen from "./SafetyTrainingScreen";
 import DailyReportScreen from "./DailyReportScreen";
@@ -29,7 +29,7 @@ import {
   FileText,
   User,
 } from "lucide-react-native";
-
+import ScreenWrapper from '../ScreenWrapper';
 type Props = NativeStackScreenProps<RootStackParamList, "ManagerHome">;
 
 type NavigationItemId =
@@ -108,7 +108,8 @@ useEffect(() => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ScreenWrapper>
+
       <View style={styles.root}>
         {/* =================== 사이드바 =================== */}
         <View style={styles.sidebar}>
@@ -208,7 +209,8 @@ useEffect(() => {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenWrapper>
+
   );
 };
 
