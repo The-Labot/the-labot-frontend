@@ -12,7 +12,7 @@ import WorkerList from "./worker_management/WorkerListPage"
 import Payroll from "./payroll/PayrollManagementPage"
 import ForgotPasswordPage from "./forget_password/ForgotPasswordPage";
 import SiteEdigPage from "./site_edit/SiteEditPage"
-
+import SiteManagerPage from "./manager/SiteManagerPage"
 function App() {
   return (
     <BrowserRouter>
@@ -32,6 +32,7 @@ function App() {
 
         <Route path="/site/:siteId" element={<SiteDetailPage />} />
         <Route path="/site/:siteId/edit" element={<SiteEdigPage />} />
+        <Route path="/site/:siteId/managers" element={<SiteManagerPage />} />
         <Route path="/site/:siteId/work-status" element={<WorkStatusPage />} />
         <Route path="/site/:siteId/work-management" element={<WorkerList />} />
         <Route path="/site/:siteId/payroll" element={<Payroll />} />

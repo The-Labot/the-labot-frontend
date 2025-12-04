@@ -376,3 +376,18 @@
 .site-view-button:hover {
   background: #f3f4f6;
 }
+
+.manager-button {
+  margin-left: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+  background: #ffffff;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.manager-button:hover {
+  background: #eff6ff; /* 살짝 파란 배경 */
+}

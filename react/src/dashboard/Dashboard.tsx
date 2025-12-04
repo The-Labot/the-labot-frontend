@@ -194,35 +194,56 @@ export default function Dashboard({
             </thead>
 
             <tbody>
-              {filteredSites.map((site) => (
-                <tr key={site.siteId}>
-                  <td>{site.siteName}</td>
-                  <td>{site.siteAddress}</td>
-                  <td className="text-center">{site.managerCount}명</td>
-                  <td className="text-center">{site.workerCount}명</td>
+  {filteredSites.map((site) => (
+    <tr key={site.siteId}>
+      <td>{site.siteName}</td>
+      <td>{site.siteAddress}</td>
 
-                  {/* 🔥 현장조회 버튼 → 상세페이지 이동 */}
-                  <td className="text-center">
-                    <button
-                      className="site-view-button"
-                      onClick={() => navigate(`/site/${site.siteId}`)}
-                    >
-                      조회
-                    </button>
-                  </td>
+      <td className="text-center">
+        {site.managerCount}명
 
-                  {/* 기존 상세보기 버튼 (원하면 제거 가능) */}
-                  <td className="text-center">
-                    <button
-                      className="detail-btn"
-                      onClick={() => navigate(`/site/${site.siteId}/work-status`)}
-                    >
-                      작업현황
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+        {/* 🔥 추가된 버튼 */}
+        <button
+          className="manager-button"
+          onClick={() => navigate(`/site/${site.siteId}/managers`)}
+        >
+          관리
+        </button>
+      </td>
+      <td className="text-center">
+        {site.workerCount}명
+
+        {/* 🔥 추가된 버튼 */}
+        <button
+          className="manager-button"
+          onClick={() => navigate(`/site/${site.siteId}/work-management`)}
+        >
+          관리
+        </button>
+      </td>
+
+      <td className="text-center">
+        <button
+          className="manager-button"
+          onClick={() => navigate(`/site/${site.siteId}`)}
+        >
+          조회
+        </button>
+      </td>
+
+      <td className="text-center">
+        <button
+          className="manager-button"
+          onClick={() =>
+            navigate(`/site/${site.siteId}/work-status`)
+          }
+        >
+          작업현황
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
 
           {filteredSites.length === 0 && (

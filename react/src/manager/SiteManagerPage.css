@@ -1,0 +1,105 @@
+.site-manager-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* HEADER */
+.site-manager-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* ADD BUTTON */
+.add-manager-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.add-manager-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* CREATE FORM */
+.create-manager-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  margin-bottom: 20px;
+}
+
+.create-manager-box input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.submit-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* MANAGER LIST */
+.manager-list {
+  margin-top: 10px;
+}
+
+.manager-card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 12px;
+}
+
+.manager-name {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.manager-phone {
+  font-size: 15px;
+  color: #555;
+}
+
+.empty-text {
+  color: #777;
+  text-align: center;
+  margin-top: 30px;
+}

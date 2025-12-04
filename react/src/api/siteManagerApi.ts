@@ -1,27 +1,36 @@
 // src/api/siteManagerApi.ts
-import apiClient from "./apiClient";
+import api from "./axios";
 
-// 요청 body 타입
-export interface CreateSiteManagerRequest {
-  phoneNumber: string; // 로그인용 전화번호
-  name: string;        // 현장관리자 이름
-}
+const API_URL = "http://localhost:8080/api";
 
-// 응답 타입 (문서 예시 기준)
-export interface CreateSiteManagerResponse {
-  message: string; // "현장관리자 계정 생성 성공"
-  status: number;  // 200
-}
+/* 공통 헤더 */
+const authHeader = () => {
+  const token = localStorage.getItem("accessToken");
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
 
-// siteId에 해당하는 현장에 관리자 계정 생성
-export const createSiteManager = (
-  siteId: string | number,
-  data: CreateSiteManagerRequest
-) => {
-  // baseURL: http://localhost:8080/api 이라고 가정
-  // 최종 URL: POST http://localhost:8080/api/admin/sites/{siteId}/manager
-  return apiClient.post<CreateSiteManagerResponse>(
-    `/admin/sites/${siteId}/manager`,
-    data
+/* 현장관리자 목록 조회 */
+export const getSiteManagers = async (siteId: number) => {
+  const res = await api.get(
+    `${API_URL}/admin/sites/${siteId}/manager`,
+    { headers: authHeader() }
   );
+
+  return res.data.data;
+};
+
+/* 현장관리자 등록 */
+export const createSiteManager = async (
+  siteId: number,
+  data: { name: string; phoneNumber: string }
+) => {
+  const res = await api.post(
+    `${API_URL}/admin/sites/${siteId}/manager`,
+    data,
+    { headers: authHeader() }
+  );
+
+  return res.data;
 };
