@@ -11,7 +11,9 @@ const PROD_URL = 'https://www.the-labot.site/api';
  * 팀원들이 npm run android 등으로 실행할 때 이 주소가 사용됩니다.
  */
 const DEV_URL = Platform.OS === 'android'
-  ? 'http://172.30.1.7:8080/api'  // 안드로이드 에뮬레이터용
+
+  ? 'http://10.0.2.2:8080/api'
+
   : 'http://localhost:8080/api'; // iOS 시뮬레이터용
 
 /**

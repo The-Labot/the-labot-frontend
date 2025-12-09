@@ -448,7 +448,9 @@ const styles = StyleSheet.create({
   bottomBar: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingBottom: 30,   // ⭐ 추가: 바텀을 확실히 띄움
+
+    paddingBottom: 120,   // ⭐ 추가: 바텀을 확실히 띄움
+
 
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,

@@ -600,7 +600,7 @@ export default function WorkerManagementScreen() {
                 setContractImage(null); // 신규 등록 누를때만 이미지 초기화
               }}
             >
-              <Text style={styles.primaryBtnText}>+ 근로자 추가</Text>
+              <Text style={styles.primaryBtnText}>- 근로자 추가</Text>
             </TouchableOpacity>
             <TextInput
               value={search}
