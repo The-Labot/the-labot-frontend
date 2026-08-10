@@ -16,6 +16,8 @@ lerna-debug.log*
 */dist/
 metro-cache/
 .bundle/
+# bundler가 CocoaPods용 gem을 설치하는 경로 (bundle install로 재생성)
+reactNative/vendor/
 *.local
 
 ############################
