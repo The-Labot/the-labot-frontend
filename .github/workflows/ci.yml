@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+  #GHA 캐시는 기본 브랜치에서 저장된 것만 모든 브랜치가 읽는다. 이 실행이 캐시를 채운다 (#51)
+  push:
+    branches:
+      - main
 
 jobs:
   build:
